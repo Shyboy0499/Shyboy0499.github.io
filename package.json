@@ -9,9 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@chakra-ui/react": "^3.35.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "babylonjs": "^9.11.0",
+    "framer-motion": "^12.40.0",
     "next": "16.2.7",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
