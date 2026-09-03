@@ -1,0 +1,534 @@
+---
+// 静态首页宿主：提供可读 Portfolio DOM、Portal shell 和 Runtime 挂载点。
+// 具体 3D 体验由 entry.ts 和 World 模块接管，页面本身不拥有渲染生命周期。
+import "../styles.css";
+import { SITE_CONFIG } from "../site.config";
+import {
+  portfolio,
+  portfolioCollectionById,
+  portfolioProjectById,
+} from "../content/portfolio";
+import { cosmicBinding } from "../worlds/cosmic/binding";
+import { createLiquidWorldPlacement } from "../worlds/world-picker-layout";
+import { WORLD_NAMING } from "../worlds/worlds.config";
+
+const { metadata, person } = portfolio;
+const { navigation, hero, contact } = cosmicBinding;
+const collections = cosmicBinding.collections.map((binding) => ({
+  ...portfolioCollectionById(binding.portfolioId),
+  ...binding,
+}));
+const openSourceProjects = cosmicBinding.projects.map((binding) => ({
+  ...portfolioProjectById(binding.portfolioId),
+  ...binding,
+}));
+const collaborationProjects = cosmicBinding.collaborations.map((binding) => ({
+  ...portfolioProjectById(binding.portfolioId),
+  ...binding,
+}));
+const collaborationMergedPrTotal = collaborationProjects.reduce(
+  (total, project) =>
+    total +
+    Number.parseInt(
+      project.metrics.find((metric) => metric.label === "MERGED PRS")?.value ??
+        "0",
+      10,
+    ),
+  0,
+);
+
+// 世界入口只读取命名索引；新增 World 并配置 entryPoster 后会自动加入液态拼贴。
+const selectableWorlds = Object.values(WORLD_NAMING).filter(
+  (world) => world.id !== WORLD_NAMING.cosmic.id,
+);
+const worldChoices = selectableWorlds.map((world, index) => {
+  const desktop = createLiquidWorldPlacement(index, selectableWorlds.length, 3);
+  const mobile = createLiquidWorldPlacement(index, selectableWorlds.length, 2);
+  return {
+    id: world.id,
+    label: world.chineseTitle,
+    poster: `/${world.entryPoster}`,
+    variant: index % 6,
+    style: [
+      `--liquid-left:${desktop.left}%`,
+      `--liquid-top:${desktop.top}%`,
+      `--liquid-width:${desktop.width}%`,
+      `--liquid-height:${desktop.height}%`,
+      `--liquid-mobile-left:${mobile.left}%`,
+      `--liquid-mobile-top:${mobile.top}%`,
+      `--liquid-mobile-width:${mobile.width}%`,
+      `--liquid-mobile-height:${mobile.height}%`,
+    ].join(";"),
+  };
+});
+const cyclingSlides = [
+  {
+    focusId: "ride-04-shuikou-bike",
+    number: "01",
+    eyebrow: "RIDE LOG",
+    title: "水口镇的第一张车照",
+    summary: "把整段骑行的入口，先放在最能代表路感的一张图上。",
+    description:
+      "这张图对应你在水口镇拍车与江湖照片的时刻，也适合当成进入骑行章节后的第一幕。",
+    src: "/assets/cycling/ride-04-shuikou-bike.webp",
+    alt: "水口镇拍车与江湖照片",
+  },
+  {
+    focusId: "ride-01-flat-tire-tools",
+    number: "02",
+    eyebrow: "DAY 01",
+    title: "第一次自己补胎",
+    summary: "爆胎把旅程按停，也把补胎这件事变成了第一课。",
+    description:
+      "这两张图放在一起看，刚好能把“车坏了”到“自己修好”的过程说完整。",
+    src: "/assets/cycling/ride-01-flat-tire-tools.webp",
+    alt: "第一次自己补胎满地找工具",
+  },
+  {
+    focusId: "ride-02-flat-tire-repair",
+    number: "03",
+    eyebrow: "DAY 01",
+    title: "补胎完成后的确认",
+    summary: "修车不只是修车，还是一次很具体的自救。",
+    description:
+      "第二张补胎照片可以作为上一张的延续，强调你是真的把车重新推回了路上。",
+    src: "/assets/cycling/ride-02-flat-tire-repair.webp",
+    alt: "第一次自己补胎满地找工具2",
+  },
+  {
+    focusId: "ride-03-tankou-camp",
+    number: "04",
+    eyebrow: "CAMP",
+    title: "谭口村的露营夜",
+    summary: "骑行不只是往前，也包括在村子里安顿下来。",
+    description:
+      "露营、煮饭、采野果这一幕很适合放在中段，让整段经历有一个慢下来的呼吸。",
+    src: "/assets/cycling/ride-03-tankou-camp.webp",
+    alt: "骑行到闽清县云龙乡谭口村露营",
+  },
+  {
+    focusId: "ride-05-shuikou-town",
+    number: "05",
+    eyebrow: "TOWN",
+    title: "水口镇的公路与广场",
+    summary: "一座建在公路上的小镇，像补给点，也像路上的风景。",
+    description:
+      "这张可以放在露营之后，讲你继续沿闽江往前时看到的城镇结构和停靠痕迹。",
+    src: "/assets/cycling/ride-05-shuikou-town.webp",
+    alt: "水口镇的广场与公路",
+  },
+  {
+    focusId: "ride-06-nanping-hotel",
+    number: "06",
+    eyebrow: "STAY",
+    title: "把车推进酒店",
+    summary: "路上不是只有风景，也有临时的住处和现实的安排。",
+    description:
+      "这张图很适合放在章节后段，作为“今天先到这里”的落点。",
+    src: "/assets/cycling/ride-06-nanping-hotel.webp",
+    alt: "骑行到南平雅豪酒店把车推进来",
+  },
+  {
+    focusId: "ride-07-minjiang-rainbow",
+    number: "07",
+    eyebrow: "RIVER",
+    title: "闽江边遇到彩虹",
+    summary: "最后用一张带天气变化的照片收尾，旅程会更完整。",
+    description:
+      "彩虹和水面很适合放成章节结尾，让这次长途骑行有一个带回声的收束。",
+    src: "/assets/cycling/ride-07-minjiang-rainbow.webp",
+    alt: "沿着闽江走在邵武附近遇到彩虹",
+  },
+] as const;
+
+const routes = [
+  { id: hero.id, number: hero.number, route: hero.route },
+  ...collections.map(({ id, number, route }) => ({ id, number, route })),
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="description" content={metadata.description} />
+    <meta name="theme-color" content="#05070a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:title" content={metadata.title} />
+    <meta property="og:description" content={metadata.ogDescription} />
+    <meta property="og:image" content={SITE_CONFIG.ogImagePath} />
+    <meta property="og:type" content="website" />
+    <title>{metadata.title}</title>
+    <link rel="icon" href={SITE_CONFIG.iconPath} />
+    <link rel="manifest" href={SITE_CONFIG.manifestPath} />
+  </head>
+  <body>
+    <a class="skip-link" href="#story">跳到主要内容</a>
+
+    <!-- Runtime-owned WebGL surface and loading state. -->
+    <div class="experience" aria-hidden="true">
+      <canvas id="world"></canvas>
+    </div>
+
+    <div class="loader" data-loader aria-hidden="true">
+      <div class="loader-mark">{person.shortName}</div>
+      <div class="loader-track"><span data-loader-bar></span></div>
+      <p>INITIALIZING WORLD</p>
+    </div>
+
+    <!-- Persistent navigation remains usable independently of the 3D World. -->
+    <header class="site-header">
+      <a class="brand" href="#origin" aria-label="Shyboy0499 首页">
+        <span class="brand-mark">{person.shortName}</span>
+        <span class="brand-name">{person.name}</span>
+      </a>
+      <nav aria-label="主要导航">
+        {navigation.map((item) => <a href={`#${item.id}`}>{item.label}</a>)}
+        <a href={SITE_CONFIG.assetGalleryPath}>3D资产</a>
+      </nav>
+      <a
+        class="github-link"
+        href={SITE_CONFIG.githubUrl}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="打开 Shyboy0499 的 GitHub"
+      >
+        GH ↗
+      </a>
+    </header>
+
+    <aside class="route-rail" aria-label="五个总览章节">
+      <span class="route-line"></span>
+      {routes.map((route, index) => (
+        <a
+          href={`#${route.id}`}
+          class={index === 0 ? "is-active" : undefined}
+          data-route={index}
+        >
+          <span>{route.number}</span><b>{route.route}</b>
+        </a>
+      ))}
+    </aside>
+
+    <!-- Shared portal shell; each World supplies its destination and proximity. -->
+    <div class="portal-layer" data-portal-layer data-state="dormant" hidden>
+      <button class="portal-trigger" type="button" data-portal-trigger disabled>
+        <span data-portal-eyebrow>WORLD GATE</span>
+        <strong data-portal-label>ENTER THE TIDAL GATE</strong>
+        <small data-portal-target>ARCHIPELAGO</small>
+      </button>
+      <div class="portal-transition" data-portal-transition aria-hidden="true">
+        <img data-portal-snapshot alt="" />
+        <div class="portal-effect" aria-hidden="true"></div>
+        <p data-portal-status role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- Vertical overview story. DOM scroll progress drives the main camera path. -->
+    <main class="story" id="story">
+      <section class="chapter chapter-hero" id={hero.id} data-scene="0">
+        <div class="chapter-copy align-left">
+          <p class="eyebrow"><span>{hero.number}</span> {hero.eyebrow}</p>
+          <h1>{person.name}<span>.</span></h1>
+          <p class="hero-line">
+            {hero.line}<br />
+            <strong>{hero.emphasis}</strong>
+          </p>
+          <div class="hero-meta">
+            <span>{person.location}</span>
+            <span>{hero.since}</span>
+          </div>
+        </div>
+        <div class="chapter-index" aria-hidden="true">{hero.number}</div>
+        <div class="next-signal" aria-hidden="true">
+          {hero.signals.map((signal) => <span>{signal}</span>)}
+        </div>
+      </section>
+
+      {collections.map((collection, index) => (
+        <section
+          class:list={[
+            "chapter",
+            "collection-overview",
+            collection.id === "projects" && "world-picker-overview",
+          ]}
+          id={collection.id}
+          data-scene={index + 1}
+        >
+          <div class={`chapter-copy align-${collection.align}`}>
+            {collection.id === "projects" ? (
+              <>
+                <svg class="world-liquid-filter" aria-hidden="true">
+                  <filter
+                    id="world-liquid-distortion"
+                    x="-8%"
+                    y="-12%"
+                    width="116%"
+                    height="124%"
+                    color-interpolation-filters="sRGB"
+                  >
+                    <feTurbulence
+                      type="fractalNoise"
+                      baseFrequency="0.009 0.022"
+                      numOctaves="3"
+                      seed="17"
+                      result="liquid-noise"
+                    />
+                    <feDisplacementMap
+                      in="SourceAlpha"
+                      in2="liquid-noise"
+                      scale="48"
+                      xChannelSelector="R"
+                      yChannelSelector="B"
+                      result="liquid-alpha"
+                    />
+                    <feComposite
+                      in="SourceGraphic"
+                      in2="liquid-alpha"
+                      operator="in"
+                    />
+                  </filter>
+                </svg>
+                <div class="world-select" aria-label="选择要进入的世界">
+                  {worldChoices.map((world) => (
+                    <button
+                      class="world-select-card"
+                      type="button"
+                      data-world-choice={world.id}
+                      data-liquid-variant={world.variant}
+                      aria-label={`进入${world.label}`}
+                      style={world.style}
+                    >
+                      <img src={world.poster} alt="" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <p class="eyebrow">
+                  <span>{collection.number}</span> {collection.eyebrow}
+                </p>
+                <h1
+                  class="collection-title"
+                  set:html={collection.titleLines.join("<br />")}
+                />
+                <p class="lead">{collection.summary}</p>
+                <p class="body-copy">{collection.description}</p>
+
+                {collection.enterLabel && (
+                  <button
+                    class="enter-collection"
+                    type="button"
+                    data-collection-enter={collection.id}
+                  >
+                    <span>{collection.enterLabel}</span>
+                    <b aria-hidden="true">→</b>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+          {collection.id !== "projects" && (
+            <>
+              <div class="chapter-index" aria-hidden="true">
+                {collection.number}
+              </div>
+              <div class="next-signal" aria-hidden="true">
+                {collection.signals.map((signal) => (
+                  <span>
+                    {collection.id === "internship" && signal === "MERGED PRS"
+                      ? `${collaborationMergedPrTotal} ${signal}`
+                      : signal}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      ))}
+
+      <section class="contact" id="contact">
+        <p class="eyebrow"><span>{contact.number}</span> {contact.eyebrow}</p>
+        <h2>{contact.title}<br /><i>{contact.emphasis}</i></h2>
+        <div class="contact-links">
+          {person.links.map((link) => (
+            <a href={link.href} target="_blank" rel="noreferrer">
+              {link.label} <span>↗</span>
+            </a>
+          ))}
+        </div>
+        <footer>
+          <span>© <b data-year></b> {person.name}</span>
+          <span>REAL-TIME WEBGL / BUILT ON GITHUB</span>
+          <a href="#origin">BACK TO ORIGIN ↑</a>
+        </footer>
+      </section>
+    </main>
+
+    <!-- Lateral project branch layered above the overview without changing URL. -->
+    <section
+      class="collection-detail"
+      data-collection-detail
+      aria-hidden="true"
+      inert
+      aria-label="开源项目群详情"
+    >
+      <div class="detail-toolbar">
+        <button class="detail-back" type="button" data-collection-exit>
+          <span aria-hidden="true">←</span>
+          <b>BACK</b>
+        </button>
+        <div class="detail-counter" aria-hidden="true">
+          <b data-collection-current>01</b>
+          <span>/</span>
+          <span data-collection-total>{String(openSourceProjects.length).padStart(2, "0")}</span>
+        </div>
+      </div>
+
+      <div class="detail-panels">
+        {openSourceProjects.map((project, index) => (
+          <article
+            class:list={[
+              "project-detail",
+              `detail-align-${project.align}`,
+              index === 0 && "is-active",
+            ]}
+            data-collection-item="open-source"
+            data-collection-focus={project.id}
+            data-collection-label={project.titleLines.join(" ")}
+            aria-hidden={index === 0 ? "false" : "true"}
+          >
+            <div class="project-detail-copy">
+              <p class="eyebrow">
+                <span>{project.number}</span> {project.eyebrow}
+              </p>
+              <h2 set:html={project.titleLines.join("<br />")} />
+              <p class="lead">{project.summary}</p>
+              <p class="body-copy">{project.description}</p>
+              <dl class="metrics">
+                {project.metrics.map((metric) => (
+                  <div>
+                    <dt>{metric.label}</dt>
+                    <dd>{metric.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div class="chapter-links">
+                {project.links.map((link) => (
+                  <a href={link.href} target="_blank" rel="noreferrer">
+                    {link.label} ↗
+                  </a>
+                ))}
+              </div>
+            </div>
+          </article>
+        ))}
+        {collaborationProjects.map((project) => {
+          const cover = project.media.find((media) => media.role === "cover");
+          return (
+          <article
+            class:list={[
+              "project-detail",
+              "collab-detail",
+              `detail-align-${project.align}`,
+            ]}
+            data-collection-item="internship"
+            data-collection-focus={project.id}
+            data-collection-label={project.titleLines.join(" ")}
+            aria-hidden="true"
+          >
+            <div class="collab-detail-grid">
+              <div class="project-detail-copy collab-detail-copy">
+                <p class="eyebrow">
+                  <span>{project.number}</span> {project.eyebrow}
+                </p>
+                <h2 set:html={project.titleLines.join("<br />")} />
+                <p class="lead">{project.summary}</p>
+                <p class="body-copy">{project.description}</p>
+                <dl class="metrics">
+                  {project.metrics.map((metric) => (
+                    <div>
+                      <dt>{metric.label}</dt>
+                      <dd>{metric.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div class="chapter-links">
+                  {project.links.map((link) => (
+                    <a href={link.href} target="_blank" rel="noreferrer">
+                      {link.label} ↗
+                    </a>
+                  ))}
+                </div>
+              </div>
+              {cover && (
+                <figure class="collab-detail-media">
+                  <img src={cover.src} alt={cover.alt} loading="lazy" />
+                  {cover.caption && <figcaption>{cover.caption}</figcaption>}
+                </figure>
+              )}
+            </div>
+          </article>
+          );
+        })}
+        {cyclingSlides.map((slide, index) => (
+          <article
+            class:list={[
+              "project-detail",
+              "ride-detail",
+              index % 2 === 0 ? "detail-align-right" : "detail-align-left",
+              index === 0 && "is-active",
+            ]}
+            data-collection-item="life"
+            data-collection-focus={slide.focusId}
+            data-collection-label={slide.title}
+            aria-hidden={index === 0 ? "false" : "true"}
+          >
+            <div class="ride-detail-grid">
+              <div class="project-detail-copy ride-detail-copy">
+                <p class="eyebrow">
+                  <span>{slide.number}</span> {slide.eyebrow}
+                </p>
+                <h2>{slide.title}</h2>
+                <p class="lead">{slide.summary}</p>
+                <p class="body-copy">{slide.description}</p>
+                <dl class="metrics">
+                  <div>
+                    <dt>ROUTE</dt>
+                    <dd>闽侯 → 韶山</dd>
+                  </div>
+                  <div>
+                    <dt>STEP</dt>
+                    <dd>{slide.number}</dd>
+                  </div>
+                  <div>
+                    <dt>MODE</dt>
+                    <dd>RIDE</dd>
+                  </div>
+                </dl>
+              </div>
+              <figure class="ride-detail-media">
+                <img src={slide.src} alt={slide.alt} loading={index === 0 ? "eager" : "lazy"} />
+              </figure>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <noscript>
+      <div class="noscript">
+        此页面需要 JavaScript 才能显示 3D 场景，但所有项目链接仍可通过页面文字访问。
+      </div>
+    </noscript>
+
+    <script src="../entry.ts"></script>
+  </body>
+</html>

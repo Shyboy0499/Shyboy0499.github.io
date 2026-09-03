@@ -1,0 +1,1438 @@
+---
+// 3D 资产墙页面：展示可复用模型资产清单，并为 asset-gallery.ts 提供预览 canvas。
+// 这里维护展示数据；实时 Three.js 预览生命周期由资产墙脚本负责。
+import "../styles.css";
+import { SITE_CONFIG } from "../site.config";
+import { JIANGHU_AGENTS } from "../worlds/jianghu/jianghu-agents.config";
+
+const sourceModules = import.meta.glob<string>(
+  "../**/*.{ts,astro,css,js,json,md}",
+  {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  },
+);
+
+const jianghuPoseLabels = {
+  doze: "待机",
+  startle: "惊起",
+  cheer: "招呼",
+  alert: "提示",
+  zzz: "睡意",
+} as const;
+
+const jianghuGuestPoseLabels = {
+  idle: "待机",
+  urge: "催促",
+  "walk-a": "行走 A",
+  "walk-b": "行走 B",
+} as const;
+
+const jianghuBackgroundAssets = [
+  {
+    id: "jianghu-background-yuelai-inn-night",
+    worldId: "jianghu",
+    title: "悦来客栈夜景",
+    world: "Jianghu World",
+    file: "public/jianghu-world/backgrounds/yuelai-inn-night.webp",
+    poster: "/jianghu-world/backgrounds/yuelai-inn-night.webp",
+    tags: ["背景图片", "舞台底图", "真实贴图"],
+    note: "江湖世界运行时使用的主舞台背景，来自 WORLD_NAMING.jianghu.sceneBackground。",
+  },
+  {
+    id: "jianghu-background-rpg-stream",
+    worldId: "jianghu",
+    title: "RPG 客栈直播背景",
+    world: "Jianghu World",
+    file: "public/jianghu-world/rpg-stream-bg-v2.webp",
+    poster: "/jianghu-world/rpg-stream-bg-v2.webp",
+    tags: ["背景图片", "资产墙预览", "真实贴图"],
+    note: "江湖资产墙此前使用的 RPG 客栈背景图，作为备用舞台海报保留展示。",
+  },
+] as const;
+
+const jianghuAgentSpriteAssets = JIANGHU_AGENTS.flatMap((agent) => {
+  if (agent.asset === "guest") {
+    return (["idle", "urge", "walk-a", "walk-b"] as const).map((pose) => ({
+      id: `jianghu-agent-${agent.folder}-${pose}`,
+      worldId: "jianghu",
+      title: `${agent.name} · ${jianghuGuestPoseLabels[pose]}`,
+      world: "Jianghu World",
+      file: `public/jianghu-world/agents/${agent.folder}/${pose}.webp`,
+      poster: `/jianghu-world/agents/${agent.folder}/${pose}.webp`,
+      tags: ["访客 sprite", agent.role, jianghuGuestPoseLabels[pose]],
+      note: `${agent.name} 使用 guest 通用 sprite，${pose}.webp 是它的 ${jianghuGuestPoseLabels[pose]} 姿态。`,
+    }));
+  }
+  return (["doze", "startle", "cheer", "alert"] as const).map((pose) => {
+    const fileName = pose === "alert" ? `${pose}.webp` : `${agent.asset}-${pose}.webp`;
+    return {
+      id: `jianghu-agent-${agent.folder}-${pose}`,
+      worldId: "jianghu",
+      title: `${agent.name} · ${jianghuPoseLabels[pose]}`,
+      world: "Jianghu World",
+      file: `public/jianghu-world/agents/${agent.folder}/${fileName}`,
+      poster: `/jianghu-world/agents/${agent.folder}/${fileName}`,
+      tags: ["角色 sprite", agent.role, jianghuPoseLabels[pose]],
+      note: `${agent.name} 的 ${jianghuPoseLabels[pose]} 姿态图片，运行时由 JianghuScene 根据对话和状态切换。`,
+    };
+  });
+});
+
+const jianghuStatusEffectAssets = [
+  {
+    id: "jianghu-effect-zzz",
+    worldId: "jianghu",
+    title: "睡意状态特效",
+    world: "Jianghu World",
+    file: "public/jianghu-world/agents/baijuyi/zzz.webp",
+    poster: "/jianghu-world/agents/baijuyi/zzz.webp",
+    tags: ["状态特效", "睡意", "样例"],
+    note: "zzz.webp 是角色睡意状态的附加特效，不再按每个角色重复展示。",
+  },
+] as const;
+
+const jianghuGuestSpriteAssets = (["guest-girl"] as const).flatMap((folder) =>
+  (["idle", "urge", "walk-a", "walk-b"] as const).map((pose) => ({
+    id: `jianghu-agent-${folder}-${pose}`,
+    worldId: "jianghu",
+    title: `访客少女 · ${jianghuGuestPoseLabels[pose]}`,
+    world: "Jianghu World",
+    file: `public/jianghu-world/agents/${folder}/${pose}.webp`,
+    poster: `/jianghu-world/agents/${folder}/${pose}.webp`,
+    tags: ["访客 sprite", "玩家角色", jianghuGuestPoseLabels[pose]],
+    note: `访客少女的 ${jianghuGuestPoseLabels[pose]} 姿态，移动和对话时由 JianghuScene 切换。`,
+  })),
+);
+
+const jianghuImageAssets = [
+  ...jianghuBackgroundAssets,
+  ...jianghuAgentSpriteAssets,
+  ...jianghuStatusEffectAssets,
+  ...jianghuGuestSpriteAssets,
+];
+
+const previewAssets = [
+  {
+    id: "ship",
+    title: "探险小帆船",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/ship/ship.ts",
+    tags: ["独立主资产", "程序化建模", "船体/帆/灯/尾迹"],
+    views: "1,220",
+    likes: "253",
+    saves: "36",
+    note: "主角船本体集中在 Ship 类里，尾迹作为 wake group 暴露给世界场景挂载。",
+  },
+  {
+    id: "flying-dutchman",
+    title: "幽灵荷兰人号",
+    world: "Archipelago / Mythic",
+    file: "src/worlds/archipelago/scene/landmarks/flying-dutchman.ts",
+    tags: ["独立数字资产", "腐木残骸", "深海诅咒"],
+    note: "用错位船板、多片破帆、船尾楼、炮口、吊笼、锚链和海藻重建幽灵船剪影。",
+  },
+  {
+    id: "ancient-jungle-portal",
+    title: "远古丛林传送门",
+    world: "Archipelago / Ruins",
+    file: "src/worlds/archipelago/scene/landmarks/ancient-jungle-portal.ts",
+    tags: ["独立数字资产", "遗迹建筑", "Shader 旋涡"],
+    views: "486",
+    likes: "129",
+    saves: "31",
+    note: "石阶、双柱和残破拱顶构成遗迹主体，藤蔓苔藓、环绕符文与多层蓝色旋涡共同塑造传送门。",
+  },
+  {
+    id: "voxel-nether-portal",
+    title: "像素下界传送门",
+    world: "Voxel Realm",
+    file: "src/worlds/archipelago/scene/landmarks/voxel-nether-portal.ts",
+    tags: ["独立数字资产", "体素建模", "像素 Shader"],
+    views: "512",
+    likes: "146",
+    saves: "38",
+    note: "由独立黑曜石方块搭建门框，内部能量面使用像素化 Shader，并配有方形粒子、紫色辉光与草地方块基座。",
+  },
+  {
+    id: "tidepool-arena-portal",
+    title: "星潮竞技场传送池",
+    world: "Arena / Tide",
+    file: "src/worlds/archipelago/scene/landmarks/tidepool-arena-portal.ts",
+    tags: ["独立数字资产", "地面传送池", "漩涡 Shader"],
+    views: "538",
+    likes: "158",
+    saves: "42",
+    note: "浅金沙石围住青蓝漏斗漩涡，断续白浪、泡泡、贝壳、海星与小螃蟹共同营造轻快的竞技场入口。",
+  },
+  {
+    id: "kame-island-scene",
+    title: "龟屋热带小岛",
+    world: "Anime Islands",
+    file: "src/worlds/archipelago/scene/island/kame-island-scene.ts",
+    tags: ["独立场景资产", "粉色木屋", "程序化椰树"],
+    views: "684",
+    likes: "212",
+    saves: "57",
+    note: "粉色木板房、红色人字屋顶、门廊与招牌组成主体，三棵倾斜椰树和极小沙洲还原标志性的热带孤岛剪影。",
+  },
+  {
+    id: "archipelago-maelstrom",
+    title: "大漩涡",
+    world: "Archipelago / Outer Sea",
+    file: "src/worlds/archipelago/scene/landmarks/archipelago-maelstrom.ts",
+    tags: ["世界环境地标", "海面漩涡", "能量裂隙"],
+    views: "731",
+    likes: "236",
+    saves: "64",
+    note: "灵感来自魔兽世界的大漩涡，以漏斗 Shader、螺旋白浪、环形礁岩和红橙能量柱构成外海灾变地标。",
+  },
+  {
+    id: "archipelago-maelstrom-v2",
+    title: "大漩涡 · 奥术裂变版",
+    world: "Archipelago / Azeroth",
+    file: "src/worlds/archipelago/scene/landmarks/archipelago-maelstrom-v2.ts",
+    tags: ["独立数字资产", "紫蓝奥术", "闪电与浮岩"],
+    views: "812",
+    likes: "274",
+    saves: "76",
+    note: "保留原版作为对照，强化版将裂隙改为紫蓝奥术风暴，并增加断续闪电、悬浮岩群、发光岩缝、符文环和多股螺旋能量流。",
+  },
+  {
+    id: "charybdis-whirlpool",
+    title: "卡律布狄斯巨口漩涡",
+    world: "Greek Myth / Open Sea",
+    file: "src/worlds/archipelago/scene/landmarks/charybdis-whirlpool.ts",
+    tags: ["独立环境资产", "活体海怪", "动态吞船"],
+    views: "628",
+    likes: "205",
+    saves: "51",
+    note: "把卡律布狄斯塑造成会呼吸和咬合的活体巨口：分层肌肉环、湿润触须与双层尖牙围住深井咽喉，探险小帆船会失控绕圈、倾覆并被完整吞入。",
+  },
+  {
+    id: "babel-tower",
+    title: "巴别塔",
+    world: "Mesopotamia / Mythic",
+    file: "src/worlds/archipelago/scene/landmarks/babel-tower.ts",
+    tags: ["独立建筑资产", "螺旋坡道", "拱廊与施工塔冠"],
+    views: "416",
+    likes: "137",
+    saves: "34",
+    note: "以层层收束的砖石锥台和连续螺旋坡道重建巴别塔剪影；密集拱廊、青金石釉带、残缺塔冠、木脚手架与吊臂共同表现宏大而未完工的神话工程。",
+  },
+  {
+    id: "noahs-ark",
+    title: "诺亚方舟",
+    world: "Genesis / The Flood",
+    file: "src/worlds/archipelago/scene/ship/noahs-ark.ts",
+    tags: ["独立船舶资产", "巨型封闭木船", "洪水漂浮动画"],
+    views: "438",
+    likes: "151",
+    saves: "39",
+    note: "采用沿船长连续收放的 loft 船壳重建方舟厚重体量，贯穿全船的木板压缝、外露肋骨、双层舱楼、成排采光窗和双坡屋顶共同形成没有桅杆的巨型避难船剪影。",
+  },
+  {
+    id: "forest-dome",
+    title: "森林岛 · 圆丘",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/island/island.ts + island-geometry.ts",
+    tags: ["真实岛型", "森林分支", "圆丘轮廓"],
+    views: "559",
+    likes: "143",
+    saves: "22",
+    note: "真实 IslandObject 生成的圆丘森林岛，seed 固定命中 forest 的 dome 分支。",
+  },
+  {
+    id: "forest-double",
+    title: "森林岛 · 双丘",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/island/island.ts + island-geometry.ts",
+    tags: ["真实岛型", "森林分支", "双丘轮廓"],
+    views: "418",
+    likes: "96",
+    saves: "18",
+    note: "真实 IslandObject 生成的双丘森林岛，两个半丘共享沙洲和树木生成逻辑。",
+  },
+  {
+    id: "forest-tiered",
+    title: "森林岛 · 层叠",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/island/island.ts + island-geometry.ts",
+    tags: ["真实岛型", "森林分支", "层叠岩台"],
+    views: "392",
+    likes: "88",
+    saves: "17",
+    note: "真实 IslandObject 生成的层叠森林岛，属于 buildIslandGeometry 的多层岩台分支。",
+  },
+  {
+    id: "forest-pillar",
+    title: "森林岛 · 峰柱",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/island/island.ts + island-geometry.ts",
+    tags: ["真实岛型", "森林分支", "高台柱岛"],
+    views: "376",
+    likes: "82",
+    saves: "15",
+    note: "真实 IslandObject 生成的峰柱森林岛，对应你截图里那种顶部平台、下方柱体的岛型。",
+  },
+  {
+    id: "volcano-island",
+    title: "火山岛",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/island/island-geometry.ts",
+    tags: ["地形变体", "烟雾源", "发光熔岩"],
+    views: "332",
+    likes: "83",
+    saves: "16",
+    note: "真实 IslandObject 生成的火山岛，火山锥、熔岩条、烟源和周边岩块来自 volcano 分支。",
+  },
+  {
+    id: "snow-spire",
+    title: "雪峰岛 · 尖塔",
+    world: "Archipelago",
+    file: "src/worlds/archipelago/scene/island/island-geometry.ts",
+    tags: ["真实岛型", "雪峰分支", "冰晶尖塔"],
+    views: "64",
+    likes: "14",
+    saves: "6",
+    note: "真实 IslandObject 生成的尖塔雪峰岛，复用同一套岛屿覆盖层和动画系统。",
+  },
+  {
+    id: "landmark-lighthouse",
+    title: "灯塔",
+    world: "Archipelago 地标",
+    file: "src/worlds/archipelago/scene/island/island-props.ts",
+    tags: ["岛屿地标", "引航塔", "夜间发光"],
+    views: "91",
+    likes: "18",
+    saves: "4",
+    note: "岛屿公共地标之一，带塔身、灯室和扇形灯束，适合放在高崖或海岬边缘。",
+  },
+  {
+    id: "landmark-windmill",
+    title: "风车",
+    world: "Archipelago 地标",
+    file: "src/worlds/archipelago/scene/island/island-props.ts",
+    tags: ["岛屿地标", "风能建筑", "旋转叶片"],
+    views: "74",
+    likes: "12",
+    saves: "3",
+    note: "岛屿公共地标之一，圆筒塔身和四叶风轮构成强识别轮廓，远景也容易认出来。",
+  },
+  {
+    id: "landmark-campfire",
+    title: "篝火",
+    world: "Archipelago 地标",
+    file: "src/worlds/archipelago/scene/island/island-props.ts",
+    tags: ["岛屿地标", "营地核心", "火光动画"],
+    views: "68",
+    likes: "10",
+    saves: "2",
+    note: "岛屿公共地标之一，由柴堆、火焰和光晕组成，常出现在营地或观景点附近。",
+  },
+  {
+    id: "landmark-flag",
+    title: "旗帜",
+    world: "Archipelago 地标",
+    file: "src/worlds/archipelago/scene/island/island-props.ts",
+    tags: ["岛屿地标", "路标", "飘动布旗"],
+    views: "62",
+    likes: "9",
+    saves: "2",
+    note: "岛屿公共地标之一，细长旗杆配布旗，适合作为岛屿位置标识或探索终点。",
+  },
+  {
+    id: "boost",
+    title: "移动端加速按钮",
+    world: "Archipelago UI",
+    file: "src/worlds/archipelago/scene/ship/mobile-boost-model.ts",
+    tags: ["独立小模型", "UI 资产", "单 canvas 渲染"],
+    views: "12",
+    likes: "3",
+    saves: "0",
+    note: "这是为移动端按钮单独做的 Three 小模型，和主海面 world 分开渲染。",
+  },
+  {
+    id: "cosmic-origin-hub",
+    worldId: "cosmic",
+    title: "宇宙起点枢纽",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["世界核心资产", "头像轨道", "章节入口"],
+    note: "Cosmic 的开场节点由头像圆盘、环形轨道、粒子和章节路径构成，作为整条太空叙事的起点。",
+  },
+  {
+    id: "cosmic-avatar-disc",
+    worldId: "cosmic",
+    title: "宇宙头像圆盘",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    poster: "/assets/avatar.webp",
+    tags: ["元素级物件", "头像贴图", "圆盘"],
+    note: "起点站的头像贴图圆盘和背板，是 Cosmic origin 里的独立视觉元素。",
+  },
+  {
+    id: "cosmic-orbit-rings",
+    worldId: "cosmic",
+    title: "宇宙轨道环",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["元素级物件", "Torus 轨道", "动画"],
+    note: "createOrbit 生成的多组 Torus 轨道环，用在起点、开源站、协作站和 Portal。",
+  },
+  {
+    id: "cosmic-orbital-nodes",
+    worldId: "cosmic",
+    title: "宇宙轨道节点",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["元素级物件", "节点粒子", "浮动动画"],
+    note: "addOrbitalNodes 批量生成的小型 Icosahedron 节点，并交给 floatingObjects 做漂浮。",
+  },
+  {
+    id: "cosmic-media-panel",
+    worldId: "cosmic",
+    title: "宇宙媒体面板",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["媒体面板", "项目贴图", "轨道陈列"],
+    note: "项目封面、骑行照片和协作内容都通过 Cosmic 的媒体面板进入空间站式陈列。",
+  },
+  {
+    id: "cosmic-opensource-hub",
+    worldId: "cosmic",
+    title: "宇宙开源总览站",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    poster: "/assets/isometric-preview.webp",
+    tags: ["独立站点", "媒体面板", "卫星组"],
+    note: "openSourceHub 组合主图、路线图缩略面板、线框核心、Knot、轨道和卫星。",
+  },
+  {
+    id: "cosmic-nexus-panel",
+    worldId: "cosmic",
+    title: "Claude Nexus 面板",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    poster: "/assets/claude-nexus-cover.webp",
+    tags: ["媒体面板", "项目封面", "Nexus"],
+    note: "Nexus 分支站的主封面面板，搭配橙色 TorusKnot 和项目标题。",
+  },
+  {
+    id: "cosmic-roadmap-panel",
+    worldId: "cosmic",
+    title: "Roadmap 面板",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    poster: "/assets/roadmap-cover.webp",
+    tags: ["媒体面板", "路线图", "蓝色线框核心"],
+    note: "Roadmap 分支站的大幅项目面板，旁边有蓝色 wireframe 核心和轨道节点。",
+  },
+  {
+    id: "cosmic-lab-icon-cube",
+    worldId: "cosmic",
+    title: "Lab 图标立方体",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    poster: "/assets/claude-nexus-icon.webp",
+    tags: ["元素级物件", "贴图立方体", "Lab"],
+    note: "labIcon 使用 claude-nexus-icon.webp 贴到立方体两面，并带蓝色描边和环绕轨道。",
+  },
+  {
+    id: "cosmic-wire-core",
+    worldId: "cosmic",
+    title: "宇宙线框核心",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["元素级物件", "wireframe", "Icosahedron"],
+    note: "开源站、路线图站和骑行概览里使用的蓝色 wireframe 核心。",
+  },
+  {
+    id: "cosmic-knot-core",
+    worldId: "cosmic",
+    title: "宇宙 Knot 核心",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["元素级物件", "TorusKnot", "橙色核心"],
+    note: "openSourceKnot 和 nexusKnot 使用 TorusKnotGeometry 构成可旋转的能量结。",
+  },
+  {
+    id: "cosmic-satellite-set",
+    worldId: "cosmic",
+    title: "宇宙卫星组",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["元素级物件", "几何卫星", "Box/Octahedron/Torus"],
+    note: "openSourceSatellites 由方块、八面体、圆环和十二面体组成，环绕开源总览站。",
+  },
+  {
+    id: "cosmic-collab-columns",
+    worldId: "cosmic",
+    title: "协作贡献柱阵",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["独立站点元素", "贡献柱", "协作分支"],
+    note: "createCollaborationStation 生成 DSH Desktop/TUI/Web UI 三组贡献柱阵。",
+  },
+  {
+    id: "cosmic-internship-columns",
+    worldId: "cosmic",
+    title: "团队成果柱阵",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["独立站点元素", "柱状图", "实习节点"],
+    note: "internship 站点里的五根成果柱，和头像媒体面板、轨道节点共同组成 TEAM/OUTCOME 节点。",
+  },
+  {
+    id: "cosmic-ride-route",
+    worldId: "cosmic",
+    title: "骑行路线网",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["元素级物件", "路线连线", "节点标记"],
+    note: "rideLog 和 life 站点把骑行图片面板连成路线线段，并在关键点放置节点标记。",
+  },
+  {
+    id: "cosmic-ride-photo-01",
+    worldId: "cosmic",
+    title: "骑行照片 01 · 补胎工具",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-01-flat-tire-tools.webp",
+    poster: "/assets/cycling/ride-01-flat-tire-tools.webp",
+    tags: ["骑行照片", "媒体面板", "真实贴图"],
+    note: "骑行日志站点中的第一张照片面板。",
+  },
+  {
+    id: "cosmic-ride-photo-02",
+    worldId: "cosmic",
+    title: "骑行照片 02 · 补胎维修",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-02-flat-tire-repair.webp",
+    poster: "/assets/cycling/ride-02-flat-tire-repair.webp",
+    tags: ["骑行照片", "媒体面板", "真实贴图"],
+    note: "骑行日志站点中的第二张照片面板。",
+  },
+  {
+    id: "cosmic-ride-photo-03",
+    worldId: "cosmic",
+    title: "骑行照片 03 · 坦口露营",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-03-tankou-camp.webp",
+    poster: "/assets/cycling/ride-03-tankou-camp.webp",
+    tags: ["骑行照片", "媒体面板", "真实贴图"],
+    note: "骑行日志和生活概览都会使用的露营照片面板。",
+  },
+  {
+    id: "cosmic-ride-photo-04",
+    worldId: "cosmic",
+    title: "骑行照片 04 · 水口单车",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-04-shuikou-bike.webp",
+    poster: "/assets/cycling/ride-04-shuikou-bike.webp",
+    tags: ["骑行照片", "主图面板", "真实贴图"],
+    note: "life 站点的骑行概览主图，也是骑行日志照片之一。",
+  },
+  {
+    id: "cosmic-ride-photo-05",
+    worldId: "cosmic",
+    title: "骑行照片 05 · 水口镇",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-05-shuikou-town.webp",
+    poster: "/assets/cycling/ride-05-shuikou-town.webp",
+    tags: ["骑行照片", "媒体面板", "真实贴图"],
+    note: "骑行日志站点中的城镇照片面板。",
+  },
+  {
+    id: "cosmic-ride-photo-06",
+    worldId: "cosmic",
+    title: "骑行照片 06 · 南平旅店",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-06-nanping-hotel.webp",
+    poster: "/assets/cycling/ride-06-nanping-hotel.webp",
+    tags: ["骑行照片", "媒体面板", "真实贴图"],
+    note: "骑行日志站点中的旅店照片面板。",
+  },
+  {
+    id: "cosmic-ride-photo-07",
+    worldId: "cosmic",
+    title: "骑行照片 07 · 闽江彩虹",
+    world: "Cosmic World",
+    file: "public/assets/cycling/ride-07-minjiang-rainbow.webp",
+    poster: "/assets/cycling/ride-07-minjiang-rainbow.webp",
+    tags: ["骑行照片", "媒体面板", "真实贴图"],
+    note: "骑行日志站点中的彩虹照片面板。",
+  },
+  {
+    id: "cosmic-final-portal",
+    worldId: "cosmic",
+    title: "宇宙终点 Portal",
+    world: "Cosmic World",
+    file: "src/worlds/cosmic/world.ts",
+    tags: ["Portal 资产", "Torus 门环", "Shader 水面"],
+    note: "finalWorld 里的终点 Portal，由双层 Torus、Shader 水面和 Octahedron 核心组成。",
+  },
+  {
+    id: "jianghu-inn-stage",
+    worldId: "jianghu",
+    title: "悦来客栈舞台",
+    world: "Jianghu World",
+    file: "src/worlds/jianghu/jianghu-scene.ts",
+    poster: "/jianghu-world/rpg-stream-bg-v2.webp",
+    tags: ["DOM 场景资产", "客栈背景", "人物舞台"],
+    note: "江湖世界的主体是 DOM 舞台，背景、人物、对话框和移动层都由 JianghuScene 管理。",
+  },
+  {
+    id: "jianghu-agent-sprite",
+    worldId: "jianghu",
+    title: "江湖人物名牌",
+    world: "Jianghu World",
+    file: "src/worlds/jianghu/jianghu-agents.config.ts + jianghu-scene.ts",
+    poster: "/jianghu-world/agents/cangjie/cangjie-cheer.webp",
+    tags: ["角色 sprite", "状态名牌", "对话入口"],
+    note: "每个江湖人物都由配置驱动位置、身份、状态和对白，渲染时生成可交互的角色按钮。",
+  },
+  ...jianghuImageAssets,
+  {
+    id: "linework-room-shell",
+    worldId: "linework",
+    title: "线稿房间壳",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/room-shell.ts",
+    tags: ["独立物件文件", "地面墙面", "空间骨架"],
+    note: "地面、墙面和基础透视线已拆到 room-shell.ts，LineworkRoom 只负责把它挂入场景。",
+  },
+  {
+    id: "linework-desk",
+    worldId: "linework",
+    title: "线稿桌面",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/desk.ts",
+    tags: ["独立物件文件", "显示器", "键盘鼠标"],
+    note: "桌子、显示器、键盘和鼠标已经拆到独立 prop 文件，LineworkRoom 只持有动画引用和命中状态。",
+  },
+  {
+    id: "linework-bookshelf",
+    worldId: "linework",
+    title: "线稿书架",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/bookshelf.ts",
+    tags: ["独立物件文件", "展品命中区", "书本陈列"],
+    note: "书柜、隔板、书本和书架展品命中区现在由 bookshelf.ts 构建。",
+  },
+  {
+    id: "linework-wall-print",
+    worldId: "linework",
+    title: "线稿墙面图表",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/wall-print.ts",
+    tags: ["独立物件文件", "展品命中区", "折线挂画"],
+    note: "墙面挂画和折线图形已拆为 wall-print.ts，项目语义仍由 binding 和内容内核提供。",
+  },
+  {
+    id: "linework-photo-wall",
+    worldId: "linework",
+    title: "线稿照片墙",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/photo-wall.ts",
+    tags: ["独立物件文件", "照片相框", "真实贴图"],
+    note: "照片墙相框和照片平面在 photo-wall.ts，照片材质由 LineworkRoom 注入以保持纹理生命周期清晰。",
+  },
+  {
+    id: "linework-door-clock",
+    worldId: "linework",
+    title: "纸门与墙钟",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/door-clock.ts",
+    tags: ["独立物件文件", "Portal 门", "墙钟"],
+    note: "纸门、门把手、钟面刻度和指针几何在 door-clock.ts 中创建，开合和走时仍由房间循环驱动。",
+  },
+  {
+    id: "linework-plant",
+    worldId: "linework",
+    title: "线稿盆栽",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/plant.ts",
+    tags: ["独立物件文件", "盆栽", "叶片线条"],
+    note: "盆栽、茎线和叶片作为独立资产返回，LineworkRoom 只用 plantStems 控制轻微摆动。",
+  },
+  {
+    id: "linework-globe",
+    worldId: "linework",
+    title: "线稿地球仪",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/globe.ts",
+    tags: ["独立物件文件", "Portal 命中区", "经纬线"],
+    note: "地球仪球体、经纬线、陆地图形和 Portal 命中区都集中在 globe.ts。",
+  },
+  {
+    id: "linework-ceiling-fan",
+    worldId: "linework",
+    title: "线稿吊扇",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/ceiling-fan.ts",
+    tags: ["独立物件文件", "吊扇", "控制命中区"],
+    note: "吊杆、机身、四片叶片和风扇控制命中区已经拆成 ceiling-fan.ts。",
+  },
+  {
+    id: "linework-sofa",
+    worldId: "linework",
+    title: "线稿沙发",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/sofa.ts",
+    tags: ["独立物件文件", "静态陈设", "靠垫"],
+    note: "沙发主体、扶手、靠垫和靠枕已经从房间类拆到 sofa.ts。",
+  },
+  {
+    id: "linework-coffee-table",
+    worldId: "linework",
+    title: "线稿茶几",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/coffee-table.ts",
+    tags: ["独立物件文件", "静态陈设", "杯子书本"],
+    note: "茶几、桌脚、书本和杯子几何已经集中到 coffee-table.ts。",
+  },
+  {
+    id: "linework-side-table",
+    worldId: "linework",
+    title: "线稿边桌",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/side-table.ts",
+    tags: ["独立物件文件", "静态陈设", "圆形托盘"],
+    note: "侧边小桌和圆形托盘已经拆到 side-table.ts。",
+  },
+  {
+    id: "linework-desk-surface",
+    worldId: "linework",
+    title: "线稿桌面板",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/desk-elements.ts",
+    tags: ["元素级物件", "桌面", "独立 factory"],
+    note: "桌面板由 createLineworkDeskSurface 独立创建，再由 desk.ts 组合进工作桌。",
+  },
+  {
+    id: "linework-desk-leg",
+    worldId: "linework",
+    title: "线稿桌腿",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/desk-elements.ts",
+    tags: ["元素级物件", "桌腿", "重复实例"],
+    note: "桌腿由 createLineworkDeskLeg 独立创建，桌面资产只负责放置四个实例。",
+  },
+  {
+    id: "linework-monitor",
+    worldId: "linework",
+    title: "线稿显示器",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/desk-elements.ts",
+    tags: ["元素级物件", "显示器", "扫描线挂点"],
+    note: "显示器外壳、支架和线缆由 createLineworkMonitor 创建；屏幕内容单独返回给房间动画。",
+  },
+  {
+    id: "linework-keyboard",
+    worldId: "linework",
+    title: "线稿键盘",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/desk-elements.ts",
+    tags: ["元素级物件", "键盘", "按键线"],
+    note: "键盘外壳和按键线由 createLineworkKeyboard 独立创建。",
+  },
+  {
+    id: "linework-mouse",
+    worldId: "linework",
+    title: "线稿鼠标",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/desk-elements.ts",
+    tags: ["元素级物件", "鼠标", "描边球体"],
+    note: "鼠标由 createLineworkMouse 独立创建并缩放成扁平外形。",
+  },
+  {
+    id: "linework-bookshelf-case",
+    worldId: "linework",
+    title: "线稿书柜框体",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/bookshelf-elements.ts",
+    tags: ["元素级物件", "书柜", "隔板"],
+    note: "书柜外框和内框由 createLineworkBookshelfCase 创建，隔板和书本是独立元素。",
+  },
+  {
+    id: "linework-bookshelf-book",
+    worldId: "linework",
+    title: "线稿书本",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/bookshelf-elements.ts",
+    tags: ["元素级物件", "竖书", "横放书"],
+    note: "竖书和横放书分别由 createLineworkStandingBook 与 createLineworkStackedBook 创建。",
+  },
+  {
+    id: "linework-photo-frame",
+    worldId: "linework",
+    title: "线稿照片相框",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/photo-wall-elements.ts",
+    tags: ["元素级物件", "相框", "照片墙"],
+    note: "单个照片相框由 createLineworkPhotoFrame 创建，照片平面单独挂载。",
+  },
+  {
+    id: "linework-photo-plane",
+    worldId: "linework",
+    title: "线稿照片平面",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/photo-wall-elements.ts",
+    tags: ["元素级物件", "照片贴图", "资源注入"],
+    note: "照片平面由 createLineworkPhotoPlane 创建，材质仍由 LineworkRoom 注入。",
+  },
+  {
+    id: "linework-wall-chart-line",
+    worldId: "linework",
+    title: "线稿图表折线",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/wall-elements.ts",
+    tags: ["元素级物件", "折线图", "挂画"],
+    note: "挂画内的折线由 createLineworkChartLine 独立创建。",
+  },
+  {
+    id: "linework-sofa-cushion",
+    worldId: "linework",
+    title: "线稿沙发垫",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/sofa-elements.ts",
+    tags: ["元素级物件", "沙发", "坐垫靠垫"],
+    note: "沙发座面、扶手、坐垫、靠垫和靠枕都已拆成 sofa-elements.ts 内的独立 factory。",
+  },
+  {
+    id: "linework-table-book",
+    worldId: "linework",
+    title: "线稿桌面书本",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/furniture-elements.ts",
+    tags: ["元素级物件", "书本", "家具小物"],
+    note: "茶几上的书本由 createLineworkBookObject 创建，可被其他家具复用。",
+  },
+  {
+    id: "linework-cup",
+    worldId: "linework",
+    title: "线稿杯子",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/furniture-elements.ts",
+    tags: ["元素级物件", "杯子", "杯把"],
+    note: "杯身和杯把由 createLineworkCupObject 作为独立小物件创建。",
+  },
+  {
+    id: "linework-tray",
+    worldId: "linework",
+    title: "线稿圆形托盘",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/furniture-elements.ts",
+    tags: ["元素级物件", "托盘", "边桌"],
+    note: "边桌上的圆形托盘由 createLineworkRoundTray 独立创建。",
+  },
+  {
+    id: "linework-door-panel",
+    worldId: "linework",
+    title: "线稿门板",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/door-clock-elements.ts",
+    tags: ["元素级物件", "门板", "Portal"],
+    note: "门板与门格分别由 createLineworkDoorPanel 和 createLineworkDoorInset 创建。",
+  },
+  {
+    id: "linework-door-knob",
+    worldId: "linework",
+    title: "线稿门把手",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/door-clock-elements.ts",
+    tags: ["元素级物件", "门把手", "描边球体"],
+    note: "门把手由 createLineworkDoorKnob 独立创建。",
+  },
+  {
+    id: "linework-clock-face",
+    worldId: "linework",
+    title: "线稿钟面",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/door-clock-elements.ts",
+    tags: ["元素级物件", "墙钟", "刻度"],
+    note: "钟面和刻度分别由 createLineworkClockFace 与 createLineworkClockTicks 创建。",
+  },
+  {
+    id: "linework-clock-hand",
+    worldId: "linework",
+    title: "线稿钟表指针",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/door-clock-elements.ts",
+    tags: ["元素级物件", "指针", "走时动画"],
+    note: "时针、分针和秒针都由 createLineworkClockHand 创建，旋转角度由 LineworkRoom 更新。",
+  },
+  {
+    id: "linework-plant-pot",
+    worldId: "linework",
+    title: "线稿花盆",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/plant-elements.ts",
+    tags: ["元素级物件", "花盆", "盆栽"],
+    note: "花盆由 createLineworkPlantPot 独立创建。",
+  },
+  {
+    id: "linework-plant-leaf",
+    worldId: "linework",
+    title: "线稿叶片",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/plant-elements.ts",
+    tags: ["元素级物件", "叶片", "茎线"],
+    note: "每片叶子由 createLineworkPlantLeaf 创建，茎线端点由 createLineworkPlantStemPoints 生成。",
+  },
+  {
+    id: "linework-globe-sphere",
+    worldId: "linework",
+    title: "线稿地球球体",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/globe-elements.ts",
+    tags: ["元素级物件", "球体", "地球仪"],
+    note: "地球球体由 createLineworkGlobeSphere 创建。",
+  },
+  {
+    id: "linework-globe-graticule",
+    worldId: "linework",
+    title: "线稿经纬线",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/globe-elements.ts",
+    tags: ["元素级物件", "经纬线", "陆地轮廓"],
+    note: "经纬线和陆地轮廓分别由 createLineworkGlobeGraticule 与 createLineworkGlobeContinents 创建。",
+  },
+  {
+    id: "linework-globe-stand",
+    worldId: "linework",
+    title: "线稿地球仪支架",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/globe-elements.ts",
+    tags: ["元素级物件", "轴环", "底座"],
+    note: "轴、环和底座由 globe-elements.ts 内的独立 factory 创建。",
+  },
+  {
+    id: "linework-fan-rod",
+    worldId: "linework",
+    title: "线稿吊扇吊杆",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/fan-elements.ts",
+    tags: ["元素级物件", "吊杆", "吊扇"],
+    note: "吊杆由 createLineworkFanRod 独立创建。",
+  },
+  {
+    id: "linework-fan-hub",
+    worldId: "linework",
+    title: "线稿吊扇机身",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/fan-elements.ts",
+    tags: ["元素级物件", "机身", "吊扇"],
+    note: "吊扇机身由 createLineworkFanHub 独立创建。",
+  },
+  {
+    id: "linework-fan-blade",
+    worldId: "linework",
+    title: "线稿吊扇叶片",
+    world: "Linework World",
+    file: "src/worlds/linework/scene/props/elements/fan-elements.ts",
+    tags: ["元素级物件", "叶片", "旋转实例"],
+    note: "单片扇叶由 createLineworkFanBlade 创建，吊扇资产放置四个实例。",
+  },
+  {
+    id: "studio-architecture",
+    worldId: "studio",
+    title: "工作室房间骨架",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/architecture.ts",
+    tags: ["独立 prop", "地板与墙面", "窗户"],
+    note: "地板、墙面、地毯、窗框、玻璃和百叶已经从 StudioRoom 拆到 architecture.ts。",
+  },
+  {
+    id: "studio-workstation",
+    worldId: "studio",
+    title: "工作室工作台组合",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["独立 prop", "桌面组合", "交互陈设"],
+    note: "工作台组合仍负责注册 workstation 展品，但内部元素已拆成独立 factory。",
+  },
+  {
+    id: "studio-desk-surface",
+    worldId: "studio",
+    title: "工作室桌面板",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "桌面板", "家具"],
+    note: "createStudioDeskSurface 独立创建桌面板。",
+  },
+  {
+    id: "studio-desk-leg",
+    worldId: "studio",
+    title: "工作室桌腿",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "桌腿", "金属支架"],
+    note: "createStudioDeskLegs 负责桌腿与底部连接管。",
+  },
+  {
+    id: "studio-desk-drawer",
+    worldId: "studio",
+    title: "工作室抽屉柜",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "抽屉", "家具"],
+    note: "createStudioDeskDrawer 独立创建抽屉柜、抽屉面和拉手。",
+  },
+  {
+    id: "studio-monitor",
+    worldId: "studio",
+    title: "工作室显示器",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "屏幕贴图", "显示器"],
+    note: "createStudioMonitor 负责显示器外壳、屏幕、支架和底座。",
+  },
+  {
+    id: "studio-keyboard",
+    worldId: "studio",
+    title: "工作室键盘",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "键盘", "按键实例"],
+    note: "createStudioKeyboard 使用 InstancedMesh 创建独立键盘资产。",
+  },
+  {
+    id: "studio-mug",
+    worldId: "studio",
+    title: "工作室杯子",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "杯子", "托盘"],
+    note: "createStudioMug 独立创建杯体、杯柄、托盘和小勺。",
+  },
+  {
+    id: "studio-chair",
+    worldId: "studio",
+    title: "工作室椅子",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "椅子", "脚轮"],
+    note: "createStudioChair 独立创建坐垫、靠背、扶手、气压杆和五爪脚轮。",
+  },
+  {
+    id: "studio-desk-lamp",
+    worldId: "studio",
+    title: "工作室台灯",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/workstation.ts",
+    tags: ["元素级物件", "台灯", "可交互"],
+    note: "createStudioDeskLamp 独立创建灯座、灯臂、关节、灯罩和灯泡，并注册 lamp 命中区。",
+  },
+  {
+    id: "studio-boards",
+    worldId: "studio",
+    title: "工作室墙板组合",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/boards.ts",
+    tags: ["独立 prop", "路线图", "贡献图"],
+    note: "路线图板与贡献图框已拆到 boards.ts，并各自注册展品命中区。",
+  },
+  {
+    id: "studio-photo-wall",
+    worldId: "studio",
+    title: "工作室照片墙",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/photo-wall.ts",
+    tags: ["独立 prop", "照片贴图", "展品墙"],
+    note: "照片墙布局、相框和媒体贴图独立在 photo-wall.ts 中构建。",
+  },
+  {
+    id: "studio-shelf",
+    worldId: "studio",
+    title: "工作室书架",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/shelf.ts",
+    tags: ["独立 prop", "搁板", "书本"],
+    note: "墙面搁板、支架和书本陈设已拆到 shelf.ts。",
+  },
+  {
+    id: "studio-guitar",
+    worldId: "studio",
+    title: "工作室吉他",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/guitar.ts",
+    tags: ["独立 prop", "吉他", "琴架"],
+    note: "吉他本体、琴弦、拾音器和支架已拆到 guitar.ts。",
+  },
+  {
+    id: "studio-turntable",
+    worldId: "studio",
+    title: "工作室唱机",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/turntable.ts",
+    tags: ["独立 prop", "唱机", "可交互"],
+    note: "唱机底座、唱臂、控制灯和 turntable 命中区已拆到 turntable.ts。",
+  },
+  {
+    id: "studio-record",
+    worldId: "studio",
+    title: "工作室黑胶唱片",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/turntable.ts",
+    tags: ["元素级物件", "黑胶", "旋转实例"],
+    note: "黑胶唱片作为独立 record group 传入 StudioRoom，旋转动画由房间运行时驱动。",
+  },
+  {
+    id: "studio-plant",
+    worldId: "studio",
+    title: "工作室盆栽",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/plant.ts",
+    tags: ["独立 prop", "盆栽", "叶片"],
+    note: "花盆、盆沿、茎线和叶片已拆到 plant.ts，摆动动画仍由 StudioRoom 统一驱动。",
+  },
+  {
+    id: "studio-portal-door",
+    worldId: "studio",
+    title: "工作室星门",
+    world: "Studio World",
+    file: "src/worlds/studio/scene/props/portal-door.ts",
+    tags: ["Portal 资产", "室内门", "星空粒子"],
+    note: "Studio 的回程 Portal 已拆到 portal-door.ts，由室内门、导光边、星空粒子和命中区组成。",
+  },
+];
+
+const assetMap = [
+  {
+    group: "Archipelago 角色与地标",
+    items: [
+      ["小船", "src/worlds/archipelago/scene/ship/ship.ts", "Ship 类是独立主文件；船的运动参数在 ship-config.ts，水花尾迹在 shipfx.ts。"],
+      ["幽灵荷兰人号", "src/worlds/archipelago/scene/landmarks/flying-dutchman.ts", "独立展示资产；腐木结构、多层破帆、甲板道具、锚链和海藻集中在 FlyingDutchman。"],
+      ["远古丛林传送门", "src/worlds/archipelago/scene/landmarks/ancient-jungle-portal.ts", "独立遗迹资产；石构主体、植物侵蚀、符文粒子和旋涡 Shader 集中在 AncientJunglePortal。"],
+      ["像素下界传送门", "src/worlds/archipelago/scene/landmarks/voxel-nether-portal.ts", "独立体素资产；程序化黑曜石纹理、像素能量 Shader、方形粒子和方块地面集中在 VoxelNetherPortal。"],
+      ["星潮竞技场传送池", "src/worlds/archipelago/scene/landmarks/tidepool-arena-portal.ts", "独立地面门户；漏斗水面、破碎浪花、泡泡动画和海滩小物集中在 TidepoolArenaPortal。"],
+      ["龟屋热带小岛", "src/worlds/archipelago/scene/island/kame-island-scene.ts", "独立场景资产；粉色木屋、红色屋顶、招牌、沙洲与程序化椰树集中在 KameIslandScene。"],
+      ["岛屿", "src/worlds/archipelago/scene/island/island.ts", "IslandObject 是岛的运行时对象；资产墙现在也直接使用真实 IslandObject。"],
+      ["岛屿模型", "src/worlds/archipelago/scene/island/island-model.ts", "模型创建 seam：生成真实岛屿 group、材质、宝箱、灯笼、烟源和动画挂点。"],
+      ["岛屿公共部分", "src/worlds/archipelago/scene/island/island-model-common.ts", "沙洲基座、材质追踪、树木工厂、jitter 和手绘 AO 在这里复用。"],
+      ["岛屿地形", "src/worlds/archipelago/scene/island/island-geometry.ts", "森林里还有圆丘、双丘、层叠、峰柱等 seed 分支；火山和雪峰也按 theme/seed 生成。"],
+      ["岛屿覆盖层", "src/worlds/archipelago/scene/island/island-overlays.ts", "灯笼、名字标签、迷雾、作品宝箱和高亮环在这里创建。"],
+      ["岛屿地标", "src/worlds/archipelago/scene/island/island-props.ts", "灯塔、风车、篝火、旗帜这 4 种小地标都在注册表里，资产墙会逐个展示。"],
+      ["海洋生物", "src/worlds/archipelago/scene/env/creatures.ts", "海鸥、海豚、鲸和鱼群集中在 CreatureManager。"],
+    ],
+  },
+  {
+    group: "Archipelago 环境与效果",
+    items: [
+      ["海面", "src/worlds/archipelago/scene/env/ocean.ts", "createOcean 生成整张 shader 海面，浅滩和拍岸浪也在同一个材质里。"],
+      ["大漩涡", "src/worlds/archipelago/scene/landmarks/archipelago-maelstrom.ts", "灵感来自魔兽世界的大漩涡；漏斗水体、螺旋白浪、礁岩、雾气和能量裂隙集中在 ArchipelagoMaelstrom。"],
+      ["大漩涡 V2", "src/worlds/archipelago/scene/landmarks/archipelago-maelstrom-v2.ts", "奥术强化独立资产；复用原版海洋漏斗，并增加紫蓝能量流、闪电、悬浮岩群、符文环和奥术粒子。"],
+      ["卡律布狄斯巨口漩涡", "src/worlds/archipelago/scene/landmarks/charybdis-whirlpool.ts", "独立神话环境资产；双层尖牙、深渊咽喉、旋流 Shader、实体浪带与卷入残骸集中在 CharybdisWhirlpool。"],
+      ["天空", "src/worlds/archipelago/scene/env/sky.ts", "createSky 生成全屏 shader 天空。"],
+      ["夜间魔法", "src/worlds/archipelago/scene/env/nightmagic.ts", "萤火、浮游光和水母是独立的环境效果工厂。"],
+      ["精灵贴图", "src/worlds/archipelago/scene/core/sprites.ts", "光晕、雾、环和文字标签都用 canvas 动态生成纹理。"],
+      ["后期", "src/worlds/archipelago/scene/env/postfx.ts", "Bloom、OutputPass 和调色管线集中在 PostFX。"],
+    ],
+  },
+  {
+    group: "独立神话资产",
+    items: [
+      ["巴别塔", "src/worlds/archipelago/scene/landmarks/babel-tower.ts", "独立程序化建筑资产；阶梯锥台、连续坡道、批量拱廊、青金石釉带、脚手架与施工尘埃集中在 BabelTower。"],
+      ["诺亚方舟", "src/worlds/archipelago/scene/ship/noahs-ark.ts", "独立程序化船舶资产；loft 船壳、木板压缝、双层舱楼、双坡屋顶、洪水水面和漂浮动画集中在 NoahsArk。"],
+    ],
+  },
+  {
+    group: "Cosmic World",
+    items: [
+      ["宇宙运行时", "src/worlds/cosmic/world.ts", "Cosmic World 负责把太空场景安装到共享 Runtime，不创建自己的 renderer、RAF 或全局生命周期。"],
+      ["起点头像星盘", "src/worlds/cosmic/world.ts", "origin 站点由头像圆盘、背板、双轨道、轨道节点和 GitHub 总星标标签组成。"],
+      ["媒体面板基元", "src/worlds/cosmic/world.ts", "createMediaPanel 负责外壳、贴图屏幕、强调色条和随面板漂浮的轨道节点。"],
+      ["轨道环", "src/worlds/cosmic/world.ts", "createOrbit 生成 Torus 轨道环，并登记到 animatedObjects。"],
+      ["轨道节点", "src/worlds/cosmic/world.ts", "addOrbitalNodes 批量生成小 Icosahedron 节点，并登记到 floatingObjects。"],
+      ["开源总览站", "src/worlds/cosmic/world.ts", "openSourceHub 组合主媒体面板、路线图缩略图、wireframe 核心、TorusKnot、轨道和卫星组。"],
+      ["Nexus 项目站", "src/worlds/cosmic/world.ts", "nexus 站点包含 Claude Nexus 封面面板、橙色 TorusKnot 和标题 sprite。"],
+      ["Roadmap 项目站", "src/worlds/cosmic/world.ts", "roadmap 站点包含 Roadmap 大面板、蓝色 wireframe 核心、轨道节点和项目数据标签。"],
+      ["Lab 图标立方体", "src/worlds/cosmic/world.ts", "labIcon 把 claude-nexus-icon.webp 贴到立方体两面，并挂接蓝色描边和轨道环。"],
+      ["骑行日志站", "src/worlds/cosmic/world.ts", "rideLog 把 7 张骑行照片作为媒体面板散布，并用路线线段和节点标记连接。"],
+      ["团队成果柱阵", "src/worlds/cosmic/world.ts", "internship 站点用头像媒体面板、五根成果柱、轨道和节点表达 TEAM/OUTCOME。"],
+      ["协作贡献柱阵", "src/worlds/cosmic/world.ts", "createCollaborationStation 生成 DSH Desktop/TUI/Web UI 三组协作贡献柱阵。"],
+      ["生活概览站", "src/worlds/cosmic/world.ts", "life 站点压缩骑行经历为一张主图、多张节点图、路线网、wireframe core 和修理标记。"],
+      ["终点 Portal", "src/worlds/cosmic/world.ts", "finalWorld 里的 Portal 由双层 Torus、Shader 水面、Octahedron 核心和终点标签组成。"],
+      ["世界配置", "src/worlds/cosmic/manifest.ts + src/worlds/worlds.config.ts", "manifest 预加载 Cosmic 所需图片；世界命名和资源目录由 worlds.config.ts 统一定义。"],
+    ],
+  },
+  {
+    group: "Jianghu World",
+    items: [
+      ["江湖舞台", "src/worlds/jianghu/jianghu-scene.ts", "DOM 场景、背景图、人物按钮、移动控制、对话框和 Portal 引导都由 JianghuScene 拥有。"],
+      ["人物配置", "src/worlds/jianghu/jianghu-agents.config.ts", "人物坐标、状态、sprite、对白和纸门引导人集中在配置文件中。"],
+    ],
+  },
+  {
+    group: "Jianghu 背景图片资产",
+    items: jianghuBackgroundAssets.map((asset) => [
+      asset.title,
+      asset.file,
+      asset.note,
+    ]),
+  },
+  {
+    group: "Jianghu 角色 Sprite 图片",
+    items: jianghuAgentSpriteAssets.map((asset) => [
+      asset.title,
+      asset.file,
+      asset.note,
+    ]),
+  },
+  {
+    group: "Jianghu 状态特效图片",
+    items: jianghuStatusEffectAssets.map((asset) => [
+      asset.title,
+      asset.file,
+      asset.note,
+    ]),
+  },
+  {
+    group: "Jianghu 访客 Sprite 图片",
+    items: jianghuGuestSpriteAssets.map((asset) => [
+      asset.title,
+      asset.file,
+      asset.note,
+    ]),
+  },
+  {
+    group: "Linework World",
+    items: [
+      ["线稿房间运行时", "src/worlds/linework/scene/linework-room.ts", "LineworkRoom 现在主要拥有相机、状态循环、命中测试、纹理生命周期和各 prop 的装配。"],
+      ["线稿房间壳", "src/worlds/linework/scene/props/room-shell.ts", "地面、墙面、墙顶边线和透视辅助线在独立文件中构建。"],
+      ["线稿桌面", "src/worlds/linework/scene/props/desk.ts", "桌子、显示器、键盘、鼠标和显示器扫描线在独立 prop 文件中构建。"],
+      ["线稿书架", "src/worlds/linework/scene/props/bookshelf.ts", "书柜、隔板、书本堆叠和书架展品命中区在独立文件中构建。"],
+      ["线稿墙面图表", "src/worlds/linework/scene/props/wall-print.ts", "挂画框、折线图形和墙面图表展品命中区在独立文件中构建。"],
+      ["线稿照片墙", "src/worlds/linework/scene/props/photo-wall.ts", "照片墙布局、相框和照片平面在独立文件中构建，照片材质由房间注入。"],
+      ["纸门与墙钟", "src/worlds/linework/scene/props/door-clock.ts", "Portal 门体、门把手、钟面和三根指针几何在独立文件中构建。"],
+      ["线稿盆栽", "src/worlds/linework/scene/props/plant.ts", "盆栽、茎线和叶片在独立文件中构建，并返回摆动动画所需的 stems 引用。"],
+      ["线稿地球仪", "src/worlds/linework/scene/props/globe.ts", "地球仪球体、经纬线、陆地轮廓、支架和 Portal 命中区在独立文件中构建。"],
+      ["线稿吊扇", "src/worlds/linework/scene/props/ceiling-fan.ts", "吊杆、机身、叶片和风扇控制命中区在独立文件中构建。"],
+      ["线稿沙发", "src/worlds/linework/scene/props/sofa.ts", "沙发主体、扶手、靠垫和靠枕在独立文件中构建。"],
+      ["线稿茶几", "src/worlds/linework/scene/props/coffee-table.ts", "茶几、书本和杯子在独立文件中构建。"],
+      ["线稿边桌", "src/worlds/linework/scene/props/side-table.ts", "侧边小桌和圆形托盘在独立文件中构建。"],
+      ["线稿物件工具包", "src/worlds/linework/scene/props/linework-prop-kit.ts", "共享纸色、墨线、描边几何和房间注入的创建能力，避免各 prop 反向持有房间状态。"],
+      ["纸面管线", "src/worlds/linework/scene/linework-pipeline.ts", "线稿世界的后期纸面处理管线独立于房间几何。"],
+    ],
+  },
+  {
+    group: "Linework 元素级物件",
+    items: [
+      ["桌面板", "src/worlds/linework/scene/props/elements/desk-elements.ts", "createLineworkDeskSurface 负责单块桌面板。"],
+      ["桌腿", "src/worlds/linework/scene/props/elements/desk-elements.ts", "createLineworkDeskLeg 负责单条桌腿，桌面资产重复放置四次。"],
+      ["显示器", "src/worlds/linework/scene/props/elements/desk-elements.ts", "createLineworkMonitor 负责外壳、底座和线缆；createLineworkMonitorContent 负责屏幕内容和扫描线。"],
+      ["键盘", "src/worlds/linework/scene/props/elements/desk-elements.ts", "createLineworkKeyboard 负责键盘外壳和按键线。"],
+      ["鼠标", "src/worlds/linework/scene/props/elements/desk-elements.ts", "createLineworkMouse 负责鼠标外形。"],
+      ["书柜框体", "src/worlds/linework/scene/props/elements/bookshelf-elements.ts", "createLineworkBookshelfCase 负责书柜外框和内框。"],
+      ["书架隔板", "src/worlds/linework/scene/props/elements/bookshelf-elements.ts", "createLineworkBookshelfShelf 负责单块隔板。"],
+      ["竖书与横放书", "src/worlds/linework/scene/props/elements/bookshelf-elements.ts", "createLineworkStandingBook 和 createLineworkStackedBook 分别负责单本书。"],
+      ["照片相框", "src/worlds/linework/scene/props/elements/photo-wall-elements.ts", "createLineworkPhotoFrame 负责单个相框。"],
+      ["照片平面", "src/worlds/linework/scene/props/elements/photo-wall-elements.ts", "createLineworkPhotoPlane 负责单张照片贴图平面。"],
+      ["房间面与辅助线", "src/worlds/linework/scene/props/elements/wall-elements.ts", "地面、墙面、墙边、地面线和墙面线都拆成独立元素 factory。"],
+      ["挂画框与图表线", "src/worlds/linework/scene/props/elements/wall-elements.ts", "createLineworkWallPrintFrame 和 createLineworkChartLine 分别负责挂画框与折线。"],
+      ["沙发元素", "src/worlds/linework/scene/props/elements/sofa-elements.ts", "座面、靠背、扶手、坐垫、靠垫和靠枕各自独立创建。"],
+      ["家具小物", "src/worlds/linework/scene/props/elements/furniture-elements.ts", "家具面板、桌腿、书本、杯子和圆形托盘都是可复用元素。"],
+      ["门与墙钟元素", "src/worlds/linework/scene/props/elements/door-clock-elements.ts", "门板、门格、门把手、钟面、刻度、指针和中心钉都拆为独立元素。"],
+      ["植物元素", "src/worlds/linework/scene/props/elements/plant-elements.ts", "花盆、茎线端点和单片叶子拆为独立元素。"],
+      ["地球仪元素", "src/worlds/linework/scene/props/elements/globe-elements.ts", "球体、经纬线、陆地轮廓、轴、环和底座拆为独立元素。"],
+      ["吊扇元素", "src/worlds/linework/scene/props/elements/fan-elements.ts", "吊杆、机身和单片叶片拆为独立元素。"],
+    ],
+  },
+  {
+    group: "Studio World",
+    items: [
+      ["工作室房间运行时", "src/worlds/studio/scene/studio-room.ts", "StudioRoom 现在主要持有相机、状态循环、纹理生命周期、命中测试和各 prop 的装配。"],
+      ["工作室房间骨架", "src/worlds/studio/scene/props/architecture.ts", "地板、墙面、地毯、窗户、玻璃和百叶在独立 prop 文件中构建。"],
+      ["工作室灯光", "src/worlds/studio/scene/props/lights.ts", "太阳光、环境光、窗侧补光、房间反弹光和桌灯光源在独立文件中挂载。"],
+      ["工作室工作台", "src/worlds/studio/scene/props/workstation.ts", "桌面、桌腿、抽屉、显示器、键盘、杯子、椅子和台灯都拆成独立 factory。"],
+      ["工作室墙板", "src/worlds/studio/scene/props/boards.ts", "路线图板和贡献图框在独立文件中创建，并各自注册展品命中区。"],
+      ["工作室照片墙", "src/worlds/studio/scene/props/photo-wall.ts", "照片墙布局、相框和图片平面在独立文件中构建。"],
+      ["工作室书架", "src/worlds/studio/scene/props/shelf.ts", "搁板、支架和一排书本陈设在独立文件中构建。"],
+      ["工作室吉他", "src/worlds/studio/scene/props/guitar.ts", "吉他本体、琴弦、拾音器和支架在独立文件中构建。"],
+      ["工作室唱机", "src/worlds/studio/scene/props/turntable.ts", "唱机底座、黑胶唱片、唱臂和控制命中区在独立文件中构建。"],
+      ["工作室盆栽", "src/worlds/studio/scene/props/plant.ts", "花盆、盆沿、茎线和叶片在独立文件中构建。"],
+      ["工作室星门", "src/worlds/studio/scene/props/portal-door.ts", "室内门、导光边、星空粒子和 Portal 命中区在独立文件中构建。"],
+      ["工作室物件工具包", "src/worlds/studio/scene/props/studio-prop-kit.ts", "共享材质、几何、图片面板、命中区和展品注册能力，避免 prop 反向持有房间状态。"],
+      ["工作室 HUD", "src/worlds/studio/ui/studio-overlay.ts", "展品索引、灯光切换、昼夜切换和详情面板由 Studio 自己的 UI adapter 拥有。"],
+    ],
+  },
+];
+
+const textSourceExtensions = [".ts", ".astro", ".css", ".js", ".json", ".md"] as const;
+
+const normalizeAssetSourceRef = (ref: string, fallbackDir = ""): string | null => {
+  const trimmed = ref.trim();
+  if (!trimmed) return null;
+  const candidate = trimmed.includes("/") || !fallbackDir ? trimmed : `${fallbackDir}/${trimmed}`;
+  const normalized = candidate.replaceAll("\\", "/");
+  if (!textSourceExtensions.some((extension) => normalized.endsWith(extension))) return null;
+  if (!normalized.startsWith("src/") && !normalized.startsWith("public/")) return null;
+  return normalized;
+};
+
+const assetSourceRefs = (file: string): readonly string[] => {
+  const refs: string[] = [];
+  let fallbackDir = "";
+  file.split(/\s+\+\s+/).forEach((part) => {
+    const normalized = normalizeAssetSourceRef(part, fallbackDir);
+    if (!normalized) return;
+    fallbackDir = normalized.includes("/") ? normalized.slice(0, normalized.lastIndexOf("/")) : "";
+    refs.push(normalized);
+  });
+  return refs;
+};
+
+const assetCopyIndex = Object.fromEntries(
+  previewAssets.map((asset) => {
+    const codeRefs = assetSourceRefs(asset.file);
+    return [
+      asset.id,
+      {
+        title: asset.title,
+        world: asset.world,
+        file: asset.file,
+        note: asset.note,
+        tags: asset.tags,
+        codeRefs,
+      },
+    ];
+  }),
+);
+const sourceModuleKey = (ref: string): string | null =>
+  ref.startsWith("src/") ? `../${ref.slice("src/".length)}` : null;
+const assetSourceFiles = Object.fromEntries(
+  [...new Set(Object.values(assetCopyIndex).flatMap((asset) => asset.codeRefs))]
+    .map((ref) => {
+      const key = sourceModuleKey(ref);
+      return [ref, key ? sourceModules[key] ?? null : null];
+    }),
+);
+const assetSourcePayload = JSON.stringify({
+  assets: assetCopyIndex,
+  files: assetSourceFiles,
+}).replaceAll("<", "\\u003c");
+
+const assetWorldIndexes = new Map<string, number>();
+const numberedPreviewAssets = previewAssets.map((asset, index) => {
+  const worldId = asset.worldId ?? "archipelago";
+  const worldIndex = (assetWorldIndexes.get(worldId) ?? 0) + 1;
+  assetWorldIndexes.set(worldId, worldIndex);
+  return {
+    ...asset,
+    globalNumber: String(index + 1).padStart(2, "0"),
+    worldNumber: String(worldIndex).padStart(2, "0"),
+  };
+});
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Shyboy0499 站点 Three.js 资产图谱。" />
+    <meta name="theme-color" content="#05070a" />
+    <title>3D Assets · Shyboy0499</title>
+    <link rel="icon" href={SITE_CONFIG.iconPath} />
+  </head>
+  <body class="asset-page">
+    <header class="asset-header"></header>
+
+    <main class="asset-main">
+      <section class="asset-toolbar" aria-label="资产筛选">
+        <div class="asset-filter-bar" aria-label="资产筛选">
+          <button type="button" data-asset-filter="all" aria-pressed="true">全部资产</button>
+          <button type="button" data-asset-filter="cosmic" aria-pressed="false">Cosmic</button>
+          <button type="button" data-asset-filter="archipelago" aria-pressed="false">Archipelago</button>
+          <button type="button" data-asset-filter="jianghu" aria-pressed="false">Jianghu</button>
+          <button type="button" data-asset-filter="linework" aria-pressed="false">Linework</button>
+          <button type="button" data-asset-filter="studio" aria-pressed="false">Studio</button>
+        </div>
+      </section>
+
+      <section
+        class="asset-preview-grid"
+        id="preview"
+        aria-label="3D 资产预览"
+        data-asset-gallery
+        tabindex="0"
+      >
+        {numberedPreviewAssets.map((asset) => (
+          <article class="asset-card" data-asset-world={asset.worldId ?? "archipelago"}>
+            <button
+              class="asset-open"
+              type="button"
+              data-asset-open={asset.id}
+              aria-label={`查看 ${asset.title} 的资产说明`}
+            >
+              <span class="asset-kind" aria-hidden="true">●</span>
+              {"poster" in asset && asset.poster ? (
+                <img class="asset-poster" src={asset.poster} alt={`${asset.title} 预览`} loading="lazy" />
+              ) : (
+                <canvas data-asset-preview={asset.id} aria-label={`${asset.title} 3D 预览`}></canvas>
+              )}
+              <span class="asset-bottom">
+                <strong>
+                  <span
+                    data-asset-number
+                    data-asset-number-all={asset.globalNumber}
+                    data-asset-number-world={asset.worldNumber}
+                  >
+                    {asset.globalNumber}
+                  </span>
+                  {asset.title}
+                </strong>
+              </span>
+            </button>
+            <button
+              class="asset-copy-button"
+              type="button"
+              data-asset-copy={asset.id}
+              aria-label={`复制 ${asset.title} 的源码`}
+              title="复制源码"
+            >
+              <span>Copy</span>
+            </button>
+            <div class="asset-detail-source" id={`asset-detail-${asset.id}`} hidden>
+              <p data-detail-world>{asset.world}</p>
+              <h2>{asset.title}</h2>
+              <p>{asset.note}</p>
+              <code>{asset.file}</code>
+              <div>
+                {asset.tags.map((tag) => <span>{tag}</span>)}
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <dialog class="asset-detail-dialog" data-asset-dialog aria-label="3D 资产详情">
+        <button class="asset-dialog-close" type="button" data-asset-close aria-label="关闭详情">×</button>
+        <div class="asset-dialog-preview" data-asset-dialog-preview></div>
+        <div class="asset-dialog-copy" data-asset-dialog-copy></div>
+        <section class="asset-dialog-map" aria-labelledby="asset-map-title">
+          <h3 id="asset-map-title">资产文件归属</h3>
+          {assetMap.map((group) => (
+            <details>
+              <summary>{group.group}</summary>
+              <div>
+                {group.items.map(([name, file, detail]) => (
+                  <article>
+                    <strong>{name}</strong>
+                    <code>{file}</code>
+                    <p>{detail}</p>
+                  </article>
+                ))}
+              </div>
+            </details>
+          ))}
+        </section>
+      </dialog>
+    </main>
+
+    <script id="asset-source-payload" type="application/json" is:inline set:html={assetSourcePayload}></script>
+    <script src="../asset-gallery.ts"></script>
+  </body>
+</html>
