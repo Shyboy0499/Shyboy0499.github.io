@@ -1,166 +1,186 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Box, Container, Heading, Text, Button, VStack, HStack,
-  SimpleGrid, Badge, Link,
-} from '@chakra-ui/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import dynamic from 'next/dynamic';
+import { motion } from 'framer-motion';
+import type { CSSProperties, ReactNode } from 'react';
 
-const ThreeScene = dynamic(() => import('@/components/ThreeScene'), { ssr: false });
-const BabylonScene = dynamic(() => import('@/components/BabylonScene'), { ssr: false });
+// ---------------------------------------------------------------- Qiuner-style tokens
+const BG = '#05070a';
+const INK = '#f4f5ef';
+const MUTED = '#a1a8ae';
+const LINE = 'rgba(244,245,239,0.24)';
+const ACID = '#c8ff36';
+const BLUE = '#3976ff';
+const CORAL = '#ff654b';
+const CYAN = '#59e6ff';
 
-const MotionBox = motion.create(Box);
-const MotionHeading = motion.create(Heading);
-const MotionText = motion.create(Text);
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+const SANS = "var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+const DISPLAY = "var(--font-serif), Georgia, 'Times New Roman', serif";
 
-const fadeIn = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
-};
-const slideUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+// ---------------------------------------------------------------- layout constants
+const PAD = 'clamp(18px, 48px, 48px)';
+const COPY_W = 'min(560px, 78vw)';
 
-const PINK = '#EDC1CB';
-const PINK_DIM = '#b8909a';
+const page: CSSProperties = { background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', paddingTop: 78, position: 'relative' };
 
-const techStack = [
-  'Next.js', 'TypeScript', 'React', 'Chakra UI', 'Framer Motion',
-  'Three.js', 'Babylon.js', 'GSAP', 'Web Audio API', 'Canvas 2D',
-  'Node.js', 'Vite', 'Git', 'GitHub Actions', 'Python',
-];
+// small mono eyebrow:  「01 / STATEMENT」
+function Eyebrow({ n, text, accent = ACID }: { n: string; text: string; accent?: string }) {
+  return (
+    <p style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.16em', color: MUTED, margin: '0 0 26px', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{ display: 'inline-block', width: 8, height: 8, background: accent }} />
+      <span style={{ color: '#e8eae2' }}>{n}</span>
+      <span>{text}</span>
+    </p>
+  );
+}
 
-const projects = [
-  {
-    title: 'Skill Pilot',
-    desc: 'AI-powered learning platform and coding assistant — multi-agent orchestration, vibe coding, deep research, and skill-driven development.',
-    tags: ['AI', 'TypeScript', 'Python', 'Multi-Agent'],
-    link: 'https://github.com/Shyboy0499',
-  },
-  {
-    title: 'rd.website',
-    desc: 'Interactive brand studio site with 300+ commits, GSAP animations, Web Audio drone, canvas particle physics, and 150+ merged PRs.',
-    tags: ['GSAP', 'Canvas', 'Web Audio', 'Vite'],
-    link: 'https://github.com/Shyboy0499/rd.website',
-  },
-  {
-    title: 'Skill Pilot Code',
-    desc: 'Core engine and skills framework — building developer tooling and automation agents for the AI era.',
-    tags: ['Node.js', 'CLI', 'Automation', 'Dev Tools'],
-    link: 'https://github.com/Shyboy0499',
-  },
-];
+function Chapter({ children, id }: { children: ReactNode; id?: string }) {
+  return (
+    <section id={id} style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: `0 ${PAD}`, borderTop: `1px solid ${LINE}` }}>
+      <div style={{ maxWidth: COPY_W }}>{children}</div>
+    </section>
+  );
+}
 
-export default function HomePage() {
-  const [scene, setScene] = useState<'three' | 'babylon'>('three');
+function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}>
+      {children}
+    </motion.div>
+  );
+}
+
+export default function Home() {
+  const routes = [
+    ['01', 'Origin', '#origin'],
+    ['02', 'About', '#about'],
+    ['03', 'Work', '#work'],
+    ['04', 'Ship', '#ship'],
+  ] as const;
 
   return (
-    <Box as="main" minH="100vh">
-      <Container maxW="4xl" py={{ base: 8, md: 16 }}>
-        <MotionBox variants={fadeIn} initial="hidden" animate="show">
-          {/* Hero */}
-          <VStack gap={4} textAlign="center" mb={12}>
-            <MotionBox variants={slideUp} w="80px" h="80px" borderRadius="full"
-              bg={`linear-gradient(135deg, ${PINK}, ${PINK_DIM})`}
-              display="flex" alignItems="center" justifyContent="center"
-              fontSize="2xl" fontWeight="bold" color="black">
-              BC
-            </MotionBox>
-            <MotionHeading variants={slideUp} as="h1" fontSize="2.5rem" fontWeight={700} letterSpacing="-0.02em">
-              Bro Code
-            </MotionHeading>
-            <MotionText variants={slideUp} color={PINK} fontSize="sm" letterSpacing="0.15em" textTransform="uppercase">
-              2nd Year Computer Science Student &amp; Creative Developer
-            </MotionText>
-            <MotionText variants={slideUp} color="gray.400" maxW="lg" fontSize="md" lineHeight="1.7">
-              CS major building immersive web experiences and AI-powered developer tools.
-              Passionate about creative coding, agent systems, and pushing the limits
-              of browser APIs with modern JavaScript.
-            </MotionText>
-            <MotionBox variants={slideUp}>
-              <HStack gap={3} pt={2}>
-                <Link href="https://github.com/Shyboy0499" target="_blank">
-                  <Button variant="outline" borderColor={PINK} color={PINK} _hover={{ bg: 'rgba(237,193,203,0.1)' }} size="sm">
-                    GitHub
-                  </Button>
-                </Link>
-                <Link href="https://github.com/Shyboy0499/rd.website" target="_blank">
-                  <Button bg={PINK} color="black" fontWeight={600} _hover={{ bg: PINK_DIM }} size="sm">
-                    rd.website
-                  </Button>
-                </Link>
-                <Link href="mailto:krisyu0911@gmail.com">
-                  <Button variant="outline" borderColor={PINK} color={PINK} _hover={{ bg: 'rgba(237,193,203,0.1)' }} size="sm">
-                    Contact
-                  </Button>
-                </Link>
-              </HStack>
-            </MotionBox>
-          </VStack>
+    <main style={page}>
+      {/* ---------- HEADER ---------- */}
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 78, padding: `0 ${PAD}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10, background: 'rgba(5,7,10,0.7)', backdropFilter: 'blur(8px)', borderBottom: `1px solid ${LINE}` }}>
+        <a href="#origin" style={{ display: 'flex', alignItems: 'baseline', gap: 8, textDecoration: 'none', color: INK }}>
+          <span style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.1em' }}>SHYBOY0499</span>
+        </a>
+        <nav style={{ display: 'flex', gap: 26, fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', color: MUTED }}>
+          {routes.map((r) => (
+            <a key={r[0]} href={r[2]} style={{ color: 'inherit', textDecoration: 'none' }}>{r[1].toUpperCase()}</a>
+          ))}
+        </nav>
+        <a href="https://github.com/Shyboy0499" target="_blank" rel="noreferrer" style={{ fontFamily: MONO, fontSize: 12, color: INK, textDecoration: 'none' }}>GH ↗</a>
+      </header>
 
-          {/* 3D Scene Toggle */}
-          <MotionBox variants={slideUp} mb={8}>
-            <HStack justify="center" gap={2} mb={4}>
-              <Button size="xs" variant={scene === 'three' ? 'solid' : 'outline'}
-                bg={scene === 'three' ? PINK : 'transparent'} color={scene === 'three' ? 'black' : PINK} borderColor={PINK}
-                onClick={() => setScene('three')}>Three.js Torus</Button>
-              <Button size="xs" variant={scene === 'babylon' ? 'solid' : 'outline'}
-                bg={scene === 'babylon' ? PINK : 'transparent'} color={scene === 'babylon' ? 'black' : PINK} borderColor={PINK}
-                onClick={() => setScene('babylon')}>Babylon.js Scene</Button>
-            </HStack>
-            <Box borderRadius="xl" overflow="hidden" border="1px" borderColor="rgba(237,193,203,0.15)">
-              <AnimatePresence mode="wait">
-                <MotionBox key={scene} initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ duration: 0.35 }}>
-                  {scene === 'three' ? <ThreeScene /> : <BabylonScene />}
-                </MotionBox>
-              </AnimatePresence>
-            </Box>
-          </MotionBox>
+      {/* ---------- route rail (right) ---------- */}
+      <aside aria-hidden style={{ position: 'fixed', right: 18, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 14, zIndex: 6 }}>
+        {routes.map((r, i) => (
+          <a key={r[0]} href={r[2]} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: MUTED, fontFamily: MONO, fontSize: 11, flexDirection: 'row-reverse' }}>
+            <span style={{ letterSpacing: '0.08em' }}>{r[0]}</span>
+            <span style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: i === 0 ? ACID : LINE }} />
+          </a>
+        ))}
+      </aside>
 
-          {/* Skills */}
-          <MotionBox variants={slideUp} mb={10}>
-            <Heading as="h2" fontSize="lg" mb={4} color={PINK} letterSpacing="0.05em">Tech Stack</Heading>
-            <HStack flexWrap="wrap" gap={2}>
-              {techStack.map((tech) => (
-                <Badge key={tech} px={3} py={1} borderRadius="full" bg="rgba(237,193,203,0.08)"
-                  color={PINK} border="1px solid rgba(237,193,203,0.15)" fontSize="xs" fontWeight={500}>{tech}</Badge>
-              ))}
-            </HStack>
-          </MotionBox>
+      {/* ---------- 01 · ORIGIN / HERO ---------- */}
+      <section id="origin" style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', padding: `0 ${PAD}` }}>
+        <div style={{ maxWidth: 980 }}>
+          <Reveal>
+            <Eyebrow n="01" text="ORIGIN" />
+            <h1 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(56px, 8.5vw, 128px)', lineHeight: 0.96, margin: 0 }}>
+              Shyboy0499<span style={{ color: ACID }}>.</span>
+            </h1>
+            <p style={{ color: INK, fontSize: 'clamp(18px, 2.4vw, 24px)', margin: '26px 0 0', maxWidth: 520, lineHeight: 1.6 }}>
+              Turning deeps into signals.<br />
+              <span style={{ color: ACID }}>DeepSeek, LLMs & ML.</span>
+            </p>
+            <div style={{ display: 'flex', gap: 26, marginTop: 30, fontFamily: MONO, fontSize: 12, color: MUTED, letterSpacing: '0.06em' }}>
+              <span>UTS · Sydney</span>
+              <span>Since 2024</span>
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
-          {/* Projects */}
-          <MotionBox variants={slideUp}>
-            <Heading as="h2" fontSize="lg" mb={4} color={PINK} letterSpacing="0.05em">Featured Projects</Heading>
-            <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
-              {projects.map((project) => (
-                <Link key={project.title} href={project.link} target="_blank" _hover={{ textDecoration: 'none' }}>
-                  <MotionBox whileHover={{ scale: 1.02, borderColor: 'rgba(237,193,203,0.4)' }}
-                    p={5} borderRadius="lg" border="1px" borderColor="rgba(255,255,255,0.06)" bg="rgba(255,255,255,0.02)">
-                    <Heading as="h3" fontSize="md" mb={1} color="white">{project.title}</Heading>
-                    <Text fontSize="sm" color="gray.400" mb={3}>{project.desc}</Text>
-                    <HStack flexWrap="wrap" gap={1}>
-                      {project.tags.map((tag) => (
-                        <Badge key={tag} fontSize="xs" bg="rgba(237,193,203,0.1)" color={PINK} borderRadius="md">{tag}</Badge>
-                      ))}
-                    </HStack>
-                  </MotionBox>
-                </Link>
-              ))}
-            </SimpleGrid>
-          </MotionBox>
+      {/* ---------- 02 · ABOUT ---------- */}
+      <Chapter id="about">
+        <Reveal>
+          <Eyebrow n="02" text="ABOUT" />
+          <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px, 5vw, 72px)', lineHeight: 1.02, margin: '0 0 26px' }}>
+            About<span style={{ color: ACID }}>.</span>
+          </h2>
+          <p style={{ color: INK, fontSize: 17, lineHeight: 1.8, margin: '0 0 20px' }}>
+            Second-year computer science student at UTS. I'm drawn to DeepSeek, LLMs, and machine learning — and to what
+            they make possible when you actually build with them.
+          </p>
+          <p style={{ color: MUTED, fontSize: 16, lineHeight: 1.8, margin: 0 }}>
+            The best way to learn, I've found, is to build and ship. So I turn ideas into open-source tools and plugins —
+            improving the tools I use, fixing what's broken, and publishing what I learn.
+          </p>
+        </Reveal>
+      </Chapter>
 
-          <MotionBox variants={slideUp} as="footer" textAlign="center" mt={16} py={6} borderTop="1px" borderColor="rgba(255,255,255,0.06)">
-            <Text fontSize="xs" color="gray.600">
-              &copy; 2026 Bro Code &middot; 2nd Year CS &middot; Next.js + Chakra UI + Framer Motion + Three.js + Babylon.js
-            </Text>
-          </MotionBox>
-        </MotionBox>
-      </Container>
-    </Box>
+      {/* ---------- 03 · WORK ---------- */}
+      <Chapter id="work">
+        <Reveal>
+          <Eyebrow n="03" text="WORK" />
+          <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px, 5vw, 72px)', lineHeight: 1.02, margin: '0 0 40px' }}>
+            Work<span style={{ color: ACID }}>.</span>
+          </h2>
+        </Reveal>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {[
+            { t: 'DeepSeek Harness ecosystem', d: 'Plugins for the DeepSeek Harness agent system — docs, fixes and tooling across the ecosystem.' },
+            { t: 'dsh-git-tools', d: 'A plugin suite for git and code-review workflows inside DeepSeek-based agents.' },
+            { t: 'DeepSeek-Obsidian', d: 'Tooling that connects DeepSeek workflows to knowledge management in Obsidian.' },
+          ].map((p, i) => (
+            <Reveal key={p.t} delay={i * 0.05}>
+              <div style={{ borderTop: `1px solid ${LINE}`, padding: '24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 20 }}>
+                <h3 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(22px, 3vw, 34px)', margin: 0 }}>{p.t}</h3>
+                <p style={{ color: MUTED, fontSize: 14, lineHeight: 1.7, margin: 0, maxWidth: 320, textAlign: 'right' }}>{p.d}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </Chapter>
+
+      {/* ---------- 04 · SHIP (open source) ---------- */}
+      <Chapter id="ship">
+        <Reveal>
+          <Eyebrow n="04" text="SHIP" accent={CYAN} />
+          <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(38px, 5vw, 72px)', lineHeight: 1.02, margin: '0 0 26px' }}>
+            Ship<span style={{ color: CYAN }}>.</span>
+          </h2>
+          <p style={{ color: MUTED, fontSize: 16, lineHeight: 1.8, margin: 0, maxWidth: 480 }}>
+            Open source is how I learn. A growing body of fixes and contributions across public repos — built by reading,
+            breaking and fixing real code.
+          </p>
+        </Reveal>
+      </Chapter>
+
+      {/* ---------- 05 · CONTACT ---------- */}
+      <section id="contact" style={{ position: 'relative', minHeight: '70vh', padding: `0 ${PAD}`, display: 'flex', flexDirection: 'column', justifyContent: 'center', borderTop: `1px solid ${LINE}` }}>
+        <Reveal>
+          <Eyebrow n="05" text="CONTACT" />
+          <h2 style={{ fontFamily: DISPLAY, fontWeight: 400, fontSize: 'clamp(40px, 6vw, 80px)', lineHeight: 1, margin: 0 }}>
+            Say hi<span style={{ color: ACID }}>.</span>
+          </h2>
+          <p style={{ color: MUTED, maxWidth: 460, fontSize: 16, lineHeight: 1.8, margin: '26px 0 34px' }}>
+            If you're into DeepSeek, LLMs, ML — or building strange, wonderful web things — I'd love to hear from you.
+          </p>
+          <div style={{ display: 'flex', gap: 30, fontFamily: MONO, fontSize: 15 }}>
+            <a href="mailto:saltlight0609@gmail.com" style={{ color: INK, textDecoration: 'none', borderBottom: `1px solid ${ACID}`, paddingBottom: 3 }}>saltlight0609@gmail.com ↗</a>
+            <a href="https://github.com/Shyboy0499" target="_blank" rel="noreferrer" style={{ color: INK, textDecoration: 'none', borderBottom: `1px solid ${LINE}`, paddingBottom: 3 }}>GitHub ↗</a>
+          </div>
+        </Reveal>
+      </section>
+
+      <footer style={{ padding: `28px ${PAD}`, borderTop: `1px solid ${LINE}`, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', color: MUTED }}>
+        <span>© 2026 Shyboy0499</span>
+        <span>STATIC · BUILT ON GITHUB</span>
+        <a href="#origin" style={{ color: 'inherit', textDecoration: 'none' }}>BACK TO ORIGIN ↑</a>
+      </footer>
+    </main>
   );
 }
