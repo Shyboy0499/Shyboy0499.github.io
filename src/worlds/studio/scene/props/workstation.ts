@@ -136,7 +136,7 @@ function createStudioSplitKeyboard(
     const half = new THREE.Group();
     half.position.set(side * 0.52, 1.76, -2.78);
     half.rotation.x = -0.06;
-    half.rotation.z = -side * 0.2; // tenting 向内倾斜（手腕向内收）
+    half.rotation.z = -side * 0.34; // tenting 向内倾斜（手腕向内收），更明显的坡角
     kit.roundedBox(half, [0.8, 0.07, 0.4], [0, 0, 0], black, 0.045);
     const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 28);
     const matrix = new THREE.Matrix4();
