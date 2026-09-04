@@ -147,7 +147,12 @@ function createStudioSplitKeyboard(
     kit.cylinder(stand, 0.42, 0.34, 0.05, [0, deskTop + 0.025, 0], black);          // 桌面椭圆脚垫
     kit.cylinder(stand, 0.26, 0.2, 0.18, [0, deskTop + 0.14, 0.02], black);         // 立柱下段
     kit.cylinder(stand, 0.2, 0.16, 0.12, [0, deskTop + 0.28, 0.03], black);         // 立柱上段
-    kit.cylinder(stand, 0.3, 0.26, 0.04, [0, deskTop + 0.36, 0.03], black);         // 顶部托盘
+    // 顶部托盘与键盘同角度倾斜，让键盘平贴其上（与键盘 rotation.z 一致）
+    const tray = new THREE.Group();
+    tray.position.set(0, deskTop + 0.36, 0.03);
+    tray.rotation.z = -side * 0.34;
+    stand.add(tray);
+    kit.roundedBox(tray, [0.82, 0.05, 0.42], [0, 0, 0], black, 0.04);
     const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 28);
     const matrix = new THREE.Matrix4();
     let keyIndex = 0;
