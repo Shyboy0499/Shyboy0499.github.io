@@ -138,6 +138,9 @@ function createStudioSplitKeyboard(
     half.rotation.x = -0.06;
     half.rotation.z = -side * 0.34; // tenting 向内倾斜（手腕向内收），更明显的坡角
     kit.roundedBox(half, [0.8, 0.07, 0.4], [0, 0, 0], black, 0.045);
+    // 黑色椭圆底座：把半块键盘撑起成 tenting 坡度的支架
+    kit.cylinder(half, 0.5, 0.55, 0.34, [0, -0.42, 0.02], black);
+    kit.cylinder(half, 0.6, 0.62, 0.06, [0, -0.6, 0.02], black);
     const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 28);
     const matrix = new THREE.Matrix4();
     let keyIndex = 0;
