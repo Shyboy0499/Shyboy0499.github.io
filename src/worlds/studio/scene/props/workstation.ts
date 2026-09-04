@@ -133,16 +133,16 @@ function createStudioSplitKeyboard(
   const keyGeometry = new RoundedBoxGeometry(0.095, 0.035, 0.09, 2, 0.014);
   // Desk surface: y=1.5, thickness 0.28 => top at 1.64.
   const deskTop = 1.64;
-  // 左右两块，各自向内倾斜形成 tenting
+  // 左右两块，各自向内倾斜形成 tenting；彼此间留很小的缝，靠近成 V 形
   for (const side of [-1, 1]) {
     const half = new THREE.Group();
-    half.position.set(side * 0.52, 2.08, -2.78);
+    half.position.set(side * 0.43, 2.08, -2.78);
     half.rotation.x = -0.06;
     half.rotation.z = -side * 0.34; // tenting 向内倾斜（手腕向内收），更明显的坡角
     kit.roundedBox(half, [0.8, 0.07, 0.4], [0, 0, 0], black, 0.045);
     // 直立支架（作为 kb 的兄弟节点，不随键盘倾斜，从桌面一路撑到键盘下方）
     const stand = new THREE.Group();
-    stand.position.set(side * 0.52, 0, -2.78);
+    stand.position.set(side * 0.43, 0, -2.78);
     kb.add(stand);
     kit.cylinder(stand, 0.42, 0.34, 0.05, [0, deskTop + 0.025, 0], black);          // 桌面椭圆脚垫
     kit.cylinder(stand, 0.26, 0.2, 0.18, [0, deskTop + 0.14, 0.02], black);         // 立柱下段
