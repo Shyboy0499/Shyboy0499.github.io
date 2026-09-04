@@ -131,11 +131,11 @@ function createStudioSplitKeyboard(
   parent.add(kb);
   const keyMaterial = kit.material({ color: 0x2a2f36, roughness: 0.48, metalness: 0.08 });
   const keyGeometry = new RoundedBoxGeometry(0.095, 0.035, 0.09, 2, 0.014);
-  // 左右两块，各自向外（沿 z 轴向内）倾斜 12°，形成 tenting
+  // 左右两块，各自向内倾斜形成 tenting；抬高到桌面上方，避免插入桌面
   for (const side of [-1, 1]) {
     const half = new THREE.Group();
-    half.position.set(side * 0.52, 1.67, -2.78);
-    half.rotation.x = -0.1;
+    half.position.set(side * 0.52, 1.76, -2.78);
+    half.rotation.x = -0.06;
     half.rotation.z = -side * 0.2; // tenting 向内倾斜（手腕向内收）
     kit.roundedBox(half, [0.98, 0.07, 0.46], [0, 0, 0], black, 0.045);
     const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 36);
