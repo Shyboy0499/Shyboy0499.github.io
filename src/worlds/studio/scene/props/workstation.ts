@@ -137,13 +137,13 @@ function createStudioSplitKeyboard(
     half.position.set(side * 0.52, 1.76, -2.78);
     half.rotation.x = -0.06;
     half.rotation.z = -side * 0.2; // tenting 向内倾斜（手腕向内收）
-    kit.roundedBox(half, [0.98, 0.07, 0.46], [0, 0, 0], black, 0.045);
-    const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 36);
+    kit.roundedBox(half, [0.8, 0.07, 0.4], [0, 0, 0], black, 0.045);
+    const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 28);
     const matrix = new THREE.Matrix4();
     let keyIndex = 0;
     for (let row = 0; row < 4; row += 1) {
-      for (let column = 0; column < 9; column += 1) {
-        matrix.makeTranslation(-0.4 + column * 0.11, 0.05, -0.13 + row * 0.092);
+      for (let column = 0; column < 7; column += 1) {
+        matrix.makeTranslation(-0.33 + column * 0.11, 0.05, -0.12 + row * 0.09);
         keys.setMatrixAt(keyIndex, matrix);
         keyIndex += 1;
       }
