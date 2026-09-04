@@ -131,16 +131,24 @@ function createStudioSplitKeyboard(
   parent.add(kb);
   const keyMaterial = kit.material({ color: 0x2a2f36, roughness: 0.48, metalness: 0.08 });
   const keyGeometry = new RoundedBoxGeometry(0.095, 0.035, 0.09, 2, 0.014);
-  // 左右两块，各自向内倾斜形成 tenting；抬高到桌面上方，避免插入桌面
+  // Desk surface: y=1.5, thickness 0.28 => top at 1.64.
+  const deskTop = 1.64;
+  // 左右两块，各自向内倾斜形成 tenting
   for (const side of [-1, 1]) {
     const half = new THREE.Group();
-    half.position.set(side * 0.52, 1.76, -2.78);
+    half.position.set(side * 0.52, 1.78, -2.78);
     half.rotation.x = -0.06;
     half.rotation.z = -side * 0.34; // tenting 向内倾斜（手腕向内收），更明显的坡角
     kit.roundedBox(half, [0.8, 0.07, 0.4], [0, 0, 0], black, 0.045);
-    // 黑色椭圆底座：把半块键盘撑起成 tenting 坡度的支架
-    kit.cylinder(half, 0.5, 0.55, 0.34, [0, -0.42, 0.02], black);
-    kit.cylinder(half, 0.6, 0.62, 0.06, [0, -0.6, 0.02], black);
+    // 直立支架（作为 kb 的兄弟节点，不随键盘倾斜）：
+    // 桌面上的椭圆脚垫 + 向上收窄的立柱，顶到键盘底部以撑出 tenting 坡度
+    const stand = new THREE.Group();
+    stand.position.set(side * 0.52, 0, -2.78);
+    kb.add(stand);
+    // 键盘半块底部(y≈1.745)与桌面顶(1.64)之间的缝隙≈0.105：用脚垫+立柱撑起来
+    kit.cylinder(stand, 0.42, 0.34, 0.05, [0, deskTop + 0.025, 0], black);          // 桌面椭圆脚垫
+    kit.cylinder(stand, 0.3, 0.26, 0.06, [0, deskTop + 0.1, 0.02], black);          // 收窄立柱底部
+    kit.cylinder(stand, 0.34, 0.3, 0.05, [0, deskTop + 0.14, 0.03], black);         // 顶部托盘
     const keys = new THREE.InstancedMesh(keyGeometry, keyMaterial, 28);
     const matrix = new THREE.Matrix4();
     let keyIndex = 0;
