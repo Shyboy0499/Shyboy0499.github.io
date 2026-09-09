@@ -1,6 +1,5 @@
-// 卧房工作台：一张大桌子承载 3 台显示器、分体无线（左右）倾斜键盘、无鼠标、
-// 2 台 MacBook（一台 macOS 一台 Linux）、1 台 iPad（Obsidian todo）与 3 台 Mac mini 组成本地 LLM 集群。
-// 屏幕贴图、桌灯发光材质、命中区和展品注册由 StudioRoom 注入与持有。
+// 卧房工作台：一张大桌子承载 3 台显示器、分体无线（左右）倾斜键盘（无鼠标）、
+// 一把办公椅与一盏桌灯。屏幕贴图、桌灯发光材质、命中区和展品注册由 StudioRoom 注入与持有。
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { StudioExhibitBinding } from "../../binding";
@@ -46,11 +45,7 @@ export function createStudioWorkstation(
   // 分体无线键盘：左右各一块，各自向外倾斜（tenting），无鼠标
   createStudioSplitKeyboard(kit, group, black);
 
-  // 2 台 MacBook，左右各一台：左侧 macOS，右侧 Arch Linux
-  // 2 台 MacBook 已移除，桌面只留 3 台显示器与分体键盘。
-
-  // 1 台 iPad（Obsidian todo）放在桌面右侧
-  // iPad 与马克杯已移除，桌面只留键盘、显示器与两台 MacBook。
+  // 桌面只保留 3 台显示器与分体键盘：MacBook、iPad、马克杯等临时物件均已移除。
   const chair = createStudioChair(kit, group, materials.fabricTexture);
   createStudioDeskLamp(kit, group, white, materials.lampBulbMaterial);
   kit.scene.add(group);
@@ -147,9 +142,11 @@ function createStudioSplitKeyboard(
     kit.cylinder(stand, 0.42, 0.34, 0.05, [0, deskTop + 0.025, 0], black);          // 桌面椭圆脚垫
     kit.cylinder(stand, 0.26, 0.2, 0.18, [0, deskTop + 0.14, 0.02], black);         // 立柱下段
     kit.cylinder(stand, 0.2, 0.16, 0.12, [0, deskTop + 0.28, 0.03], black);         // 立柱上段
-    // 顶部托盘与键盘同角度倾斜，让键盘平贴其上（与键盘 rotation.z 一致）
+    // 顶部托盘与键盘同角度倾斜（pitch 与 tenting 一致），使托盘平面平行于键盘底面，
+    // 让键盘平贴其上不至于翘起或单边顶入。
     const tray = new THREE.Group();
     tray.position.set(0, deskTop + 0.36, 0.03);
+    tray.rotation.x = -0.06;
     tray.rotation.z = -side * 0.34;
     stand.add(tray);
     kit.roundedBox(tray, [0.82, 0.05, 0.42], [0, 0, 0], black, 0.04);
