@@ -21,7 +21,7 @@ archipelago, a living jianghu inn, a linework room, and a detailed studio.
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-000000?style=flat-square&logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-[Explore the portfolio](https://qiuner.github.io/) · [中文](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md)
+[Explore the portfolio](https://shyboy0499.github.io/) · [中文](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md)
 
 </div>
 
@@ -31,13 +31,13 @@ archipelago, a living jianghu inn, a linework room, and a detailed studio.
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="https://qiuner.github.io/?world=cosmic"><img src="public/assets/avatar.webp" alt="Cosmic World preview" /><br /><strong>Cosmic World</strong></a></td>
-    <td align="center" width="33%"><a href="https://qiuner.github.io/?world=archipelago"><img src="public/assets/isometric-preview.webp" alt="Archipelago World preview" /><br /><strong>Archipelago World</strong></a></td>
-    <td align="center" width="33%"><a href="https://qiuner.github.io/?world=jianghu"><img src="public/jianghu-world/backgrounds/yuelai-inn-night.webp" alt="Jianghu World preview" /><br /><strong>Jianghu World</strong></a></td>
+    <td align="center" width="33%"><a href="https://shyboy0499.github.io/?world=cosmic"><img src="public/assets/avatar.webp" alt="Cosmic World preview" /><br /><strong>Cosmic World</strong></a></td>
+    <td align="center" width="33%"><a href="https://shyboy0499.github.io/?world=archipelago"><img src="public/archipelago-world/entry-poster.webp" alt="Archipelago World preview" /><br /><strong>Archipelago World</strong></a></td>
+    <td align="center" width="33%"><a href="https://shyboy0499.github.io/?world=jianghu"><img src="public/jianghu-world/backgrounds/yuelai-inn-night.webp" alt="Jianghu World preview" /><br /><strong>Jianghu World</strong></a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://qiuner.github.io/?world=linework"><img src="public/linework-world/entry-poster.webp" alt="Linework World preview" /><br /><strong>Linework World</strong></a></td>
-    <td align="center"><a href="https://qiuner.github.io/?world=studio"><img src="public/studio-world/entry-poster.webp" alt="Studio World preview" /><br /><strong>Studio World</strong></a></td>
+    <td align="center"><a href="https://shyboy0499.github.io/?world=linework"><img src="public/linework-world/entry-poster.webp" alt="Linework World preview" /><br /><strong>Linework World</strong></a></td>
+    <td align="center"><a href="https://shyboy0499.github.io/?world=studio"><img src="public/studio-world/entry-poster.webp" alt="Studio World preview" /><br /><strong>Studio World</strong></a></td>
   </tr>
 </table>
 
@@ -76,8 +76,8 @@ available when JavaScript, WebGL, or a 3D World cannot load.
 ## Local Development
 
 ```bash
-git clone https://github.com/Qiuner/Qiuner.github.io.git
-cd Qiuner.github.io
+git clone https://github.com/Shyboy0499/Shyboy0499.github.io.git
+cd Shyboy0499.github.io
 npm install
 npm run dev
 ```

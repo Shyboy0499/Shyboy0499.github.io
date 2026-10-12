@@ -1,19 +1,23 @@
 <div align="center">
 
-# Qiuner.github.io
+# Shyboy0499.github.io
 
 ### 同一份个人经历，五个可交互世界
+
+> **Fork 说明：** 本站 fork 自 [@Qiuner](https://github.com/Qiuner) 的
+> [Qiuner/Qiuner.github.io](https://github.com/Qiuner/Qiuner.github.io)。设计、框架（Astro + Three.js）
+> 与交互世界引擎是 Qiuner 的原创作品；身份、项目与内容属于 Shyboy0499。原站见 [Qiuner 的作品集](https://qiuner.github.io/)。
 
 一个使用 Astro 与 Three.js 构建的沉浸式个人作品集。项目、经历与想法保持同一份事实来源，
 分别被诠释为宇宙旅程、可航行群岛、鲜活的江湖客栈、线稿房间和精细工作室。
 
-[![线上站点](https://img.shields.io/badge/线上站点-进入世界-111827?style=flat-square)](https://qiuner.github.io/)
-[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Qiuner/Qiuner.github.io/deploy.yml?branch=main&style=flat-square&label=GitHub%20Pages)](https://github.com/Qiuner/Qiuner.github.io/actions/workflows/deploy.yml)
+[![线上站点](https://img.shields.io/badge/线上站点-进入世界-111827?style=flat-square)](https://shyboy0499.github.io/)
+[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Shyboy0499/Shyboy0499.github.io/deploy.yml?branch=main&style=flat-square&label=GitHub%20Pages)](https://github.com/Shyboy0499/Shyboy0499.github.io/actions/workflows/deploy.yml)
 [![Astro](https://img.shields.io/badge/Astro-7-BC52EE?style=flat-square&logo=astro&logoColor=white)](https://astro.build/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-000000?style=flat-square&logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-[进入作品集](https://qiuner.github.io/) · [English](README.md) · [架构文档](docs/ARCHITECTURE.zh-CN.md)
+[进入作品集](https://shyboy0499.github.io/) · [English](README.md) · [架构文档](docs/ARCHITECTURE.zh-CN.md)
 
 </div>
 
@@ -23,13 +27,13 @@
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="https://qiuner.github.io/?world=cosmic"><img src="public/assets/avatar.webp" alt="宇宙世界预览" /><br /><strong>宇宙世界</strong></a></td>
-    <td align="center" width="33%"><a href="https://qiuner.github.io/?world=archipelago"><img src="public/assets/isometric-preview.webp" alt="群岛世界预览" /><br /><strong>群岛世界</strong></a></td>
-    <td align="center" width="33%"><a href="https://qiuner.github.io/?world=jianghu"><img src="public/jianghu-world/backgrounds/yuelai-inn-night.webp" alt="江湖世界预览" /><br /><strong>江湖世界</strong></a></td>
+    <td align="center" width="33%"><a href="https://shyboy0499.github.io/?world=cosmic"><img src="public/assets/avatar.webp" alt="宇宙世界预览" /><br /><strong>宇宙世界</strong></a></td>
+    <td align="center" width="33%"><a href="https://shyboy0499.github.io/?world=archipelago"><img src="public/archipelago-world/entry-poster.webp" alt="群岛世界预览" /><br /><strong>群岛世界</strong></a></td>
+    <td align="center" width="33%"><a href="https://shyboy0499.github.io/?world=jianghu"><img src="public/jianghu-world/backgrounds/yuelai-inn-night.webp" alt="江湖世界预览" /><br /><strong>江湖世界</strong></a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://qiuner.github.io/?world=linework"><img src="public/linework-world/entry-poster.webp" alt="线稿世界预览" /><br /><strong>线稿世界</strong></a></td>
-    <td align="center"><a href="https://qiuner.github.io/?world=studio"><img src="public/studio-world/entry-poster.webp" alt="工作室世界预览" /><br /><strong>工作室世界</strong></a></td>
+    <td align="center"><a href="https://shyboy0499.github.io/?world=linework"><img src="public/linework-world/entry-poster.webp" alt="线稿世界预览" /><br /><strong>线稿世界</strong></a></td>
+    <td align="center"><a href="https://shyboy0499.github.io/?world=studio"><img src="public/studio-world/entry-poster.webp" alt="工作室世界预览" /><br /><strong>工作室世界</strong></a></td>
   </tr>
 </table>
 
@@ -65,8 +69,8 @@ Astro 会在 WebGL 启动前输出完整可读的作品集。即使 JavaScript�
 ## 本地开发
 
 ```powershell
-git clone https://github.com/Qiuner/Qiuner.github.io.git
-cd Qiuner.github.io
+git clone https://github.com/Shyboy0499/Shyboy0499.github.io.git
+cd Shyboy0499.github.io
 npm install
 npm run dev
 ```
