@@ -1,7 +1,13 @@
-// 3D 可玩入口：拥有场景、角色移动、镜头与项目互动的全部运行时状态。
-// 不负责页面文案与样式（见 pages/index.astro）；WebGL 不可用时只给 #play 加 no-webgl，静态内容保持可用。
+// 3D 可玩入口：拥有场景、后期泛光、角色移动、镜头与项目互动的全部运行时状态。
+// 不负责页面文案、开场动画与样式（见 pages/index.astro）；WebGL 不可用时只给 #play 加 no-webgl，静态内容保持可用。
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import type { Project } from "../content/projects";
+import { createFloorMaterial, createRimMaterial, createSkyMaterial } from "./world-shaders";
+import { createTrail } from "./trail";
 
 // 地台半径与行走速度共同决定漫游手感；边界留出余量，避免角色卡在圆环边缘。
 const ARENA_RADIUS = 12;
@@ -23,6 +29,11 @@ const MOVE_KEYS: Record<string, [number, number]> = {
   arrowright: [1, 0],
 };
 
+// 发光线条需要超过 1 的亮度才能被泛光捕获，这里把颜色整体提亮。
+function glowColor(hex: number, boost: number): THREE.Color {
+  return new THREE.Color(hex).multiplyScalar(boost);
+}
+
 export function mountPlayground(root: HTMLElement, projects: Project[]): void {
   const host = root.querySelector<HTMLElement>("[data-canvas]");
   const intro = root.querySelector<HTMLElement>("[data-intro]");
@@ -40,93 +51,90 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     return;
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
   host.appendChild(renderer.domElement);
 
   // 减少动效时保留场景与可玩性，只把漂浮、旋转与镜头环绕放慢到几乎静止。
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0.25 : 1;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x07070b);
-  scene.fog = new THREE.Fog(0x07070b, 22, 50);
+  scene.fog = new THREE.Fog(0x0a0814, 28, 60);
 
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 120);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
 
-  scene.add(new THREE.HemisphereLight(0xc9c4ff, 0x0a0a14, 1.6));
-  const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+  scene.add(new THREE.HemisphereLight(0xc9c4ff, 0x0a0a14, 1.4));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.8);
   sun.position.set(6, 14, 8);
   scene.add(sun);
 
-  // 圆形地台顶面位于 y=0，角色的活动范围由它的半径决定。
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(150, 48, 24), createSkyMaterial());
+  scene.add(sky);
+
+  // 圆形地台顶面位于 y=0：顶面用发光网格材质，侧壁用暗色，角色活动范围由半径决定。
+  const floorMaterial = createFloorMaterial(ARENA_RADIUS);
+  const rimMaterial = createRimMaterial();
   const ground = new THREE.Mesh(
     new THREE.CylinderGeometry(ARENA_RADIUS, ARENA_RADIUS * 0.9, 1.2, 96),
-    new THREE.MeshStandardMaterial({ color: 0x15151f, roughness: 0.9 }),
+    // CylinderGeometry 的分组顺序为：侧壁、顶面、底面。
+    [rimMaterial, floorMaterial, rimMaterial],
   );
   ground.position.y = -0.6;
   scene.add(ground);
 
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(ARENA_RADIUS, 0.06, 8, 160),
-    new THREE.MeshBasicMaterial({ color: 0x7c5cff }),
+    new THREE.TorusGeometry(ARENA_RADIUS, 0.05, 8, 160),
+    new THREE.MeshBasicMaterial({ color: glowColor(0x7c5cff, 2.4) }),
   );
   rim.rotation.x = Math.PI / 2;
   scene.add(rim);
 
-  for (const r of [4, 9]) {
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(r, r + 0.03, 128),
-      new THREE.MeshBasicMaterial({ color: 0x36d6c3, transparent: true, opacity: 0.12, side: THREE.DoubleSide }),
-    );
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.01;
-    scene.add(ring);
-  }
-
-  // 圆环外的漂浮碎石，只做氛围，不参与碰撞。
+  // 外圈的碎石与内圈的同心环，让地台有纵深而不是一张平面。
   const shardMaterial = new THREE.MeshStandardMaterial({ color: 0x1d1d2a, flatShading: true, roughness: 0.7 });
-  const shards = Array.from({ length: 9 }, (_, i) => {
-    const angle = (i / 9) * Math.PI * 2 + Math.random() * 0.4;
-    const dist = 15 + Math.random() * 7;
-    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6 + Math.random() * 1.2, 0), shardMaterial);
-    const baseY = 2 + Math.random() * 6;
+  const shards = Array.from({ length: 11 }, (_, i) => {
+    const angle = (i / 11) * Math.PI * 2 + Math.random() * 0.4;
+    const dist = 15 + Math.random() * 8;
+    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6 + Math.random() * 1.3, 0), shardMaterial);
+    const baseY = 2 + Math.random() * 7;
     mesh.position.set(Math.cos(angle) * dist, baseY, Math.sin(angle) * dist);
     mesh.rotation.set(Math.random() * 3, Math.random() * 3, 0);
     scene.add(mesh);
     return { mesh, baseY, phase: Math.random() * Math.PI * 2 };
   });
 
-  const starCount = 500;
+  const starCount = 900;
   const starPositions = new Float32Array(starCount * 3);
   for (let i = 0; i < starCount; i++) {
     // 在上半球均匀取点，让星空只出现在地台上方。
     const u = Math.random() * 2 - 1;
     const theta = Math.random() * Math.PI * 2;
-    const r = 45 + Math.random() * 30;
+    const r = 60 + Math.random() * 60;
     const s = Math.sqrt(1 - u * u);
     starPositions.set([Math.cos(theta) * s * r, Math.abs(u) * r * 0.8 + 2, Math.sin(theta) * s * r], i * 3);
   }
   const stars = new THREE.Points(
     new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(starPositions, 3)),
-    new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, transparent: true, opacity: 0.7, fog: false }),
+    new THREE.PointsMaterial({ color: 0xffffff, size: 0.2, transparent: true, opacity: 0.75, fog: false }),
   );
   scene.add(stars);
 
-  // 中央悬浮的核心，作为整个世界的视觉锚点。
+  // 中央悬浮的核心：双环加一颗晶体，作为整个世界的视觉锚点。
   const core = new THREE.Group();
   core.position.set(0, 3.2, 0);
-  const coreRing = new THREE.Mesh(
-    new THREE.TorusGeometry(1.5, 0.05, 12, 96),
-    new THREE.MeshBasicMaterial({ color: 0x36d6c3 }),
-  );
+  const coreRingMaterial = new THREE.MeshBasicMaterial({ color: glowColor(0x36d6c3, 3) });
+  const coreRing = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.04, 12, 120), coreRingMaterial);
   coreRing.rotation.x = Math.PI / 2.4;
+  const coreRingOuter = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.02, 10, 120), coreRingMaterial);
+  coreRingOuter.rotation.set(Math.PI / 2.1, 0.4, 0.2);
   const coreGem = new THREE.Mesh(
     new THREE.IcosahedronGeometry(0.55, 0),
-    new THREE.MeshStandardMaterial({ color: 0xecedf2, emissive: 0x36d6c3, emissiveIntensity: 0.4, flatShading: true }),
+    new THREE.MeshStandardMaterial({ color: 0xecedf2, emissive: 0x36d6c3, emissiveIntensity: 0.6, flatShading: true }),
   );
-  core.add(coreRing, coreGem);
+  core.add(coreRing, coreRingOuter, coreGem);
   scene.add(core);
 
   const glow = createGlowTexture();
-  // 每个项目一座基座：晶体带描边和光晕，角色靠近后显示卡片。
+  // 每个项目一座基座：晶体带描边、光晕与一盏小灯，角色靠近后显示卡片。
   type Pedestal = { crystal: THREE.Object3D; anchor: THREE.Vector3; x: number; z: number; baseY: number; phase: number };
   const pedestals: Pedestal[] = projects.map((p, i) => {
     // 第一个项目放在正前方，便于开场就看到。
@@ -145,17 +153,21 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     const crystalGeometry = new THREE.OctahedronGeometry(0.6, 0);
     const crystal = new THREE.Mesh(
       crystalGeometry,
-      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, flatShading: true, roughness: 0.3 }),
+      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.9, flatShading: true, roughness: 0.25 }),
     );
-    crystal.add(new THREE.LineSegments(new THREE.EdgesGeometry(crystalGeometry), new THREE.LineBasicMaterial({ color })));
+    crystal.add(new THREE.LineSegments(new THREE.EdgesGeometry(crystalGeometry), new THREE.LineBasicMaterial({ color: color.clone().multiplyScalar(2.5) })));
     const halo = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: glow, color, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }),
+      new THREE.SpriteMaterial({ map: glow, color, transparent: true, opacity: 0.6, depthWrite: false, blending: THREE.AdditiveBlending }),
     );
-    halo.scale.setScalar(3.2);
+    halo.scale.setScalar(3.4);
     crystal.add(halo);
     const baseY = 2.1;
     crystal.position.set(x, baseY, z);
     scene.add(crystal);
+
+    const lamp = new THREE.PointLight(color, 6, 7, 2);
+    lamp.position.set(x, 1.4, z);
+    scene.add(lamp);
 
     return { crystal, anchor: new THREE.Vector3(x, 3.2, z), x, z, baseY, phase: i };
   });
@@ -168,7 +180,7 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     new THREE.MeshStandardMaterial({ color: 0xecedf2, roughness: 0.35 }),
   );
   body.position.y = 0.6;
-  const visor = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), new THREE.MeshBasicMaterial({ color: 0x36d6c3 }));
+  const visor = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), new THREE.MeshBasicMaterial({ color: glowColor(0x36d6c3, 3) }));
   visor.position.set(0, 0.95, 0.28);
   player.add(body, visor);
   scene.add(player);
@@ -181,10 +193,20 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
   shadow.position.y = 0.02;
   scene.add(shadow);
 
+  const trail = createTrail(scene, new THREE.Color(0x36d6c3));
+
+  // 泛光让发光材质向外晕开；参数偏保守，避免地台网格被整体冲白。
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.85, 0.5, 0.55);
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
+
   const keys = new Set<string>();
   const raycaster = new THREE.Raycaster();
   const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const pointer = new THREE.Vector2();
+  const pointerNdc = new THREE.Vector2();
   const clickTarget = new THREE.Vector3();
   const velocity = new THREE.Vector3();
   const cameraGoal = new THREE.Vector3();
@@ -247,6 +269,7 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     body.position.y = 0.6 + (moving ? Math.abs(Math.sin(t * 14)) * 0.07 * motion : 0);
     shadow.position.x = player.position.x;
     shadow.position.z = player.position.z;
+    trail.update(dt, moving && entered ? { x: player.position.x, z: player.position.z } : null);
   }
 
   function updateProximity() {
@@ -266,8 +289,13 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
   }
 
   function animateScene(dt: number, t: number) {
+    floorMaterial.uniforms.uTime.value = t;
+    floorMaterial.uniforms.uPlayer.value.set(player.position.x, player.position.z);
+    sky.material.uniforms.uTime.value = t;
+
     core.rotation.y += dt * 0.4 * motion;
     coreGem.rotation.y += dt * 0.8 * motion;
+    coreRingOuter.rotation.z += dt * 0.25 * motion;
     core.position.y = 3.2 + Math.sin(t * 1.2) * 0.2 * motion;
     for (const s of shards) {
       s.mesh.rotation.y += dt * 0.12 * motion;
@@ -280,7 +308,7 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     stars.rotation.y = t * 0.01 * motion;
   }
 
-  // 入场前镜头缓慢环绕全景；进入后平滑跟随角色。
+  // 入场前镜头缓慢环绕全景；进入后平滑跟随角色，并随指针轻微视差。
   function updateCamera(dt: number) {
     if (!entered) {
       orbit += dt * 0.12 * motion;
@@ -288,7 +316,11 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
       camera.lookAt(0, 1.5, 0);
       return;
     }
-    cameraGoal.set(player.position.x, 6.5, player.position.z + 9);
+    cameraGoal.set(
+      player.position.x + pointerNdc.x * 0.8 * motion,
+      6.5 + pointerNdc.y * 0.4 * motion,
+      player.position.z + 9,
+    );
     camera.position.lerp(cameraGoal, 1 - Math.exp(-dt * 4));
     camera.lookAt(player.position.x, 1.2, player.position.z);
   }
@@ -326,6 +358,7 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     width = host.clientWidth;
     height = host.clientHeight;
     renderer.setSize(width, height, false);
+    composer.setSize(width, height);
     camera.aspect = width / height;
     // 竖屏视野更窄，拉宽 FOV 以容纳整个圆形地台。
     camera.fov = camera.aspect < 1 ? 62 : 45;
@@ -352,6 +385,10 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
     }
   });
 
+  window.addEventListener("pointermove", (e) => {
+    pointerNdc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+  });
+
   window.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
     if (key === "enter") {
@@ -371,20 +408,22 @@ export function mountPlayground(root: HTMLElement, projects: Project[]): void {
   window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
   window.addEventListener("blur", () => keys.clear());
 
-  const clock = new THREE.Clock();
-  function frame() {
+  const timer = new THREE.Timer();
+  function frame(timestamp: number) {
     requestAnimationFrame(frame);
-    const dt = Math.min(clock.getDelta(), 0.05);
+    // 每帧都要 update，即使不可见：否则回到视口时会拿到一段很长的 dt。
+    timer.update(timestamp);
+    const dt = Math.min(timer.getDelta(), 0.05);
     if (!inView) return;
-    const t = clock.elapsedTime;
+    const t = timer.getElapsed();
     animateScene(dt, t);
     updatePlayer(dt, t);
     updateProximity();
     updateCamera(dt);
-    renderer.render(scene, camera);
+    composer.render(dt);
     updateLabels();
   }
-  frame();
+  requestAnimationFrame(frame);
 }
 
 // 光晕贴图在运行时用 canvas 绘制，避免额外的图片请求。
