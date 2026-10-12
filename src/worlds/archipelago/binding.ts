@@ -30,15 +30,15 @@ export interface ArchipelagoIslandSource {
 
 export const archipelagoBinding = [
   {
-    portfolioId: "claude-nexus",
+    portfolioId: "awesome-deepseek-harness",
     theme: "volcano",
   },
   {
-    portfolioId: "ai-application-roadmap",
+    portfolioId: "dsh-git-tools",
     theme: "forest",
   },
   {
-    portfolioId: "isometric-contributions-plus",
+    portfolioId: "deepseek-obsidian",
     theme: "snow",
   },
 ] as const satisfies readonly {

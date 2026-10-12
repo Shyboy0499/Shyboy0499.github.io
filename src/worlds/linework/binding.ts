@@ -37,7 +37,7 @@ export const lineworkBinding = [
     kind: "project",
     number: "01",
     objectLabel: "WORK DESK",
-    portfolioId: "claude-nexus",
+    portfolioId: "awesome-deepseek-harness",
     focus: [-2.5, 1.45, -2.45],
   },
   {
@@ -45,7 +45,7 @@ export const lineworkBinding = [
     kind: "project",
     number: "02",
     objectLabel: "REFERENCE SHELF",
-    portfolioId: "ai-application-roadmap",
+    portfolioId: "dsh-git-tools",
     focus: [4.35, 2.15, -3.55],
   },
   {
@@ -53,7 +53,7 @@ export const lineworkBinding = [
     kind: "project",
     number: "03",
     objectLabel: "ISOMETRIC PRINT",
-    portfolioId: "isometric-contributions-plus",
+    portfolioId: "deepseek-obsidian",
     focus: [-4.25, 3.15, -4.25],
   },
   {
