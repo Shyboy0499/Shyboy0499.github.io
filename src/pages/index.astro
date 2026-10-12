@@ -1,9 +1,13 @@
 ---
-// 站点唯一页面：顶部是可walk的 3D 世界入口，下方是可访问的静态作品与关于。
-// 页面只负责结构与样式；3D 运行时在 scripts/playground.ts，数据在 content/projects.ts。
+// 站点唯一页面：顶部是可漫游的 3D 世界，下方是作品、关于与页脚。
+// 页面只负责结构、样式与开场编排；3D 运行时在 scripts/playground.ts，数据在 content/projects.ts。
 import { profile, projects } from "../content/projects";
 
 const year = new Date().getFullYear();
+// 统计数字由作品数据推导，避免与列表不一致。
+const totalStars = projects.reduce((sum, p) => sum + Number(p.stars), 0);
+const languageCount = new Set(projects.map((p) => p.lang)).size;
+const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation", "Program synthesis", "LLM tooling", "Open source"];
 ---
 
 <!doctype html>
@@ -25,6 +29,18 @@ const year = new Date().getFullYear();
     />
   </head>
   <body>
+    <!-- 开场加载层：计数结束后由脚本加上 booted，层与文案一起淡入。 -->
+    <div class="boot" data-boot aria-hidden="true">
+      <div class="boot-inner">
+        <span class="boot-label">Loading world</span>
+        <span class="boot-count" data-boot-count>000</span>
+        <div class="boot-bar"><i data-boot-bar></i></div>
+      </div>
+    </div>
+
+    <div class="grain" aria-hidden="true"></div>
+    <div class="cursor" data-cursor aria-hidden="true"></div>
+
     <nav class="nav">
       <a class="brand" href="#top"><span class="brand-mark">✦</span> {profile.name}</a>
       <div class="nav-links">
@@ -59,21 +75,29 @@ const year = new Date().getFullYear();
         </div>
 
         <div class="play-intro" data-intro>
-          <p class="eyebrow">{profile.handle} · 3D intro</p>
-          <h1 class="title">{profile.name}</h1>
-          <p class="lede">{profile.blurb}</p>
-          <button class="btn btn-primary play-enter" type="button" data-enter>Enter the world</button>
-          <p class="hint">Walk with WASD or arrows · click the ground to move · walk to a crystal to open its card</p>
+          <p class="eyebrow rv" style="--d:0.2s">{profile.handle} · a playable intro</p>
+          <h1 class="title" aria-label={profile.name}>
+            {
+              profile.name.split("").map((c, i) => (
+                <span class="ch" style={`--i:${i}`} aria-hidden="true">{c === " " ? " " : c}</span>
+              ))
+            }
+          </h1>
+          <p class="lede rv" style="--d:0.9s">{profile.blurb}</p>
+          <div class="rv" style="--d:1.1s">
+            <button class="btn btn-primary play-enter" type="button" data-enter>Enter the world</button>
+          </div>
+          <p class="hint rv" style="--d:1.3s">WASD / arrows to walk · click the ground · walk to a crystal to open its card</p>
         </div>
 
         <div class="play-hud" aria-hidden="true">
           <span>WASD / ↑↓←→ walk</span>
           <span>click to move</span>
-          <span>Enter opens nearby project</span>
+          <span>Enter opens the nearby project</span>
         </div>
 
         {
-          projects.map((p, i) => (
+          projects.map((p) => (
             <aside class="play-card" data-card style={`--glow:${p.accent}`} hidden>
               <div class="card-top">
                 <span class="card-name">{p.name}</span>
@@ -94,24 +118,43 @@ const year = new Date().getFullYear();
         </noscript>
       </section>
 
-      <!-- 静态作品列表：与 3D 入口内容一致，供无 WebGL、无 JS 与屏幕阅读器使用。 -->
-      <section id="work" class="section">
-        <div class="section-head">
-          <h2>Selected work</h2>
-          <p>Things I've built, open on GitHub.</p>
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          {[...keywords, ...keywords].map((k) => <span class="chip">{k}<span class="sep">✦</span></span>)}
         </div>
-        <div class="cards">
+      </div>
+
+      <!-- 作品：Bento 网格，首张大卡片；指针在卡片上移动时点亮高光。 -->
+      <section id="work" class="section" data-reveal>
+        <header class="section-head">
+          <p class="kicker">01 — Work</p>
+          <h2>Selected projects</h2>
+        </header>
+        <div class="bento">
           {
-            projects.map((p) => (
-              <a class="card" href={p.href} target="_blank" rel="noopener noreferrer" style={`--glow:${p.accent}`}>
-                <div class="card-top">
-                  <span class="card-name">{p.name}</span>
-                  <span class="card-star">★ {p.stars}</span>
+            projects.map((p, i) => (
+              <a
+                class={`tile${i === 0 ? " tile-wide" : ""}`}
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={`--accent:${p.accent}`}
+              >
+                <svg class="tile-glyph" viewBox="0 0 100 100" aria-hidden="true">
+                  <polygon points="50,6 92,38 50,94 8,38" />
+                  <polyline points="8,38 50,50 92,38" />
+                  <line x1="50" y1="6" x2="50" y2="50" />
+                  <line x1="50" y1="50" x2="50" y2="94" />
+                </svg>
+                <div class="tile-top">
+                  <span class="tile-index">0{i + 1}</span>
+                  <span class="tile-lang">{p.lang}</span>
                 </div>
-                <p class="card-blurb">{p.blurb}</p>
-                <div class="card-foot">
-                  <span class="card-lang"><span class="dot" aria-hidden="true"></span>{p.lang}</span>
-                  <span class="card-arrow">→</span>
+                <h3 class="tile-name">{p.name}</h3>
+                <p class="tile-blurb">{p.blurb}</p>
+                <div class="tile-foot">
+                  <span class="tile-star">★ {p.stars}</span>
+                  <span class="tile-open">Open repository <span aria-hidden="true">↗</span></span>
                 </div>
               </a>
             ))
@@ -119,27 +162,31 @@ const year = new Date().getFullYear();
         </div>
       </section>
 
-      <section id="about" class="section">
-        <div class="section-head">
-          <h2>About</h2>
-        </div>
-        <div class="about-body">
-          <p>
-            I'm a developer who likes building tools that are small, sharp, and a little
-            opinionated. Most of my work lives at the seam between developers and agents:
-            automation that earns trust by <em>verifying</em> its own work rather than assuming.
-          </p>
-          <p>When I'm not shipping, I'm tuning my Mac setup until it feels exactly right.</p>
-          <div class="about-links">
-            <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-            <a href={`mailto:${profile.email}`}>Email ↗</a>
-          </div>
+      <section id="about" class="section about" data-reveal>
+        <header class="section-head">
+          <p class="kicker">02 — About</p>
+        </header>
+        <p class="statement">
+          I build tools that <em>check their own work</em>: agents, git automation, and the
+          Mac setups that make a machine feel like mine.
+        </p>
+        <dl class="stats">
+          <div><dt>Projects</dt><dd>{projects.length}</dd></div>
+          <div><dt>GitHub stars</dt><dd>{totalStars}</dd></div>
+          <div><dt>Languages</dt><dd>{languageCount}</dd></div>
+        </dl>
+        <div class="about-links">
+          <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+          <a href={`mailto:${profile.email}`}>Email ↗</a>
         </div>
       </section>
 
       <footer class="footer">
-        <span>✦ {profile.name}</span>
-        <span class="muted">© {year} · Built with care</span>
+        <div class="giant" aria-hidden="true">Chris Yu</div>
+        <div class="footer-row">
+          <span>✦ {profile.name} · {profile.handle}</span>
+          <span class="muted">© {year} · Built with care</span>
+        </div>
       </footer>
     </main>
 
@@ -147,8 +194,71 @@ const year = new Date().getFullYear();
       import { mountPlayground } from "../scripts/playground";
       import { projects } from "../content/projects";
 
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
       const play = document.getElementById("play");
       if (play) mountPlayground(play, projects);
+
+      // 开场：计数与进度条走完后加上 booted，标题逐字升起。减少动效时直接显示。
+      const boot = document.querySelector<HTMLElement>("[data-boot]");
+      const countEl = document.querySelector<HTMLElement>("[data-boot-count]");
+      const barEl = document.querySelector<HTMLElement>("[data-boot-bar]");
+      const finishBoot = () => {
+        document.body.classList.add("booted");
+        boot?.classList.add("gone");
+      };
+      if (reduce || !countEl || !barEl) {
+        finishBoot();
+      } else {
+        const start = performance.now();
+        const DURATION = 1600;
+        const step = (now: number) => {
+          const k = Math.min(1, (now - start) / DURATION);
+          const eased = 1 - Math.pow(1 - k, 3);
+          countEl.textContent = String(Math.round(eased * 100)).padStart(3, "0");
+          barEl.style.transform = `scaleX(${eased})`;
+          if (k < 1) requestAnimationFrame(step);
+          else finishBoot();
+        };
+        requestAnimationFrame(step);
+      }
+
+      // 精细指针下显示发光光标，跟随鼠标。
+      const cursor = document.querySelector<HTMLElement>("[data-cursor]");
+      if (cursor && !reduce && window.matchMedia("(pointer: fine)").matches) {
+        document.body.classList.add("has-cursor");
+        window.addEventListener("pointermove", (e) => {
+          cursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+        });
+      }
+
+      // 作品卡片：指针位置写入 CSS 变量，驱动高光跟随。
+      document.querySelectorAll<HTMLElement>(".tile").forEach((tile) => {
+        tile.addEventListener("pointermove", (e) => {
+          const r = tile.getBoundingClientRect();
+          tile.style.setProperty("--mx", `${e.clientX - r.left}px`);
+          tile.style.setProperty("--my", `${e.clientY - r.top}px`);
+        });
+      });
+
+      // 段落进入视口时淡入上浮。
+      const revealEls = document.querySelectorAll<HTMLElement>("[data-reveal]");
+      if (reduce) {
+        revealEls.forEach((el) => el.classList.add("in"));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const en of entries) {
+              if (en.isIntersecting) {
+                en.target.classList.add("in");
+                io.unobserve(en.target);
+              }
+            }
+          },
+          { threshold: 0.12 },
+        );
+        revealEls.forEach((el) => io.observe(el));
+      }
     </script>
 
     <style is:global>
@@ -157,12 +267,13 @@ const year = new Date().getFullYear();
         --fg: #ecedf2;
         --muted: #9a9bab;
         --line: rgba(255, 255, 255, 0.09);
-        --card: rgba(255, 255, 255, 0.035);
+        --card: rgba(255, 255, 255, 0.03);
         --c1: #7c5cff;
         --c2: #36d6c3;
         --c3: #ff7a59;
         --sans: "Space Grotesk", system-ui, sans-serif;
         --mono: "JetBrains Mono", ui-monospace, monospace;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
       }
 
       * { box-sizing: border-box; }
@@ -178,12 +289,67 @@ const year = new Date().getFullYear();
       }
       a { color: inherit; }
       [hidden] { display: none !important; }
+      :focus-visible { outline: 2px solid var(--c2); outline-offset: 3px; }
 
-      /* ---------- Nav ---------- */
+      /* ---------- 开场 ---------- */
+      .boot {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: var(--bg);
+        transition: opacity 0.9s var(--ease) 0.1s, visibility 0s linear 1s;
+      }
+      .boot.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+      .boot-inner { width: min(360px, 80vw); }
+      .boot-label { display: block; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
+      .boot-count { display: block; margin: 0.4rem 0 1.2rem; font-size: clamp(3.5rem, 12vw, 6rem); font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
+      .boot-bar { height: 2px; background: var(--line); overflow: hidden; }
+      .boot-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3)); transform: scaleX(0); transform-origin: left; }
+
+      .rv { opacity: 0; transform: translateY(14px); transition: opacity 0.8s var(--ease) var(--d, 0s), transform 0.8s var(--ease) var(--d, 0s); }
+      .booted .rv { opacity: 1; transform: none; }
+
+      /* ---------- 氛围层 ---------- */
+      .grain {
+        position: fixed;
+        inset: -50%;
+        z-index: 60;
+        pointer-events: none;
+        opacity: 0.05;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        animation: grain 1.2s steps(6) infinite;
+      }
+      @keyframes grain {
+        0%, 100% { transform: translate(0, 0); }
+        20% { transform: translate(-3%, 2%); }
+        40% { transform: translate(2%, -3%); }
+        60% { transform: translate(-2%, -1%); }
+        80% { transform: translate(3%, 3%); }
+      }
+
+      .cursor {
+        position: fixed;
+        top: 0; left: 0;
+        z-index: 59;
+        width: 340px;
+        height: 340px;
+        margin: -170px 0 0 -170px;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0;
+        mix-blend-mode: screen;
+        background: radial-gradient(circle, rgba(124, 92, 255, 0.2), rgba(54, 214, 195, 0.06) 40%, transparent 65%);
+        transition: opacity 0.4s;
+      }
+      .has-cursor .cursor { opacity: 1; }
+
+      /* ---------- 导航 ---------- */
       .nav {
         position: fixed;
         top: 0; left: 0; right: 0;
-        z-index: 10;
+        z-index: 20;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -203,8 +369,9 @@ const year = new Date().getFullYear();
         text-decoration: none;
         background: rgba(7, 7, 11, 0.5);
         backdrop-filter: blur(8px);
+        transition: border-color 0.2s, background 0.2s;
       }
-      .nav-cta:hover { border-color: var(--c1); }
+      .nav-cta:hover { border-color: var(--c2); background: rgba(54, 214, 195, 0.08); }
 
       main { margin: 0 auto; }
 
@@ -215,7 +382,7 @@ const year = new Date().getFullYear();
         height: 100svh;
         min-height: 580px;
         overflow: hidden;
-        background: radial-gradient(ellipse at 50% 40%, #15122a 0%, var(--bg) 70%);
+        background: radial-gradient(ellipse at 50% 35%, #17102e 0%, var(--bg) 72%);
       }
       .play-canvas { position: absolute; inset: 0; }
       .play-canvas canvas { display: block; width: 100%; height: 100%; }
@@ -238,41 +405,52 @@ const year = new Date().getFullYear();
         text-decoration: none;
         pointer-events: auto;
         opacity: 0;
-        transition: opacity 0.6s ease, box-shadow 0.2s;
+        transition: opacity 0.6s ease, box-shadow 0.25s;
       }
-      .play-label:hover { box-shadow: 0 0 18px var(--glow); }
+      .play-label:hover { box-shadow: 0 0 22px var(--glow); }
       .is-entered .play-label { opacity: 1; }
-      .label-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 8px var(--glow); }
+      .label-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 10px var(--glow); }
 
       .play-intro {
         position: absolute;
         left: clamp(20px, 5vw, 64px);
         bottom: clamp(28px, 9vh, 90px);
-        max-width: 460px;
+        max-width: 480px;
         z-index: 2;
         transition: opacity 0.6s ease, transform 0.6s ease;
       }
       .is-entered .play-intro { opacity: 0; transform: translateY(18px); pointer-events: none; }
-      .eyebrow { font-family: var(--mono); font-size: 0.8rem; color: var(--c2); margin: 0 0 0.8rem; letter-spacing: 0.04em; }
+      .eyebrow { font-family: var(--mono); font-size: 0.8rem; color: var(--c2); margin: 0 0 0.6rem; letter-spacing: 0.04em; }
+
       .title {
         margin: 0;
-        font-size: clamp(3rem, 9vw, 5.8rem);
+        overflow: hidden;
+        padding: 0.02em 0 0.12em;
+        font-size: clamp(3.2rem, 11vw, 7rem);
         line-height: 0.95;
         font-weight: 700;
-        letter-spacing: -0.035em;
+        letter-spacing: -0.04em;
+        white-space: nowrap;
         background: linear-gradient(100deg, var(--c1), var(--c2) 55%, var(--c3));
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
+      .ch {
+        display: inline-block;
+        transform: translateY(110%);
+        transition: transform 1s var(--ease) calc(var(--i) * 55ms + 0.25s);
+      }
+      .booted .ch { transform: none; }
+
       .lede { color: var(--muted); margin: 1rem 0 0; font-size: clamp(0.98rem, 2vw, 1.08rem); max-width: 44ch; }
-      .hint { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); margin: 1.1rem 0 0; opacity: 0.8; }
+      .hint { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin: 1.1rem 0 0; opacity: 0.8; }
 
       .btn {
         display: inline-flex;
         align-items: center;
         margin-top: 1.6rem;
-        padding: 13px 26px;
+        padding: 13px 28px;
         border: 0;
         border-radius: 999px;
         font: inherit;
@@ -284,10 +462,6 @@ const year = new Date().getFullYear();
         transition: transform 0.18s ease, box-shadow 0.25s ease;
       }
       .btn:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -12px rgba(124, 92, 255, 0.95); }
-      .btn:focus-visible, .play-label:focus-visible, .card-open:focus-visible, a:focus-visible {
-        outline: 2px solid var(--c2);
-        outline-offset: 3px;
-      }
 
       .play-hud {
         position: absolute;
@@ -299,7 +473,7 @@ const year = new Date().getFullYear();
         align-items: flex-end;
         gap: 4px;
         font-family: var(--mono);
-        font-size: 0.74rem;
+        font-size: 0.72rem;
         color: var(--muted);
         opacity: 0;
         transition: opacity 0.6s ease 0.2s;
@@ -316,95 +490,216 @@ const year = new Date().getFullYear();
         padding: 22px;
         border: 1px solid var(--glow);
         border-radius: 18px;
-        background: rgba(12, 12, 18, 0.78);
+        background: rgba(12, 12, 18, 0.8);
         backdrop-filter: blur(14px);
         transform: translateY(-50%);
-        box-shadow: 0 0 40px -12px var(--glow);
-        animation: card-in 0.35s ease;
+        box-shadow: 0 0 50px -12px var(--glow);
+        animation: card-in 0.4s var(--ease);
       }
-      .play-card .card-blurb { font-size: 0.92rem; }
-      .card-key { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin: 0.9rem 0 0; }
-      @keyframes card-in { from { opacity: 0; transform: translateY(calc(-50% + 10px)); } }
-
-      .no-webgl .play { height: auto; min-height: 60vh; padding: 140px 0 80px; }
-      .no-webgl .play-canvas, .no-webgl .play-labels, .no-webgl .play-hud, .no-webgl .play-card, .no-webgl .play-enter, .no-webgl .hint { display: none; }
-      .no-webgl .play-intro { position: relative; left: auto; bottom: auto; padding: 0 clamp(20px, 5vw, 40px); }
-
-      /* ---------- 静态段落 ---------- */
-      .section { max-width: 1080px; margin: 0 auto; padding: clamp(70px, 12vh, 120px) clamp(20px, 5vw, 40px) 0; }
-      .section-head h2 {
-        margin: 0;
-        font-size: clamp(1.5rem, 4vw, 2.2rem);
-        letter-spacing: -0.02em;
-      }
-      .section-head p { color: var(--muted); margin: 0.4rem 0 0; }
-
-      .cards {
-        margin-top: 2.4rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-      }
-      .card {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        padding: 26px;
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        background: var(--card);
-        text-decoration: none;
-        transition: transform 0.2s ease, border-color 0.3s;
-      }
-      .card:hover { transform: translateY(-4px); border-color: var(--glow); }
       .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
       .card-name { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.01em; }
       .card-star { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
-      .card-blurb { color: var(--muted); margin: 0.9rem 0 1.5rem; font-size: 0.95rem; flex: 1; }
+      .card-blurb { color: var(--muted); margin: 0.8rem 0 1.1rem; font-size: 0.92rem; }
       .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
       .card-lang { font-family: var(--mono); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 8px; }
       .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 10px var(--glow); }
-      .card-arrow { color: var(--glow); font-size: 1.2rem; transition: transform 0.2s; }
-      .card:hover .card-arrow { transform: translateX(5px); }
-      .card-open {
+      .card-open { font-family: var(--mono); font-size: 0.8rem; text-decoration: none; border-bottom: 1px solid var(--glow); padding-bottom: 1px; }
+      .card-key { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin: 0.9rem 0 0; }
+      @keyframes card-in { from { opacity: 0; transform: translateY(calc(-50% + 12px)); } }
+
+      .no-webgl .play { height: auto; min-height: 60vh; padding: 150px 0 90px; }
+      .no-webgl .play-canvas, .no-webgl .play-labels, .no-webgl .play-hud, .no-webgl .play-card, .no-webgl .play-enter, .no-webgl .hint { display: none; }
+      .no-webgl .play-intro { position: relative; left: auto; bottom: auto; padding: 0 clamp(20px, 5vw, 40px); }
+      .no-webgl .title { white-space: normal; }
+
+      /* ---------- 跑马灯 ---------- */
+      .marquee {
+        position: relative;
+        z-index: 2;
+        overflow: hidden;
+        border-block: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.015);
+        padding: 16px 0;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      }
+      .marquee-track { display: flex; gap: 14px; width: max-content; animation: marquee 34s linear infinite; }
+      .marquee:hover .marquee-track { animation-play-state: paused; }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
         font-family: var(--mono);
-        font-size: 0.8rem;
-        color: var(--fg);
-        text-decoration: none;
-        border-bottom: 1px solid var(--glow);
-        padding-bottom: 1px;
+        font-size: 0.85rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .sep { color: var(--c2); font-size: 0.7rem; }
+      @keyframes marquee { to { transform: translateX(-50%); } }
+
+      /* ---------- 通用段落 ---------- */
+      .section {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: clamp(80px, 13vh, 150px) clamp(20px, 5vw, 40px) 0;
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 1s var(--ease), transform 1s var(--ease);
+      }
+      .section.in { opacity: 1; transform: none; }
+      .kicker { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c2); margin: 0; }
+      .section-head h2 {
+        margin: 0.5rem 0 0;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
       }
 
-      .about-body { margin-top: 2rem; max-width: 62ch; }
-      .about-body p { color: var(--muted); font-size: clamp(1rem, 2vw, 1.1rem); }
-      .about-body em { color: var(--fg); font-style: normal; border-bottom: 1px solid var(--c2); }
-      .about-links { display: flex; gap: 22px; margin-top: 1.8rem; font-family: var(--mono); font-size: 0.92rem; }
-      .about-links a { text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; transition: border-color 0.2s; }
-      .about-links a:hover { border-color: var(--c1); }
+      /* ---------- Bento 作品网格 ---------- */
+      .bento {
+        margin-top: 2.6rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: minmax(230px, auto);
+        gap: 18px;
+      }
+      .tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 26px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at var(--mx, 85%) var(--my, 10%), color-mix(in srgb, var(--accent) 26%, transparent), transparent 55%),
+          var(--card);
+        text-decoration: none;
+        transition: transform 0.35s var(--ease), border-color 0.35s;
+      }
+      .tile:hover { transform: translateY(-5px); border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+      .tile-wide { grid-column: span 2; grid-row: span 2; padding: 34px; }
+      .tile-glyph {
+        position: absolute;
+        right: -10px;
+        top: -10px;
+        width: 150px;
+        height: 150px;
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 1.2;
+        opacity: 0.35;
+        transition: transform 0.8s var(--ease), opacity 0.4s;
+      }
+      /* 小卡片的图形放到右下角，避免压住右上角的语言标签。 */
+      .tile:not(.tile-wide) .tile-glyph { top: auto; bottom: -34px; right: -34px; }
+      .tile-wide .tile-glyph { width: 340px; height: 340px; right: -60px; top: -40px; opacity: 0.22; }
+      .tile:hover .tile-glyph { transform: rotate(40deg) scale(1.05); opacity: 0.6; }
+      .tile-top { display: flex; justify-content: space-between; align-items: center; position: relative; }
+      .tile-index { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+      .tile-lang {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        padding: 4px 10px;
+        border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+        border-radius: 999px;
+        color: var(--accent);
+      }
+      .tile-name {
+        margin: auto 0 0.5rem;
+        padding-top: 2rem;
+        font-size: clamp(1.4rem, 2.4vw, 1.7rem);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        position: relative;
+      }
+      .tile-wide .tile-name { font-size: clamp(2.2rem, 4.6vw, 3.6rem); letter-spacing: -0.035em; }
+      .tile-blurb { color: var(--muted); margin: 0 0 1.4rem; font-size: 0.96rem; max-width: 46ch; position: relative; }
+      .tile-foot { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.8rem; position: relative; }
+      .tile-star { color: var(--muted); }
+      .tile-open { color: var(--fg); }
+      .tile-open span { display: inline-block; transition: transform 0.25s var(--ease); }
+      .tile:hover .tile-open span { transform: translate(3px, -3px); }
 
+      /* ---------- 关于 ---------- */
+      .statement {
+        margin: 1.8rem 0 0;
+        max-width: 22ch;
+        font-size: clamp(2rem, 5.4vw, 3.9rem);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        font-weight: 500;
+      }
+      .statement em {
+        font-style: normal;
+        background: linear-gradient(100deg, var(--c1), var(--c2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin: 3rem 0 0;
+        padding: 0;
+      }
+      .stats div { padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); }
+      .stats dt { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+      .stats dd { margin: 0.4rem 0 0; font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+      .about-links { display: flex; gap: 24px; margin-top: 2rem; font-family: var(--mono); font-size: 0.92rem; }
+      .about-links a { text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; transition: border-color 0.2s, color 0.2s; }
+      .about-links a:hover { border-color: var(--c2); color: var(--c2); }
+
+      /* ---------- 页脚 ---------- */
       .footer {
-        max-width: 1080px;
-        margin: clamp(70px, 12vh, 120px) auto 0;
-        padding: 36px clamp(20px, 5vw, 40px) 56px;
-        border-top: 1px solid var(--line);
+        position: relative;
+        max-width: 1120px;
+        margin: clamp(100px, 16vh, 180px) auto 0;
+        padding: 0 clamp(20px, 5vw, 40px) 40px;
+        overflow: hidden;
+      }
+      .giant {
+        font-size: clamp(4.5rem, 19vw, 16rem);
+        font-weight: 700;
+        line-height: 0.82;
+        letter-spacing: -0.06em;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(236, 237, 242, 0.14);
+        white-space: nowrap;
+        user-select: none;
+      }
+      .footer-row {
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 10px;
+        margin-top: 28px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
         font-size: 0.88rem;
       }
-      .footer .muted { color: var(--muted); }
+      .muted { color: var(--muted); }
 
-      @media (max-width: 720px) {
+      @media (max-width: 900px) {
+        .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; }
+        .tile-wide { grid-row: auto; }
+      }
+      @media (max-width: 600px) {
+        .bento { grid-template-columns: 1fr; }
+        .tile-wide { grid-column: auto; }
+        .tile-wide .tile-glyph { width: 220px; height: 220px; }
         .nav-links a:not(.nav-cta) { display: none; }
         .play-card { top: auto; bottom: 20px; left: 20px; right: 20px; width: auto; transform: none; }
         .play-hud { display: none; }
         .play-intro { right: 20px; }
+        .title { font-size: clamp(2.8rem, 16vw, 4.5rem); }
       }
 
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
-        .title { animation: none; }
+        .grain, .marquee-track { animation: none !important; }
+        .ch, .rv, .section { transition: none !important; }
       }
     </style>
   </body>
