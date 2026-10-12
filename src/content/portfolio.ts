@@ -69,7 +69,50 @@ export const portfolio = {
       description:
         "从课程到实验，把一个学生如何通过构建和开源不断学习的过程，放进这座岛屿。",
       entryIds: [] as readonly string[],
-      media: [] as readonly PortfolioMedia[],
+      media: [
+        {
+          id: "build-01-hello-deepseek",
+          role: "gallery",
+          src: "/assets/build-log/build-01-hello-deepseek.webp",
+          alt: "Hello, DeepSeek：从一个 API key 开始",
+        },
+        {
+          id: "build-02-curate-ecosystem",
+          role: "gallery",
+          src: "/assets/build-log/build-02-curate-ecosystem.webp",
+          alt: "Curate the Ecosystem：整理 DeepSeek Harness 生态清单",
+        },
+        {
+          id: "build-03-ship-plugin",
+          role: "gallery",
+          src: "/assets/build-log/build-03-ship-plugin.webp",
+          alt: "Ship a Plugin：为 dsh 写本地 Git 工具",
+        },
+        {
+          id: "build-04-open-source-prs",
+          role: "gallery",
+          src: "/assets/build-log/build-04-open-source-prs.webp",
+          alt: "Open Source PRs：在 DSH 生态里提交 PR",
+        },
+        {
+          id: "build-05-knowledge-llm",
+          role: "gallery",
+          src: "/assets/build-log/build-05-knowledge-llm.webp",
+          alt: "Knowledge × LLM：DeepSeek-Obsidian 正在构建",
+        },
+        {
+          id: "build-06-learn-by-building",
+          role: "gallery",
+          src: "/assets/build-log/build-06-learn-by-building.webp",
+          alt: "Learn by Building：在悉尼学习 LLM 与机器学习",
+        },
+        {
+          id: "build-07-this-room",
+          role: "gallery",
+          src: "/assets/build-log/build-07-this-room.webp",
+          alt: "This Room：把作品集做成一个 3D 房间",
+        },
+      ] as readonly PortfolioMedia[],
     },
     {
       id: "projects",
@@ -100,7 +143,9 @@ export const portfolio = {
           href: "https://github.com/Shyboy0499/awesome-deepseek-harness",
         },
       ],
-      media: [] as readonly PortfolioMedia[],
+      media: [
+        { id: "deepseek-harness-cover", role: "cover", src: "/assets/projects/deepseek-harness-cover.webp", alt: "DeepSeek Harness 封面" },
+      ] as readonly PortfolioMedia[],
       tags: ["DeepSeek", "Open Source", "Ecosystem"],
     },
     {
@@ -117,7 +162,9 @@ export const portfolio = {
       links: [
         { id: "source", label: "SOURCE", href: "https://github.com/Shyboy0499/dsh-git-tools" },
       ],
-      media: [] as readonly PortfolioMedia[],
+      media: [
+        { id: "dsh-git-tools-cover", role: "cover", src: "/assets/projects/dsh-git-tools-cover.webp", alt: "dsh-git-tools 封面" },
+      ] as readonly PortfolioMedia[],
       tags: ["Git", "DeepSeek", "Plugins"],
     },
     {
@@ -133,7 +180,9 @@ export const portfolio = {
       links: [
         { id: "source", label: "SOURCE", href: "https://github.com/Shyboy0499/DeepSeek-Obsidian" },
       ],
-      media: [] as readonly PortfolioMedia[],
+      media: [
+        { id: "deepseek-obsidian-cover", role: "cover", src: "/assets/projects/deepseek-obsidian-cover.webp", alt: "DeepSeek-Obsidian 封面" },
+      ] as readonly PortfolioMedia[],
       tags: ["DeepSeek", "Obsidian", "Tooling"],
     },
     {

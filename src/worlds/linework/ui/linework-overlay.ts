@@ -114,7 +114,7 @@ export function createLineworkOverlay(
             description: `${person.description}\n\n${collection.summary}${collection.description}`,
             metrics: [
               { label: "LOCATION", value: person.location },
-              { label: "PHOTO LOG", value: String(collection.media.length).padStart(2, "0") },
+              { label: "BUILD LOG", value: String(collection.media.length).padStart(2, "0") },
               { label: "JOURNEY", value: collection.title },
             ],
             tags: person.interests,

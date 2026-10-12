@@ -10,7 +10,7 @@ export function createStudioBoards(
 ): void {
   const roadmapGroup = kit.imagePanel(
     kit.scene,
-    "/assets/roadmap-cover.webp",
+    "/assets/projects/dsh-git-tools-cover.webp",
     [2.25, 1.28],
     [-1.65, 3.65, -4.82],
   );
@@ -19,7 +19,7 @@ export function createStudioBoards(
 
   const contributionGroup = kit.imagePanel(
     kit.scene,
-    "/assets/isometric-preview.webp",
+    "/assets/projects/deepseek-obsidian-cover.webp",
     [2.15, 1.42],
     [2.42, 3.72, -4.82],
   );

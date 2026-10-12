@@ -61,83 +61,83 @@ const worldChoices = selectableWorlds.map((world, index) => {
     ].join(";"),
   };
 });
-const cyclingSlides = [
+const buildLogSlides = [
   {
-    focusId: "ride-04-shuikou-bike",
+    focusId: "build-01-hello-deepseek",
     number: "01",
-    eyebrow: "RIDE LOG",
-    title: "水口镇的第一张车照",
-    summary: "把整段骑行的入口，先放在最能代表路感的一张图上。",
+    eyebrow: "START",
+    title: "Hello, DeepSeek",
+    summary: "从一个 API key 开始。",
     description:
-      "这张图对应你在水口镇拍车与江湖照片的时刻，也适合当成进入骑行章节后的第一幕。",
-    src: "/assets/cycling/ride-04-shuikou-bike.webp",
-    alt: "水口镇拍车与江湖照片",
+      "第一次调用 DeepSeek，把“模型能做什么”从新闻里的概念变成自己终端里的输出，也是后面所有项目的起点。",
+    src: "/assets/build-log/build-01-hello-deepseek.webp",
+    alt: "Hello, DeepSeek 构建日志卡片",
   },
   {
-    focusId: "ride-01-flat-tire-tools",
+    focusId: "build-02-curate-ecosystem",
     number: "02",
-    eyebrow: "DAY 01",
-    title: "第一次自己补胎",
-    summary: "爆胎把旅程按停，也把补胎这件事变成了第一课。",
+    eyebrow: "LIST",
+    title: "整理 DeepSeek Harness 生态",
+    summary: "先把散落的工具整理成一张地图。",
     description:
-      "这两张图放在一起看，刚好能把“车坏了”到“自己修好”的过程说完整。",
-    src: "/assets/cycling/ride-01-flat-tire-tools.webp",
-    alt: "第一次自己补胎满地找工具",
+      "把 DeepSeek Harness 生态里的插件、技能、MCP 服务器与工具收集成可持续更新的中文清单，边整理边弄清楚生态是怎么拼起来的。",
+    src: "/assets/build-log/build-02-curate-ecosystem.webp",
+    alt: "整理 DeepSeek Harness 生态清单卡片",
   },
   {
-    focusId: "ride-02-flat-tire-repair",
+    focusId: "build-03-ship-plugin",
     number: "03",
-    eyebrow: "DAY 01",
-    title: "补胎完成后的确认",
-    summary: "修车不只是修车，还是一次很具体的自救。",
+    eyebrow: "PLUGIN",
+    title: "发布 dsh-git-tools",
+    summary: "从使用者变成插件作者。",
     description:
-      "第二张补胎照片可以作为上一张的延续，强调你是真的把车重新推回了路上。",
-    src: "/assets/cycling/ride-02-flat-tire-repair.webp",
-    alt: "第一次自己补胎满地找工具2",
+      "为 dsh 写本地 git 工具：git_status、git_diff、git_log、git_commit，让 agent 可以更顺手地操作仓库。",
+    src: "/assets/build-log/build-03-ship-plugin.webp",
+    alt: "dsh-git-tools 插件构建日志卡片",
   },
   {
-    focusId: "ride-03-tankou-camp",
+    focusId: "build-04-open-source-prs",
     number: "04",
-    eyebrow: "CAMP",
-    title: "谭口村的露营夜",
-    summary: "骑行不只是往前，也包括在村子里安顿下来。",
+    eyebrow: "COLLAB",
+    title: "向开源生态提交 PR",
+    summary: "不只做自己的项目，也修别人的路。",
     description:
-      "露营、煮饭、采野果这一幕很适合放在中段，让整段经历有一个慢下来的呼吸。",
-    src: "/assets/cycling/ride-03-tankou-camp.webp",
-    alt: "骑行到闽清县云龙乡谭口村露营",
+      "在 DeepSeek Harness 生态里提交 PR、维护清单、修复文档与构建路径问题，在协作中学习真实工程的节奏。",
+    src: "/assets/build-log/build-04-open-source-prs.webp",
+    alt: "开源 PR 构建日志卡片",
   },
   {
-    focusId: "ride-05-shuikou-town",
+    focusId: "build-05-knowledge-llm",
     number: "05",
-    eyebrow: "TOWN",
-    title: "水口镇的公路与广场",
-    summary: "一座建在公路上的小镇，像补给点，也像路上的风景。",
+    eyebrow: "BUILDING",
+    title: "Knowledge × LLM",
+    summary: "让模型服务于自己的知识库。",
     description:
-      "这张可以放在露营之后，讲你继续沿闽江往前时看到的城镇结构和停靠痕迹。",
-    src: "/assets/cycling/ride-05-shuikou-town.webp",
-    alt: "水口镇的广场与公路",
+      "DeepSeek-Obsidian 把 DeepSeek 工作流接入 Obsidian，正在探索笔记的总结、沉淀与检索。",
+    src: "/assets/build-log/build-05-knowledge-llm.webp",
+    alt: "DeepSeek-Obsidian 构建日志卡片",
   },
   {
-    focusId: "ride-06-nanping-hotel",
+    focusId: "build-06-learn-by-building",
     number: "06",
-    eyebrow: "STAY",
-    title: "把车推进酒店",
-    summary: "路上不是只有风景，也有临时的住处和现实的安排。",
+    eyebrow: "STUDY",
+    title: "边学边做",
+    summary: "在悉尼学习 LLM 与机器学习。",
     description:
-      "这张图很适合放在章节后段，作为“今天先到这里”的落点。",
-    src: "/assets/cycling/ride-06-nanping-hotel.webp",
-    alt: "骑行到南平雅豪酒店把车推进来",
+      "课程给出原理，项目给出问题；把学到的东西尽快做成可以运行、可以开源的工具。",
+    src: "/assets/build-log/build-06-learn-by-building.webp",
+    alt: "边学边做构建日志卡片",
   },
   {
-    focusId: "ride-07-minjiang-rainbow",
+    focusId: "build-07-this-room",
     number: "07",
-    eyebrow: "RIVER",
-    title: "闽江边遇到彩虹",
-    summary: "最后用一张带天气变化的照片收尾，旅程会更完整。",
+    eyebrow: "NOW",
+    title: "这个房间",
+    summary: "把作品集做成一个可以走进去的 3D 空间。",
     description:
-      "彩虹和水面很适合放成章节结尾，让这次长途骑行有一个带回声的收束。",
-    src: "/assets/cycling/ride-07-minjiang-rainbow.webp",
-    alt: "沿着闽江走在邵武附近遇到彩虹",
+      "用 Three.js 搭出桌面、键盘与霓虹灯，让每一件作品都成为房间里可以点开的陈设。",
+    src: "/assets/build-log/build-07-this-room.webp",
+    alt: "3D 作品集房间构建日志卡片",
   },
 ] as const;
 
@@ -478,7 +478,7 @@ const routes = [
           </article>
           );
         })}
-        {cyclingSlides.map((slide, index) => (
+        {buildLogSlides.map((slide, index) => (
           <article
             class:list={[
               "project-detail",
@@ -501,8 +501,8 @@ const routes = [
                 <p class="body-copy">{slide.description}</p>
                 <dl class="metrics">
                   <div>
-                    <dt>ROUTE</dt>
-                    <dd>闽侯 → 韶山</dd>
+                    <dt>TRACK</dt>
+                    <dd>BUILD LOG</dd>
                   </div>
                   <div>
                     <dt>STEP</dt>
@@ -510,7 +510,7 @@ const routes = [
                   </div>
                   <div>
                     <dt>MODE</dt>
-                    <dd>RIDE</dd>
+                    <dd>BUILD</dd>
                   </div>
                 </dl>
               </div>

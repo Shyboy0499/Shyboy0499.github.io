@@ -10,14 +10,14 @@ export const studioManifest = defineWorldManifest({
   supportedActivities: ["active", "near", "distant"],
   assets: {
     critical: [
-      "/assets/claude-nexus-cover.webp",
-      "/assets/roadmap-cover.webp",
-      "/assets/isometric-preview.webp",
+      "/assets/projects/deepseek-harness-cover.webp",
+      "/assets/projects/dsh-git-tools-cover.webp",
+      "/assets/projects/deepseek-obsidian-cover.webp",
     ],
     deferred: [
-      "/assets/cycling/ride-01-flat-tire-tools.webp",
-      "/assets/cycling/ride-04-shuikou-bike.webp",
-      "/assets/cycling/ride-07-minjiang-rainbow.webp",
+      "/assets/build-log/build-01-hello-deepseek.webp",
+      "/assets/build-log/build-04-open-source-prs.webp",
+      "/assets/build-log/build-07-this-room.webp",
     ],
     quality: {
       high: ["studio-dynamic-shadows"],

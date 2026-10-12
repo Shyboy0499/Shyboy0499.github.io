@@ -11,13 +11,13 @@ export const lineworkManifest = defineWorldManifest({
   assets: {
     critical: [],
     deferred: [
-      "/assets/cycling/ride-01-flat-tire-tools.webp",
-      "/assets/cycling/ride-02-flat-tire-repair.webp",
-      "/assets/cycling/ride-03-tankou-camp.webp",
-      "/assets/cycling/ride-04-shuikou-bike.webp",
-      "/assets/cycling/ride-05-shuikou-town.webp",
-      "/assets/cycling/ride-06-nanping-hotel.webp",
-      "/assets/cycling/ride-07-minjiang-rainbow.webp",
+      "/assets/build-log/build-01-hello-deepseek.webp",
+      "/assets/build-log/build-02-curate-ecosystem.webp",
+      "/assets/build-log/build-03-ship-plugin.webp",
+      "/assets/build-log/build-04-open-source-prs.webp",
+      "/assets/build-log/build-05-knowledge-llm.webp",
+      "/assets/build-log/build-06-learn-by-building.webp",
+      "/assets/build-log/build-07-this-room.webp",
     ],
     quality: {
       high: ["linework-paper-pass-high"],

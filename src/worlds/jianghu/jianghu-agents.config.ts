@@ -41,7 +41,7 @@ export const JIANGHU_AGENTS: readonly JianghuAgentSpec[] = [
   { id: "meta-ads-agent", name: "转化实验", role: "产品实验", color: "#1877f2", folder: "lvbuwei", asset: "lvbuwei", x: 462, y: 888, bubble: "每个按钮都要知道自己为何存在。", status: "online", dialogue: ["我代表产品实验。每个世界都可以验证一种交互、一种风格、一种叙事。", "不满意就改，看到问题就立刻让它变好。"] },
   { id: "brand-audit-agent", name: "品牌巡检", role: "品牌感知", color: "#f2b84b", folder: "bole", asset: "bole", x: 955, y: 870, bubble: "这不是模板站，是风格博物馆。", status: "online", dialogue: ["我代表品牌感知。Shyboy 的作品集不是一个模板集合，而是在收集网站可能抵达的形态。", "当作品都变成场景，个人品牌会更像一个宇宙。"] },
   { id: "global-content-agent", name: "多域翻译", role: "跨域学习", color: "#10b981", folder: "xuanzang", asset: "xuanzang", x: 1315, y: 868, bubble: "SaaS、作品集、游戏、社区，都能接进来。", status: "online", dialogue: ["我代表跨域学习。技术栈可以换，世界语言也可以换。", "Vue 的海岛、原生 DOM 的人物江湖、未来 React 的世界，都能并存。"] },
-  { id: "product-cocreate-agent", name: "纸门匠", role: "第四世界引路人", color: "#ec4899", folder: "cangjie", asset: "cangjie", x: 1700, y: 820, bubble: "想去白纸之境，就来与我谈。", status: "online", dialogue: ["江湖用人物讲经历，下一座世界会把颜色收起，只留下空间、光和线。", "白纸门后，就是 Shyboy 的线稿工作室吗？", "那里有会亮的电脑、彩色照片墙，也有藏在房间里的项目与生活。", "请替我开门，我想亲自进去看看。", "好。沿着这道墨线往前走，纸门会在最后一句话后打开。"] },
+  { id: "product-cocreate-agent", name: "纸门匠", role: "第四世界引路人", color: "#ec4899", folder: "cangjie", asset: "cangjie", x: 1700, y: 820, bubble: "想去白纸之境，就来与我谈。", status: "online", dialogue: ["江湖用人物讲经历，下一座世界会把颜色收起，只留下空间、光和线。", "白纸门后，就是 Shyboy 的线稿工作室吗？", "那里有会亮的电脑、构建日志墙，也有藏在房间里的项目与生活。", "请替我开门，我想亲自进去看看。", "好。沿着这道墨线往前走，纸门会在最后一句话后打开。"] },
   { id: "culture", name: "风格档案", role: "价值底色", color: "#7fd6bd", folder: "kongzi", asset: "kongzi", x: 287, y: 522, bubble: "所有网站风格，终将在这里归档。", status: "online", dialogue: ["我代表价值底色。技术很快，但真正留下来的，是你如何组织经验。", "把经历变成人物，让作品开口说话，这就是第三世界的入口。"] },
 ] as const;
 

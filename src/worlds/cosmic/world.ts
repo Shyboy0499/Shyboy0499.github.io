@@ -309,7 +309,7 @@ export const cosmicWorld: WorldModule = {
     world.add(origin);
 
     const cosmicAsset = (path: string): string => `${WORLD_NAMING.cosmic.assetBasePath}/${path}`;
-    const cyclingAsset = (path: string): string => cosmicAsset(`cycling/${path}`);
+    const buildLogAsset = (path: string): string => cosmicAsset(`build-log/${path}`);
 
     const avatarTexture = textureLoader.load(cosmicAsset("avatar.webp"));
     avatarTexture.colorSpace = THREE.SRGBColorSpace;
@@ -358,7 +358,7 @@ export const cosmicWorld: WorldModule = {
 
     openSourceHub.add(
       createMediaPanel({
-        path: cosmicAsset("isometric-preview.webp"),
+        path: cosmicAsset("projects/deepseek-obsidian-cover.webp"),
         width: 3.55,
         height: 2.28,
         accent: 0xc8ff36,
@@ -369,7 +369,7 @@ export const cosmicWorld: WorldModule = {
 
     openSourceHub.add(
       createMediaPanel({
-        path: cosmicAsset("roadmap-cover.webp"),
+        path: cosmicAsset("projects/dsh-git-tools-cover.webp"),
         width: 1.72,
         height: 1.02,
         accent: 0x59e6ff,
@@ -464,7 +464,7 @@ export const cosmicWorld: WorldModule = {
 
     nexus.add(
       createMediaPanel({
-        path: cosmicAsset("claude-nexus-cover.webp"),
+        path: cosmicAsset("projects/deepseek-harness-cover.webp"),
         width: 4.2,
         height: 2.7,
         accent: 0xff654b,
@@ -496,7 +496,7 @@ export const cosmicWorld: WorldModule = {
 
     roadmap.add(
       createMediaPanel({
-        path: cosmicAsset("roadmap-cover.webp"),
+        path: cosmicAsset("projects/dsh-git-tools-cover.webp"),
         width: 5.6,
         height: 3.25,
         accent: 0x59e6ff,
@@ -538,7 +538,7 @@ export const cosmicWorld: WorldModule = {
 
     lab.add(
       createMediaPanel({
-        path: cosmicAsset("isometric-preview.webp"),
+        path: cosmicAsset("projects/deepseek-obsidian-cover.webp"),
         width: 4.15,
         height: 2.55,
         accent: 0xc8ff36,
@@ -547,7 +547,7 @@ export const cosmicWorld: WorldModule = {
       }),
     );
 
-    const labIconTexture = textureLoader.load(cosmicAsset("claude-nexus-icon.webp"));
+    const labIconTexture = textureLoader.load(cosmicAsset("projects/deepseek-harness-icon.webp"));
     labIconTexture.colorSpace = THREE.SRGBColorSpace;
     const labIcon = new THREE.Mesh(new THREE.BoxGeometry(1.55, 1.55, 1.55), [
       ...Array(4).fill(
@@ -567,13 +567,13 @@ export const cosmicWorld: WorldModule = {
     labRing.rotation.x = 0.9;
     lab.add(labRing);
 
-    const rideLog = new THREE.Group();
-    rideLog.position.set(15, 0, -66);
-    world.add(rideLog);
+    const buildLog = new THREE.Group();
+    buildLog.position.set(15, 0, -66);
+    world.add(buildLog);
 
-    const rideLogPanels = [
+    const buildLogPanels = [
       {
-        path: cyclingAsset("ride-01-flat-tire-tools.webp"),
+        path: buildLogAsset("build-01-hello-deepseek.webp"),
         width: 1.78,
         height: 1.34,
         accent: 0xff654b,
@@ -581,7 +581,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [-0.04, 0.24, -0.04],
       },
       {
-        path: cyclingAsset("ride-02-flat-tire-repair.webp"),
+        path: buildLogAsset("build-02-curate-ecosystem.webp"),
         width: 1.48,
         height: 1.12,
         accent: 0xc8ff36,
@@ -589,7 +589,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [0.04, 0.18, 0.05],
       },
       {
-        path: cyclingAsset("ride-03-tankou-camp.webp"),
+        path: buildLogAsset("build-03-ship-plugin.webp"),
         width: 1.64,
         height: 1.23,
         accent: 0x59e6ff,
@@ -597,7 +597,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [-0.02, -0.08, 0.02],
       },
       {
-        path: cyclingAsset("ride-04-shuikou-bike.webp"),
+        path: buildLogAsset("build-04-open-source-prs.webp"),
         width: 2.05,
         height: 1.16,
         accent: 0xc8ff36,
@@ -605,7 +605,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [-0.025, -0.26, 0.035],
       },
       {
-        path: cyclingAsset("ride-05-shuikou-town.webp"),
+        path: buildLogAsset("build-05-knowledge-llm.webp"),
         width: 1.36,
         height: 1.02,
         accent: 0xffffff,
@@ -613,7 +613,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [0.04, -0.32, -0.03],
       },
       {
-        path: cyclingAsset("ride-06-nanping-hotel.webp"),
+        path: buildLogAsset("build-06-learn-by-building.webp"),
         width: 1.34,
         height: 1.0,
         accent: 0x3976ff,
@@ -621,7 +621,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [0.03, 0.3, 0.025],
       },
       {
-        path: cyclingAsset("ride-07-minjiang-rainbow.webp"),
+        path: buildLogAsset("build-07-this-room.webp"),
         width: 1.58,
         height: 1.18,
         accent: 0xff654b,
@@ -630,33 +630,33 @@ export const cosmicWorld: WorldModule = {
       },
     ] satisfies readonly MediaPanelOptions[];
 
-    rideLogPanels.forEach((panel) => {
-      rideLog.add(createMediaPanel(panel));
+    buildLogPanels.forEach((panel) => {
+      buildLog.add(createMediaPanel(panel));
     });
 
     // 详情层展示完整路线网；概览层只保留更密的入口编排，避免一下子把信息展开完。
-    const rideRoutePoints = rideLogPanels.map(
+    const buildRoutePoints = buildLogPanels.map(
       ({ position }) => new THREE.Vector3(position[0], position[1], 0.26),
     );
-    const rideRoute = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(rideRoutePoints),
+    const buildRoute = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(buildRoutePoints),
       new THREE.LineBasicMaterial({
         color: 0xc8ff36,
         transparent: true,
         opacity: 0.82,
       }),
     );
-    rideLog.add(rideRoute);
+    buildLog.add(buildRoute);
 
-    rideRoutePoints.forEach((point, index) => {
+    buildRoutePoints.forEach((point, index) => {
       const marker = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(index === 0 || index === rideRoutePoints.length - 1 ? 0.18 : 0.12, 1),
+        new THREE.IcosahedronGeometry(index === 0 || index === buildRoutePoints.length - 1 ? 0.18 : 0.12, 1),
         new THREE.MeshBasicMaterial({
-          color: index === rideRoutePoints.length - 1 ? 0xff654b : 0xc8ff36,
+          color: index === buildRoutePoints.length - 1 ? 0xff654b : 0xc8ff36,
         }),
       );
       marker.position.copy(point);
-      rideLog.add(marker);
+      buildLog.add(marker);
       floatingObjects.push({
         object: marker,
         baseY: marker.position.y,
@@ -665,9 +665,9 @@ export const cosmicWorld: WorldModule = {
       });
     });
 
-    const rideLogOrbit = createOrbit(3.75, 0xff654b, 0.38, 0.016);
-    rideLogOrbit.rotation.set(0.55, -0.42, 0.35);
-    rideLog.add(rideLogOrbit);
+    const buildLogOrbit = createOrbit(3.75, 0xff654b, 0.38, 0.016);
+    buildLogOrbit.rotation.set(0.55, -0.42, 0.35);
+    buildLog.add(buildLogOrbit);
 
     // 主线站点 03-05 在开源分支之后继续。
     const internship = new THREE.Group();
@@ -770,10 +770,10 @@ export const cosmicWorld: WorldModule = {
     life.position.set(isMobile ? 0.8 : 2.5, 0.2, -66);
     world.add(life);
 
-    // 概览层把骑行经历压成一张主图和几张节点图，先给右侧留出“可展开”的入口感。
-    const rideOverviewPanels = [
+    // 概览层把构建日志压成一张主图和几张节点图，先给右侧留出“可展开”的入口感。
+    const buildOverviewPanels = [
       {
-        path: cyclingAsset("ride-04-shuikou-bike.webp"),
+        path: buildLogAsset("build-04-open-source-prs.webp"),
         width: 4.45,
         height: 2.54,
         accent: 0xc8ff36,
@@ -781,7 +781,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [-0.04, -0.18, 0.025],
       },
       {
-        path: cyclingAsset("ride-03-tankou-camp.webp"),
+        path: buildLogAsset("build-03-ship-plugin.webp"),
         width: 1.5,
         height: 1.12,
         accent: 0x59e6ff,
@@ -789,7 +789,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [-0.02, 0.28, -0.035],
       },
       {
-        path: cyclingAsset("ride-02-flat-tire-repair.webp"),
+        path: buildLogAsset("build-02-curate-ecosystem.webp"),
         width: 1.42,
         height: 1.08,
         accent: 0xffffff,
@@ -797,7 +797,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [0.045, 0.16, 0.04],
       },
       {
-        path: cyclingAsset("ride-01-flat-tire-tools.webp"),
+        path: buildLogAsset("build-01-hello-deepseek.webp"),
         width: 1.34,
         height: 1.02,
         accent: 0x3976ff,
@@ -805,7 +805,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [-0.03, -0.04, 0.025],
       },
       {
-        path: cyclingAsset("ride-07-minjiang-rainbow.webp"),
+        path: buildLogAsset("build-07-this-room.webp"),
         width: 1.8,
         height: 1.34,
         accent: 0xff654b,
@@ -813,7 +813,7 @@ export const cosmicWorld: WorldModule = {
         rotation: [0.05, -0.34, -0.045],
       },
       {
-        path: cyclingAsset("ride-05-shuikou-town.webp"),
+        path: buildLogAsset("build-05-knowledge-llm.webp"),
         width: 1.36,
         height: 1.02,
         accent: 0xc8ff36,
@@ -822,41 +822,41 @@ export const cosmicWorld: WorldModule = {
       },
     ] satisfies readonly MediaPanelOptions[];
 
-    rideOverviewPanels.forEach((panel) => {
+    buildOverviewPanels.forEach((panel) => {
       life.add(createMediaPanel(panel));
     });
 
-    const rideOverviewPairs: Array<
+    const buildOverviewPairs: Array<
       readonly [Vector3Tuple, Vector3Tuple]
     > = [
-      [rideOverviewPanels[0].position, rideOverviewPanels[1].position],
-      [rideOverviewPanels[0].position, rideOverviewPanels[2].position],
-      [rideOverviewPanels[0].position, rideOverviewPanels[3].position],
-      [rideOverviewPanels[0].position, rideOverviewPanels[4].position],
-      [rideOverviewPanels[0].position, rideOverviewPanels[5].position],
-      [rideOverviewPanels[1].position, rideOverviewPanels[3].position],
-      [rideOverviewPanels[2].position, rideOverviewPanels[4].position],
-      [rideOverviewPanels[3].position, rideOverviewPanels[5].position],
+      [buildOverviewPanels[0].position, buildOverviewPanels[1].position],
+      [buildOverviewPanels[0].position, buildOverviewPanels[2].position],
+      [buildOverviewPanels[0].position, buildOverviewPanels[3].position],
+      [buildOverviewPanels[0].position, buildOverviewPanels[4].position],
+      [buildOverviewPanels[0].position, buildOverviewPanels[5].position],
+      [buildOverviewPanels[1].position, buildOverviewPanels[3].position],
+      [buildOverviewPanels[2].position, buildOverviewPanels[4].position],
+      [buildOverviewPanels[3].position, buildOverviewPanels[5].position],
     ];
-    const rideOverviewGeometry = new THREE.BufferGeometry();
-    rideOverviewGeometry.setAttribute(
+    const buildOverviewGeometry = new THREE.BufferGeometry();
+    buildOverviewGeometry.setAttribute(
       "position",
       new THREE.Float32BufferAttribute(
-        rideOverviewPairs.flatMap(([from, to]) => [...from, ...to]),
+        buildOverviewPairs.flatMap(([from, to]) => [...from, ...to]),
         3,
       ),
     );
-    const rideOverviewLinks = new THREE.LineSegments(
-      rideOverviewGeometry,
+    const buildOverviewLinks = new THREE.LineSegments(
+      buildOverviewGeometry,
       new THREE.LineBasicMaterial({
         color: 0xd9e36c,
         transparent: true,
         opacity: 0.68,
       }),
     );
-    life.add(rideOverviewLinks);
+    life.add(buildOverviewLinks);
 
-    const rideCore = new THREE.Mesh(
+    const buildCore = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.8, 2),
       new THREE.MeshPhysicalMaterial({
         color: 0x3976ff,
@@ -867,9 +867,9 @@ export const cosmicWorld: WorldModule = {
         emissiveIntensity: 1.2,
       }),
     );
-    rideCore.position.set(-0.08, 1.72, -0.62);
-    life.add(rideCore);
-    animatedObjects.push(rideCore);
+    buildCore.position.set(-0.08, 1.72, -0.62);
+    life.add(buildCore);
+    animatedObjects.push(buildCore);
 
     const repairMarker = new THREE.Mesh(
       new THREE.TorusGeometry(0.36, 0.1, 12, 44),
@@ -900,7 +900,7 @@ export const cosmicWorld: WorldModule = {
 
     finalWorld.add(
       createMediaPanel({
-        path: cosmicAsset("isometric-preview.webp"),
+        path: cosmicAsset("projects/deepseek-obsidian-cover.webp"),
         width: 4.1,
         height: 2.52,
         accent: 0xc8ff36,
@@ -1018,7 +1018,7 @@ export const cosmicWorld: WorldModule = {
       { collectionId: "internship", itemIndex: 0, station: desktopCollab },
       { collectionId: "internship", itemIndex: 1, station: tuiCollab },
       { collectionId: "internship", itemIndex: 2, station: webCollab },
-      { collectionId: "life", itemIndex: 0, station: rideLog },
+      { collectionId: "life", itemIndex: 0, station: buildLog },
     ] as const;
     const detailStations = detailStationSpecs.map(({ station }) => station);
 
@@ -1027,7 +1027,7 @@ export const cosmicWorld: WorldModule = {
       nexus.position.y = 1.85;
       roadmap.position.y = 1.9;
       lab.position.y = 1.9;
-      rideLog.position.y = 1.9;
+      buildLog.position.y = 1.9;
       internship.position.y = 1.65;
       desktopCollab.position.y = 1.75;
       tuiCollab.position.y = 1.75;
