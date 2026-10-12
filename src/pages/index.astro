@@ -1,0 +1,224 @@
+---
+// 站点唯一页面：Chris Yu 的个人主页，内容与外链集中在本文件维护。
+// 项目数据内联在此，条目少、无需后端，保持单文件以降低维护成本。
+const profile = {
+  name: "Chris Yu",
+  tagline: "Building small, sharp tools for developers and agents.",
+  github: "https://github.com/Shyboy0499",
+};
+
+const projects = [
+  {
+    name: "antibody",
+    blurb: "A TypeScript project exploring resilient, self-correcting systems.",
+    href: "https://github.com/Shyboy0499/antibody",
+    lang: "TypeScript",
+  },
+  {
+    name: "precondition-library",
+    blurb:
+      "An agent that compiles git maintenance chores into reusable programs, then decides whether to replay them by running checks rather than guessing.",
+    href: "https://github.com/Shyboy0499/precondition-library",
+    lang: "Python",
+  },
+  {
+    name: "MacOS-Config",
+    blurb: "My own configuration for my own Mac — dotfiles, tweaks, and setup.",
+    href: "https://github.com/Shyboy0499/MacOS-Config",
+    lang: "Swift",
+  },
+];
+
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{profile.name}</title>
+    <meta name="description" content={profile.tagline} />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <main>
+      <header class="intro">
+        <h1>{profile.name}</h1>
+        <p class="tagline">{profile.tagline}</p>
+      </header>
+
+      <section aria-labelledby="work-heading">
+        <h2 id="work-heading">Selected work</h2>
+        <ul class="projects">
+          {
+            projects.map((p) => (
+              <li>
+                <a class="project" href={p.href} target="_blank" rel="noopener noreferrer">
+                  <span class="project-head">
+                    <span class="project-name">{p.name}</span>
+                    <span class="project-lang">{p.lang}</span>
+                  </span>
+                  <span class="project-blurb">{p.blurb}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span class="dot" aria-hidden="true">·</span>
+        <span class="copyright">© {year} {profile.name}</span>
+      </footer>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #0d0d0f;
+    --fg: #ededee;
+    --muted: #8a8a92;
+    --line: #26262b;
+    --accent: #e6e6e8;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafafa;
+      --fg: #18181b;
+      --muted: #6b6b73;
+      --line: #e3e3e6;
+      --accent: #18181b;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
+      "Liberation Mono", monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 18vh 24px 10vh;
+  }
+
+  .intro h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .tagline {
+    margin: 0.6rem 0 0;
+    color: var(--muted);
+    max-width: 44ch;
+  }
+
+  h2 {
+    margin: 4rem 0 1.25rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .projects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .projects li {
+    border-top: 1px solid var(--line);
+  }
+
+  .projects li:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .project {
+    display: block;
+    padding: 1.1rem 0;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.15s ease, padding-left 0.15s ease;
+  }
+
+  .project:hover,
+  .project:focus-visible {
+    padding-left: 0.5rem;
+    outline: none;
+  }
+
+  .project-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .project-name {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .project-lang {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  .project-blurb {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--muted);
+  }
+
+  .footer {
+    margin-top: 5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.82rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .footer a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1px;
+  }
+
+  .footer a:hover {
+    border-color: var(--fg);
+  }
+
+  .dot {
+    color: var(--line);
+  }
+</style>
