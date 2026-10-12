@@ -1,6 +1,7 @@
 <!-- 特殊地标面板：承载巴别塔这类非作品岛的交互，不混入作品岛档案。 -->
 <!-- 当前只负责诺亚方舟奖励与船型选择，退出仍走 World 的统一 leave 接口。 -->
 <script setup lang="ts">
+import { t } from "../../../i18n";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { BABEL_TOWER_LANDMARK } from "../landmarks";
 import { setShipVariant, store, type ShipVariant } from "../store";
@@ -61,37 +62,37 @@ function handleDocumentClick(event: MouseEvent) {
     v-if="isBabelTower"
     class="landmark-panel"
     :class="{ 'is-night': store.todLabel === '夜晚' }"
-    aria-label="巴别塔船型选择"
+    :aria-label="t('巴别塔船型选择', 'Tower of Babel ship selection')"
   >
     <article class="landmark-dossier">
       <button
         class="landmark-close"
         type="button"
-        aria-label="返回海面"
+        :aria-label="t('返回海面', 'Back to sea')"
         @click.stop="back"
       >
         ×
       </button>
 
       <header class="landmark-header">
-        <p>巴别塔奖励</p>
-        <h2>选择航行船型</h2>
+        <p>{{ t("巴别塔奖励", "Tower of Babel reward") }}</p>
+        <h2>{{ t("选择航行船型", "Choose your ship") }}</h2>
       </header>
 
-      <div class="ship-card-grid" aria-label="船型列表">
+      <div class="ship-card-grid" :aria-label="t('船型列表', 'Ships')">
         <button
           class="ship-card"
           :class="{ active: store.shipVariant === 'sloop' }"
           type="button"
-          aria-label="选择小帆船"
+          :aria-label="t('选择小帆船', 'Choose the sailboat')"
           @click="chooseVariant('sloop')"
         >
           <span class="ship-card-stage">
             <canvas ref="sloopCanvas" aria-hidden="true"></canvas>
           </span>
           <span class="ship-card-copy">
-            <strong>小帆船</strong>
-            <small>原始探险船</small>
+            <strong>{{ t("小帆船", "Sailboat") }}</strong>
+            <small>{{ t("原始探险船", "The original explorer") }}</small>
           </span>
         </button>
 
@@ -99,15 +100,15 @@ function handleDocumentClick(event: MouseEvent) {
           class="ship-card"
           :class="{ active: store.shipVariant === 'ark' }"
           type="button"
-          aria-label="选择诺亚方舟"
+          :aria-label="t('选择诺亚方舟', 'Choose Noah’s Ark')"
           @click="chooseVariant('ark')"
         >
           <span class="ship-card-stage">
             <canvas ref="arkCanvas" aria-hidden="true"></canvas>
           </span>
           <span class="ship-card-copy">
-            <strong>诺亚方舟</strong>
-            <small>巴别塔顶发现</small>
+            <strong>{{ t("诺亚方舟", "Noah's Ark") }}</strong>
+            <small>{{ t("巴别塔顶发现", "Found atop the Tower of Babel") }}</small>
           </span>
         </button>
       </div>

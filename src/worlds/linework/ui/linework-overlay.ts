@@ -9,6 +9,7 @@ import type {
   LineworkExhibitBinding,
   LineworkExhibitId,
 } from "../binding";
+import { t } from "../../../i18n";
 
 export interface LineworkOverlay {
   readonly root: HTMLElement;
@@ -25,14 +26,14 @@ export function createLineworkOverlay(
 ): LineworkOverlay {
   const root = document.createElement("section");
   root.className = "linework-ui-root";
-  root.setAttribute("aria-label", "线稿世界作品与个人陈设");
+  root.setAttribute("aria-label", t("线稿世界作品与个人陈设", "Linework World projects and exhibits"));
   root.innerHTML = `
-    <button class="linework-portal" type="button" data-linework-portal aria-label="前往工作室世界">
+    <button class="linework-portal" type="button" data-linework-portal aria-label="${t("前往工作室世界", "Go to Studio World")}">
       <span aria-hidden="true">◎</span><b>STUDIO</b>
     </button>
-    <nav class="linework-index" aria-label="作品陈设"></nav>
+    <nav class="linework-index" aria-label="${t("作品陈设", "Exhibits")}"></nav>
     <aside class="linework-detail" data-linework-detail hidden inert>
-      <button class="linework-close" type="button" data-linework-close aria-label="关闭项目详情">×</button>
+      <button class="linework-close" type="button" data-linework-close aria-label="${t("关闭项目详情", "Close project details")}">×</button>
       <p class="linework-object" data-linework-object></p>
       <h2 data-linework-title></h2>
       <p class="linework-summary" data-linework-summary></p>

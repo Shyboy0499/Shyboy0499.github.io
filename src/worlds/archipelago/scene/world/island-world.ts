@@ -44,6 +44,7 @@ import {
   WORLD_NAMING,
   type KnownWorldId,
 } from "../../../worlds.config";
+import { t } from "../../../../i18n";
 
 // 渲染路线（Bruno Simon / Madbox 式）：直渲无后期、Lambert 扁平材质、MSAA 抗锯齿——
 // 全场景开销压到核显/老笔记本都能满帧的水平。
@@ -71,7 +72,7 @@ function createDestinationLabel(
   parentScale = 1,
 ): THREE.Sprite {
   const { tex, aspect } = labelTexture(
-    `通向${WORLD_NAMING[targetWorldId].chineseTitle}`,
+    t(`通向${WORLD_NAMING[targetWorldId].chineseTitle}`, `To ${WORLD_NAMING[targetWorldId].englishTitle}`),
   );
   const label = new THREE.Sprite(
     new THREE.SpriteMaterial({
@@ -573,7 +574,7 @@ export class World {
     this.controls.clearMovement();
     this.ship.speed = 0;
     showToast(
-      `传送门正在打开：前往${WORLD_NAMING[targetWorldId].chineseTitle}。`,
+      t(`传送门正在打开：前往${WORLD_NAMING[targetWorldId].chineseTitle}。`, `The portal is opening: heading to ${WORLD_NAMING[targetWorldId].englishTitle}.`),
     );
     this.onPortalRequest?.(targetWorldId);
   }
@@ -701,9 +702,12 @@ export class World {
       if (portalApproach.targetWorldId)
         this.onPortalPreload?.(portalApproach.targetWorldId);
       const targetName = portalApproach.targetWorldId
-        ? WORLD_NAMING[portalApproach.targetWorldId].chineseTitle
-        : "目标世界";
-      showToast(`传送门锁定了航线，小船正在减速，准备前往${targetName}。`);
+        ? t(
+            WORLD_NAMING[portalApproach.targetWorldId].chineseTitle,
+            WORLD_NAMING[portalApproach.targetWorldId].englishTitle,
+          )
+        : t("目标世界", "the next world");
+      showToast(t(`传送门锁定了航线，小船正在减速，准备前往${targetName}。`, `The portal has locked your course — slowing down to head for ${targetName}.`));
     }
     const maelstromApproach = this.maelstrom.approach(
       this.ship,
@@ -714,7 +718,7 @@ export class World {
     if (maelstromApproach.startedCapture) {
       this.controls.clearMovement();
       this.onPortalPreload?.(MAELSTROM_TARGET_WORLD_ID);
-      showToast("海流突然失控，小船正在被卷入通向线稿世界的大漩涡。");
+      showToast(t("海流突然失控，小船正在被卷入通向线稿世界的大漩涡。", "The current breaks loose — your boat is being pulled into the maelstrom to the Linework World."));
     }
     const captureActive =
       portalApproach.captureActive || maelstromApproach.captureActive;
@@ -778,7 +782,7 @@ export class World {
         const obj = this.islands.get(id)!;
         obj.grow(sim);
         this.rings.spawn(def.position[0], def.position[1], sim, "#bfeee2");
-        showToast(`「${def.name}」正在从迷雾中升起，新作品已经抵达这片海域。`);
+        showToast(t(`「${def.name}」正在从迷雾中升起，新作品已经抵达这片海域。`, `"${def.name}" is rising from the mist — a new project has reached these waters.`));
         obj.onGrown = () => {
           store.pendingGrow.delete(id);
         };
@@ -1060,14 +1064,14 @@ class BabelArkReward {
   enter(): void {
     if (unlockArk()) {
       this.unlockShown = true;
-      showToast("你在巴别塔顶发现了诺亚方舟。现在可以把小船切换为方舟外观。");
+      showToast(t("你在巴别塔顶发现了诺亚方舟。现在可以把小船切换为方舟外观。", "You found Noah's Ark atop the Tower of Babel. You can now switch your boat to the Ark."));
       this.ring.scale.setScalar(1.18);
       this.glow.scale.setScalar(8.4);
       return;
     }
     if (!this.unlockShown) {
       this.unlockShown = true;
-      showToast("你在巴别塔顶发现了诺亚方舟。现在可以把小船切换为方舟外观。");
+      showToast(t("你在巴别塔顶发现了诺亚方舟。现在可以把小船切换为方舟外观。", "You found Noah's Ark atop the Tower of Babel. You can now switch your boat to the Ark."));
     }
   }
 

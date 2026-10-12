@@ -1,5 +1,5 @@
 // Cosmic World Binding：把 Portfolio 稳定 ID 映射成太空世界中的章节和项目角色。
-// 这里可以调整标题、路线和对齐方式，但不能改写内容内核的语义。
+// 这里可以调整标题、路线和对齐方式，但不能改写内容内核的语义；*En 字段只供英文页使用。
 import type {
   PortfolioCollectionId,
   PortfolioProjectId,
@@ -18,6 +18,8 @@ export const cosmicBinding = {
     eyebrow: "BUILDING WITH DEEPSEEK",
     line: "把 LLM 从聊天框带进",
     emphasis: "真实工作流。",
+    lineEn: "Taking LLMs out of the chat box",
+    emphasisEn: "and into real workflows.",
     since: "OPEN SOURCE SINCE 2024",
     signals: ["DEEPSEEK", "LLM", "ML", "OPEN SOURCE"],
   },
@@ -38,6 +40,7 @@ export const cosmicBinding = {
       route: "COLLAB",
       eyebrow: "ENGINEERING ACROSS PROJECTS",
       titleLines: ["参与开源", "经历."],
+      titleLinesEn: ["Open Source", "Contributions."],
       align: "right",
       signals: ["PRS", "FIXES", "DOCS", "MERGED PRS"],
       enterLabel: "EXPLORE 02 PROJECTS",
@@ -50,7 +53,7 @@ export const cosmicBinding = {
       titleLines: ["Study &", "Build."],
       align: "left",
       signals: ["UTS", "LEARN", "BUILD", "CURIOUS"],
-      enterLabel: "EXPLORE STUDY LOG",
+      enterLabel: "EXPLORE BUILD LOG",
     },
     {
       portfolioId: "projects",
@@ -67,6 +70,7 @@ export const cosmicBinding = {
     route: string;
     eyebrow: string;
     titleLines: readonly string[];
+    titleLinesEn?: readonly string[];
     align: "left" | "right";
     signals: readonly string[];
     enterLabel?: string;

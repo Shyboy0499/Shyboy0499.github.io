@@ -6,8 +6,10 @@ import type {
   PortfolioProject,
   PortfolioMedia,
 } from "./types";
+import { pageLang, type Lang } from "../i18n";
 
-export const portfolio = {
+// 中文是内容源；英文只覆盖可读文案，id、链接、指标值和媒体路径始终共用同一份。
+const portfolioZh = {
   metadata: {
     title: "Shyboy0499 | UTS · DeepSeek / LLM / ML",
     description:
@@ -219,6 +221,111 @@ export const portfolio = {
     },
   ] satisfies readonly PortfolioProject[],
 } as const;
+
+type PortfolioText = { title?: string; summary?: string; description?: string };
+
+const portfolioEn = {
+  metadata: {
+    description:
+      "Shyboy0499's 3D portfolio. Follow four paths — personal projects, open-source collaboration, study and experiments — into each piece of work.",
+  },
+  person: {
+    summary: "I'm Shyboy, a university student in Sydney focused on DeepSeek, LLMs and machine learning.",
+    description:
+      "I build AI tools, DeepSeek ecosystem plugins and immersive web experiences, and collaborate across open-source projects and platforms.",
+    interests: ["DeepSeek", "LLM", "ML", "Open Source"],
+  },
+  collections: {
+    "open-source": {
+      summary: "Open-source projects growing inside the DeepSeek ecosystem.",
+      description:
+        "From plugins and tools to curated lists — turning everyday friction into software people can actually use.",
+    },
+    internship: {
+      title: "Open Source Contributions",
+      summary: "A record of collaboration across projects.",
+      description:
+        "Beyond my own projects: pull requests, fixes and engineering work contributed to other people's open-source repositories.",
+    },
+    life: {
+      summary: "Learning, logged one build at a time.",
+      description:
+        "From coursework to experiments — how a student keeps learning by building and shipping in the open.",
+    },
+    projects: {
+      summary: "Work still in motion beyond open source.",
+      description:
+        "Courses, competitions, experiments and long-running projects — the process, the results and where they go next.",
+    },
+  } satisfies Record<string, PortfolioText>,
+  projects: {
+    "awesome-deepseek-harness": {
+      summary: "A curated list of DeepSeek plugins and ecosystem tools.",
+      description:
+        "Collects plugins, skills, MCP servers and tools from the DeepSeek Harness ecosystem into a continuously updated list.",
+    },
+    "dsh-git-tools": {
+      summary: "Local Git tools for DeepSeek Harness.",
+      description:
+        "Local git tools for DeepSeek Harness (dsh) — git_status, git_diff, git_log and git_commit — so agents can work with repositories more smoothly.",
+    },
+    "deepseek-obsidian": {
+      summary: "Connecting DeepSeek workflows to knowledge management.",
+      description:
+        "Brings DeepSeek workflows into Obsidian so the model can help capture, organise and retrieve a personal knowledge base.",
+    },
+    "dsh-ecosystem-contribution": {
+      summary: "Multi-repository collaboration across the DeepSeek Harness ecosystem.",
+      description:
+        "Ongoing pull requests across the DeepSeek Harness ecosystem: maintaining lists and fixing documentation and build-path issues.",
+    },
+    "dsh-dev-contribution": {
+      summary: "Ongoing development across dsh ecosystem tools.",
+      description:
+        "Features, tests and documentation contributed to DeepSeek Harness and the tools around it.",
+    },
+  } satisfies Record<string, PortfolioText>,
+  mediaAlt: {
+    "deepseek-harness-cover": "DeepSeek Harness cover",
+    "dsh-git-tools-cover": "dsh-git-tools cover",
+    "deepseek-obsidian-cover": "DeepSeek-Obsidian cover",
+    "build-01-hello-deepseek": "Hello, DeepSeek: it started with an API key",
+    "build-02-curate-ecosystem": "Curate the Ecosystem: a DeepSeek Harness list",
+    "build-03-ship-plugin": "Ship a Plugin: local Git tools for dsh",
+    "build-04-open-source-prs": "Open Source PRs across the DSH ecosystem",
+    "build-05-knowledge-llm": "Knowledge × LLM: DeepSeek-Obsidian in progress",
+    "build-06-learn-by-building": "Learn by Building: studying LLMs and ML in Sydney",
+    "build-07-this-room": "This Room: a portfolio built as a 3D space",
+  } as Record<string, string>,
+};
+
+function localizeMedia<T extends { id: string; alt: string }>(media: readonly T[]): readonly T[] {
+  return media.map((item) => ({ ...item, alt: portfolioEn.mediaAlt[item.id] ?? item.alt }));
+}
+
+// 返回与中文源同构的数据，使 World 的类型与稳定 ID 不受语言影响。
+export function portfolioFor(lang: Lang): typeof portfolioZh {
+  if (lang === "zh") return portfolioZh;
+  const collectionText = portfolioEn.collections as Record<string, PortfolioText>;
+  const projectText = portfolioEn.projects as Record<string, PortfolioText>;
+  return {
+    ...portfolioZh,
+    metadata: { ...portfolioZh.metadata, ...portfolioEn.metadata },
+    person: { ...portfolioZh.person, ...portfolioEn.person },
+    collections: portfolioZh.collections.map((collection) => ({
+      ...collection,
+      ...collectionText[collection.id],
+      media: localizeMedia(collection.media),
+    })),
+    projects: portfolioZh.projects.map((project) => ({
+      ...project,
+      ...projectText[project.id],
+      media: localizeMedia(project.media),
+    })),
+  } as unknown as typeof portfolioZh;
+}
+
+export const portfolio = portfolioFor(pageLang());
 
 const projectsById = new Map(
   portfolio.projects.map((project) => [project.id, project]),

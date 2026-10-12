@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from "../../../i18n";
 import {
   computed,
   nextTick,
@@ -182,7 +183,7 @@ function handleDocumentClick(event: MouseEvent) {
     v-if="island"
     class="island-panel"
     :class="{ 'is-night': store.todLabel === '夜晚' }"
-    aria-label="岛屿档案"
+    :aria-label="t('岛屿档案', 'Island dossier')"
   >
     <article class="island-dossier">
       <section
@@ -198,8 +199,8 @@ function handleDocumentClick(event: MouseEvent) {
       >
         <div class="gallery-heading">
           <div>
-            <p class="gallery-eyebrow">作品影像</p>
-            <h3 id="island-photos-title">{{ island.name }} 的视觉切片</h3>
+            <p class="gallery-eyebrow">{{ t("作品影像", "Gallery") }}</p>
+            <h3 id="island-photos-title">{{ t(`${island.name} 的视觉切片`, `Visual slices of ${island.name}`) }}</h3>
           </div>
           <span>{{ carouselIndex + 1 }} / {{ island.photos.length }}</span>
         </div>
@@ -207,7 +208,7 @@ function handleDocumentClick(event: MouseEvent) {
         <button
           class="gallery-stage"
           type="button"
-          :aria-label="`放大照片：${carouselPhoto.alt}`"
+          :aria-label="t(`放大照片：${carouselPhoto.alt}`, `Enlarge photo: ${carouselPhoto.alt}`)"
           @click="showPhoto(carouselPhoto)"
         >
           <img
@@ -224,25 +225,25 @@ function handleDocumentClick(event: MouseEvent) {
           <div v-if="island.photos.length > 1" class="gallery-controls">
             <button
               type="button"
-              aria-label="上一张照片"
+              :aria-label="t('上一张照片', 'Previous photo')"
               @click="moveCarousel(-1)"
             >
               ←
             </button>
-            <div class="gallery-dots" aria-label="选择照片">
+            <div class="gallery-dots" :aria-label="t('选择照片', 'Choose photo')">
               <button
                 v-for="(photo, index) in island.photos"
                 :key="photo.id"
                 type="button"
                 :class="{ active: index === carouselIndex }"
-                :aria-label="`查看第 ${index + 1} 张照片`"
+                :aria-label="t(`查看第 ${index + 1} 张照片`, `View photo ${index + 1}`)"
                 :aria-current="index === carouselIndex ? 'true' : undefined"
                 @click="selectCarouselPhoto(index)"
               />
             </div>
             <button
               type="button"
-              aria-label="下一张照片"
+              :aria-label="t('下一张照片', 'Next photo')"
               @click="moveCarousel(1)"
             >
               →
@@ -253,7 +254,7 @@ function handleDocumentClick(event: MouseEvent) {
 
       <section class="island-details">
         <header class="dossier-header">
-          <p class="builder">{{ island.builder }} 的作品岛</p>
+          <p class="builder">{{ t(`${island.builder} 的作品岛`, `An island by ${island.builder}`) }}</p>
           <h2>{{ island.name }}</h2>
           <p v-if="island.description" class="island-description">
             {{ island.description }}
@@ -263,8 +264,8 @@ function handleDocumentClick(event: MouseEvent) {
         <div class="dossier-content">
           <section class="works-section" aria-labelledby="island-works-title">
             <div class="section-heading">
-              <h3 id="island-works-title">岛上入口</h3>
-              <span>{{ island.projects.length }} 个</span>
+              <h3 id="island-works-title">{{ t("岛上入口", "Links") }}</h3>
+              <span>{{ island.projects.length }}</span>
             </div>
             <div v-if="island.projects.length" class="projects">
               <button
@@ -278,7 +279,7 @@ function handleDocumentClick(event: MouseEvent) {
                   <img
                     v-if="project.cover"
                     :src="project.cover"
-                    :alt="`${project.name}网站预览`"
+                    :alt="t(`${project.name}网站预览`, `${project.name} preview`)"
                     loading="lazy"
                     decoding="async"
                   />
@@ -286,30 +287,30 @@ function handleDocumentClick(event: MouseEvent) {
                 </span>
                 <span class="project-name">{{ project.name }}</span>
                 <span class="project-open"
-                  >查看作品 <span aria-hidden="true">↗</span></span
+                  >{{ t("查看作品", "Open") }} <span aria-hidden="true">↗</span></span
                 >
               </button>
             </div>
-            <p v-else class="empty-section">作品正在整理中</p>
+            <p v-else class="empty-section">{{ t("作品正在整理中", "Work in progress") }}</p>
           </section>
         </div>
 
         <button
           class="back"
           type="button"
-          title="离开当前作品岛，返回海面"
+          :title="t('离开当前作品岛，返回海面', 'Leave this island and return to sea')"
           @click.stop="back"
         >
           <span aria-hidden="true">←</span>
-          返回海面
+          {{ t("返回海面", "Back to sea") }}
         </button>
         <button
           class="back"
           type="button"
-          title="离开群岛世界，返回 Cosmic"
+          :title="t('离开群岛世界，返回 Cosmic', 'Leave the Archipelago and return to Cosmic')"
           @click.stop="returnToHost"
         >
-          返回 Cosmic
+          {{ t("返回 Cosmic", "Back to Cosmic") }}
         </button>
       </section>
     </article>
@@ -325,7 +326,7 @@ function handleDocumentClick(event: MouseEvent) {
         <button
           class="viewer-close"
           type="button"
-          aria-label="关闭照片"
+          :aria-label="t('关闭照片', 'Close photo')"
           @click="closePhoto"
         >
           ×
@@ -334,7 +335,7 @@ function handleDocumentClick(event: MouseEvent) {
           v-if="island.photos.length > 1"
           class="viewer-nav viewer-prev"
           type="button"
-          aria-label="上一张照片"
+          :aria-label="t('上一张照片', 'Previous photo')"
           @click="movePhoto(-1)"
         >
           ‹
@@ -350,7 +351,7 @@ function handleDocumentClick(event: MouseEvent) {
           v-if="island.photos.length > 1"
           class="viewer-nav viewer-next"
           type="button"
-          aria-label="下一张照片"
+          :aria-label="t('下一张照片', 'Next photo')"
           @click="movePhoto(1)"
         >
           ›

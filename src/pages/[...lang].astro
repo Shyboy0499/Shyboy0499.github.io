@@ -1,22 +1,38 @@
 ---
 // 静态首页宿主：提供可读 Portfolio DOM、Portal shell 和 Runtime 挂载点。
 // 具体 3D 体验由 entry.ts 和 World 模块接管，页面本身不拥有渲染生命周期。
+// 同一模板生成中文 `/` 与英文 `/en/` 两份静态页面；语言只在构建期由路由参数决定。
 import "../styles.css";
 import { SITE_CONFIG } from "../site.config";
 import {
-  portfolio,
-  portfolioCollectionById,
-  portfolioProjectById,
+  portfolioFor,
+  type PortfolioCollectionId,
+  type PortfolioProjectId,
 } from "../content/portfolio";
+import { LANG_HOME_PATH, LANG_STORAGE_KEY, t, type Lang } from "../i18n";
 import { cosmicBinding } from "../worlds/cosmic/binding";
 import { createLiquidWorldPlacement } from "../worlds/world-picker-layout";
 import { WORLD_NAMING } from "../worlds/worlds.config";
 
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
+}
+
+const lang: Lang = Astro.params.lang === "en" ? "en" : "zh";
+const otherLang: Lang = lang === "en" ? "zh" : "en";
+const L = (zh: string, en: string): string => t(zh, en, lang);
+const portfolio = portfolioFor(lang);
+const portfolioCollectionById = (id: PortfolioCollectionId) =>
+  portfolio.collections.find((collection) => collection.id === id)!;
+const portfolioProjectById = (id: PortfolioProjectId) =>
+  portfolio.projects.find((project) => project.id === id)!;
 const { metadata, person } = portfolio;
 const { navigation, hero, contact } = cosmicBinding;
 const collections = cosmicBinding.collections.map((binding) => ({
   ...portfolioCollectionById(binding.portfolioId),
   ...binding,
+  titleLines:
+    (lang === "en" && "titleLinesEn" in binding && binding.titleLinesEn) || binding.titleLines,
 }));
 const openSourceProjects = cosmicBinding.projects.map((binding) => ({
   ...portfolioProjectById(binding.portfolioId),
@@ -46,7 +62,7 @@ const worldChoices = selectableWorlds.map((world, index) => {
   const mobile = createLiquidWorldPlacement(index, selectableWorlds.length, 2);
   return {
     id: world.id,
-    label: world.chineseTitle,
+    label: lang === "en" ? world.englishTitle : world.chineseTitle,
     poster: `/${world.entryPoster}`,
     variant: index % 6,
     style: [
@@ -67,77 +83,98 @@ const buildLogSlides = [
     number: "01",
     eyebrow: "START",
     title: "Hello, DeepSeek",
-    summary: "从一个 API key 开始。",
+    summary: L("从一个 API key 开始。", "It started with an API key."),
     description:
-      "第一次调用 DeepSeek，把“模型能做什么”从新闻里的概念变成自己终端里的输出，也是后面所有项目的起点。",
+      L(
+        "第一次调用 DeepSeek，把“模型能做什么”从新闻里的概念变成自己终端里的输出，也是后面所有项目的起点。",
+        "My first DeepSeek call turned \"what models can do\" from a headline into output in my own terminal — the starting point for everything after.",
+      ),
     src: "/assets/build-log/build-01-hello-deepseek.webp",
-    alt: "Hello, DeepSeek 构建日志卡片",
+    alt: L("Hello, DeepSeek 构建日志卡片", "Hello, DeepSeek build log card"),
   },
   {
     focusId: "build-02-curate-ecosystem",
     number: "02",
     eyebrow: "LIST",
-    title: "整理 DeepSeek Harness 生态",
-    summary: "先把散落的工具整理成一张地图。",
+    title: L("整理 DeepSeek Harness 生态", "Curate the Ecosystem"),
+    summary: L("先把散落的工具整理成一张地图。", "First, map the scattered tools."),
     description:
-      "把 DeepSeek Harness 生态里的插件、技能、MCP 服务器与工具收集成可持续更新的中文清单，边整理边弄清楚生态是怎么拼起来的。",
+      L(
+        "把 DeepSeek Harness 生态里的插件、技能、MCP 服务器与工具收集成可持续更新的中文清单，边整理边弄清楚生态是怎么拼起来的。",
+        "Collecting plugins, skills, MCP servers and tools from the DeepSeek Harness ecosystem into a living list — and learning how the pieces fit along the way.",
+      ),
     src: "/assets/build-log/build-02-curate-ecosystem.webp",
-    alt: "整理 DeepSeek Harness 生态清单卡片",
+    alt: L("整理 DeepSeek Harness 生态清单卡片", "Curating the DeepSeek Harness ecosystem card"),
   },
   {
     focusId: "build-03-ship-plugin",
     number: "03",
     eyebrow: "PLUGIN",
-    title: "发布 dsh-git-tools",
-    summary: "从使用者变成插件作者。",
+    title: L("发布 dsh-git-tools", "Ship dsh-git-tools"),
+    summary: L("从使用者变成插件作者。", "From user to plugin author."),
     description:
-      "为 dsh 写本地 git 工具：git_status、git_diff、git_log、git_commit，让 agent 可以更顺手地操作仓库。",
+      L(
+        "为 dsh 写本地 git 工具：git_status、git_diff、git_log、git_commit，让 agent 可以更顺手地操作仓库。",
+        "Local git tools for dsh — git_status, git_diff, git_log, git_commit — so agents can work with repositories more smoothly.",
+      ),
     src: "/assets/build-log/build-03-ship-plugin.webp",
-    alt: "dsh-git-tools 插件构建日志卡片",
+    alt: L("dsh-git-tools 插件构建日志卡片", "dsh-git-tools plugin build log card"),
   },
   {
     focusId: "build-04-open-source-prs",
     number: "04",
     eyebrow: "COLLAB",
-    title: "向开源生态提交 PR",
-    summary: "不只做自己的项目，也修别人的路。",
+    title: L("向开源生态提交 PR", "Open Source PRs"),
+    summary: L("不只做自己的项目，也修别人的路。", "Not just my own projects — fixing roads for others too."),
     description:
-      "在 DeepSeek Harness 生态里提交 PR、维护清单、修复文档与构建路径问题，在协作中学习真实工程的节奏。",
+      L(
+        "在 DeepSeek Harness 生态里提交 PR、维护清单、修复文档与构建路径问题，在协作中学习真实工程的节奏。",
+        "Pull requests across the DeepSeek Harness ecosystem — maintaining lists, fixing docs and build paths, and learning the rhythm of real engineering.",
+      ),
     src: "/assets/build-log/build-04-open-source-prs.webp",
-    alt: "开源 PR 构建日志卡片",
+    alt: L("开源 PR 构建日志卡片", "Open-source PRs build log card"),
   },
   {
     focusId: "build-05-knowledge-llm",
     number: "05",
     eyebrow: "BUILDING",
     title: "Knowledge × LLM",
-    summary: "让模型服务于自己的知识库。",
+    summary: L("让模型服务于自己的知识库。", "Making the model serve my own knowledge base."),
     description:
-      "DeepSeek-Obsidian 把 DeepSeek 工作流接入 Obsidian，正在探索笔记的总结、沉淀与检索。",
+      L(
+        "DeepSeek-Obsidian 把 DeepSeek 工作流接入 Obsidian，正在探索笔记的总结、沉淀与检索。",
+        "DeepSeek-Obsidian brings DeepSeek workflows into Obsidian, exploring how notes get summarised, kept and retrieved.",
+      ),
     src: "/assets/build-log/build-05-knowledge-llm.webp",
-    alt: "DeepSeek-Obsidian 构建日志卡片",
+    alt: L("DeepSeek-Obsidian 构建日志卡片", "DeepSeek-Obsidian build log card"),
   },
   {
     focusId: "build-06-learn-by-building",
     number: "06",
     eyebrow: "STUDY",
-    title: "边学边做",
-    summary: "在悉尼学习 LLM 与机器学习。",
+    title: L("边学边做", "Learn by Building"),
+    summary: L("在悉尼学习 LLM 与机器学习。", "Studying LLMs and machine learning in Sydney."),
     description:
-      "课程给出原理，项目给出问题；把学到的东西尽快做成可以运行、可以开源的工具。",
+      L(
+        "课程给出原理，项目给出问题；把学到的东西尽快做成可以运行、可以开源的工具。",
+        "Courses give the principles, projects give the problems — and I turn what I learn into tools that run and ship in the open.",
+      ),
     src: "/assets/build-log/build-06-learn-by-building.webp",
-    alt: "边学边做构建日志卡片",
+    alt: L("边学边做构建日志卡片", "Learn by building card"),
   },
   {
     focusId: "build-07-this-room",
     number: "07",
     eyebrow: "NOW",
-    title: "这个房间",
-    summary: "把作品集做成一个可以走进去的 3D 空间。",
+    title: L("这个房间", "This Room"),
+    summary: L("把作品集做成一个可以走进去的 3D 空间。", "A portfolio you can walk into."),
     description:
-      "用 Three.js 搭出桌面、键盘与霓虹灯，让每一件作品都成为房间里可以点开的陈设。",
+      L(
+        "用 Three.js 搭出桌面、键盘与霓虹灯，让每一件作品都成为房间里可以点开的陈设。",
+        "A desk, a keyboard and neon lights built in Three.js — every project becomes something in the room you can click open.",
+      ),
     src: "/assets/build-log/build-07-this-room.webp",
-    alt: "3D 作品集房间构建日志卡片",
+    alt: L("3D 作品集房间构建日志卡片", "3D portfolio room build log card"),
   },
 ] as const;
 
@@ -148,7 +185,7 @@ const routes = [
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={lang === "en" ? "en" : "zh-CN"}>
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -167,9 +204,21 @@ const routes = [
     <title>{metadata.title}</title>
     <link rel="icon" href={SITE_CONFIG.iconPath} />
     <link rel="manifest" href={SITE_CONFIG.manifestPath} />
+    <link rel="alternate" hreflang="zh-CN" href={new URL(LANG_HOME_PATH.zh, Astro.site)} />
+    <link rel="alternate" hreflang="en" href={new URL(LANG_HOME_PATH.en, Astro.site)} />
+    {/* 首次访问按浏览器语言跳转；用户手动选择过语言后只尊重保存的偏好。必须在首屏渲染前执行。 */}
+    <script is:inline define:vars={{ lang, otherLang, paths: LANG_HOME_PATH, key: LANG_STORAGE_KEY }}>
+      let saved = null;
+      try { saved = localStorage.getItem(key); } catch {}
+      const preferred = saved ?? (navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en");
+      // 明确打开的 /en/ 链接只在用户保存过中文偏好时才跳回，避免分享链接被浏览器语言改写。
+      if (preferred === otherLang && (lang === "zh" || saved === otherLang)) {
+        location.replace(paths[otherLang] + location.search + location.hash);
+      }
+    </script>
   </head>
   <body>
-    <a class="skip-link" href="#story">跳到主要内容</a>
+    <a class="skip-link" href="#story">{L("跳到主要内容", "Skip to main content")}</a>
 
     <!-- Runtime-owned WebGL surface and loading state. -->
     <div class="experience" aria-hidden="true">
@@ -184,26 +233,37 @@ const routes = [
 
     <!-- Persistent navigation remains usable independently of the 3D World. -->
     <header class="site-header">
-      <a class="brand" href="#origin" aria-label="Shyboy0499 首页">
+      <a class="brand" href="#origin" aria-label={L("Shyboy0499 首页", "Shyboy0499 home")}>
         <span class="brand-mark">{person.shortName}</span>
         <span class="brand-name">{person.name}</span>
       </a>
-      <nav aria-label="主要导航">
+      <nav aria-label={L("主要导航", "Main navigation")}>
         {navigation.map((item) => <a href={`#${item.id}`}>{item.label}</a>)}
-        <a href={SITE_CONFIG.assetGalleryPath}>3D资产</a>
+        <a href={SITE_CONFIG.assetGalleryPath}>{L("3D资产", "3D ASSETS")}</a>
       </nav>
-      <a
-        class="github-link"
-        href={SITE_CONFIG.githubUrl}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="打开 Shyboy0499 的 GitHub"
-      >
-        GH ↗
-      </a>
+      <div class="header-actions">
+        <a
+          class="github-link"
+          href={SITE_CONFIG.githubUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={L("打开 Shyboy0499 的 GitHub", "Open Shyboy0499 on GitHub")}
+        >
+          GH ↗
+        </a>
+        <a
+          class="lang-toggle"
+          href={LANG_HOME_PATH[otherLang]}
+          hreflang={otherLang === "en" ? "en" : "zh-CN"}
+          data-lang-switch={otherLang}
+          aria-label={L("Switch to English", "切换到中文")}
+        >
+          {otherLang === "en" ? "EN" : "中文"}
+        </a>
+      </div>
     </header>
 
-    <aside class="route-rail" aria-label="五个总览章节">
+    <aside class="route-rail" aria-label={L("五个总览章节", "Five overview chapters")}>
       <span class="route-line"></span>
       {routes.map((route, index) => (
         <a
@@ -237,8 +297,8 @@ const routes = [
           <p class="eyebrow"><span>{hero.number}</span> {hero.eyebrow}</p>
           <h1>{person.name}<span>.</span></h1>
           <p class="hero-line">
-            {hero.line}<br />
-            <strong>{hero.emphasis}</strong>
+            {L(hero.line, hero.lineEn)}<br />
+            <strong>{L(hero.emphasis, hero.emphasisEn)}</strong>
           </p>
           <div class="hero-meta">
             <span>{person.location}</span>
@@ -295,14 +355,14 @@ const routes = [
                     />
                   </filter>
                 </svg>
-                <div class="world-select" aria-label="选择要进入的世界">
+                <div class="world-select" aria-label={L("选择要进入的世界", "Choose a world to enter")}>
                   {worldChoices.map((world) => (
                     <button
                       class="world-select-card"
                       type="button"
                       data-world-choice={world.id}
                       data-liquid-variant={world.variant}
-                      aria-label={`进入${world.label}`}
+                      aria-label={L(`进入${world.label}`, `Enter ${world.label}`)}
                       style={world.style}
                     >
                       <img src={world.poster} alt="" loading="lazy" />
@@ -378,7 +438,7 @@ const routes = [
       data-collection-detail
       aria-hidden="true"
       inert
-      aria-label="开源项目群详情"
+      aria-label={L("开源项目群详情", "Project collection details")}
     >
       <div class="detail-toolbar">
         <button class="detail-back" type="button" data-collection-exit>
@@ -525,10 +585,23 @@ const routes = [
 
     <noscript>
       <div class="noscript">
-        此页面需要 JavaScript 才能显示 3D 场景，但所有项目链接仍可通过页面文字访问。
+        {L(
+          "此页面需要 JavaScript 才能显示 3D 场景，但所有项目链接仍可通过页面文字访问。",
+          "This page needs JavaScript to show the 3D scene, but every project link is still available in the page text.",
+        )}
       </div>
     </noscript>
 
+    {/* 切换语言时保存偏好，并保留当前世界参数与锚点。 */}
+    <script is:inline define:vars={{ key: LANG_STORAGE_KEY }}>
+      document.querySelectorAll("[data-lang-switch]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          try { localStorage.setItem(key, link.dataset.langSwitch); } catch {}
+          location.href = link.getAttribute("href") + location.search + location.hash;
+        });
+      });
+    </script>
     <script src="../entry.ts"></script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 <!-- Archipelago Vue 外壳只负责 HUD 和面板；Three.js 场景与 Runtime 生命周期由 World Module 管理。 -->
 <!-- UI 通过显式动作接缝表达外链和 Portal 意图，不直接持有 renderer 或 PortalRegistration。 -->
 <script setup lang="ts">
+import { t } from "../../../i18n";
 import { computed } from "vue";
 import { WORLD_NAMING } from "../../worlds.config";
 import { requestArchipelagoPortal } from "../ui-actions";
@@ -30,12 +31,12 @@ function enterCosmicGate() {
       v-if="store.mode !== 'landed'"
       class="tidal-gate"
       type="button"
-      aria-label="返回 Cosmic 世界"
+      :aria-label="t('返回 Cosmic 世界', 'Back to Cosmic World')"
       @click="enterCosmicGate"
     >
       <span aria-hidden="true"></span>
       <small>WORLD GATE</small>
-      <strong>返回 Cosmic</strong>
+      <strong>{{ t("返回 Cosmic", "Back to Cosmic") }}</strong>
     </button>
     <IslandPanel
       v-if="
@@ -47,6 +48,6 @@ function enterCosmicGate() {
         store.mode === 'landed' && store.dockedId === BABEL_TOWER_LANDMARK.id
       "
     />
-    <div v-if="empty" class="empty-world">海面正在等待第一座岛</div>
+    <div v-if="empty" class="empty-world">{{ t("海面正在等待第一座岛", "The sea is waiting for its first island") }}</div>
   </div>
 </template>

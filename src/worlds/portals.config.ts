@@ -2,6 +2,7 @@
 // WorldModule 仍负责何时注册和如何计算 proximity。
 import { WORLD_NAMING } from "./worlds.config";
 import type { PortalDescriptor } from "../runtime/contracts";
+import { t } from "../i18n";
 
 export const WORLD_PORTALS = {
   cosmicToArchipelago: {
@@ -59,7 +60,7 @@ export const WORLD_PORTALS = {
   jianghuToLinework: {
     id: "jianghu-linework-gate",
     targetWorldId: WORLD_NAMING.linework.id,
-    eyebrow: "WORLD GATE / 推门见白",
+    eyebrow: t("WORLD GATE / 推门见白", "WORLD GATE / INTO THE WHITE"),
     label: "ENTER THE LINEWORK STUDIO",
     targetLabel: "LINEWORK",
     transitionStyle: "paper",

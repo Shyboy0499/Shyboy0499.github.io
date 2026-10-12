@@ -7,6 +7,7 @@ import {
 } from "../../../content/portfolio";
 import type { StudioExhibitBinding, StudioExhibitId } from "../binding";
 import type { StudioTargetId } from "../scene/studio-room";
+import { t } from "../../../i18n";
 
 interface StudioOverlayOptions {
   readonly bindings: readonly StudioExhibitBinding[];
@@ -26,38 +27,38 @@ interface DetailContent {
 }
 
 const TARGET_LABELS: Record<StudioTargetId, string> = {
-  workstation: "打开主工作台",
-  "roadmap-board": "查看 DeepSeek 工具",
-  "contribution-frame": "查看 Obsidian 工具",
-  lamp: "开关桌灯",
-  "portal-cosmic": "穿过星门，前往宇宙世界",
-  "portal-linework": "推开纸稿门，返回线稿世界",
-  "portal-archipelago": "转动世界罗盘，前往群岛世界",
+  workstation: t("打开主工作台", "Open the main workstation"),
+  "roadmap-board": t("查看 DeepSeek 工具", "View the DeepSeek tools"),
+  "contribution-frame": t("查看 Obsidian 工具", "View the Obsidian tool"),
+  lamp: t("开关桌灯", "Toggle the desk lamp"),
+  "portal-cosmic": t("穿过星门，前往宇宙世界", "Step through the star gate to Cosmic World"),
+  "portal-linework": t("推开纸稿门，返回线稿世界", "Open the paper door back to Linework World"),
+  "portal-archipelago": t("转动世界罗盘，前往群岛世界", "Spin the world compass to Archipelago World"),
 };
 
 export function createStudioOverlay(options: StudioOverlayOptions) {
   const root = document.createElement("div");
   root.className = "studio-ui-root";
   root.innerHTML = `
-    <div class="studio-toolbar" aria-label="工作室环境控制">
-      <button type="button" data-studio-lamp aria-label="开关桌灯" aria-pressed="false">
+    <div class="studio-toolbar" aria-label="${t("工作室环境控制", "Studio controls")}">
+      <button type="button" data-studio-lamp aria-label="${t("开关桌灯", "Toggle the desk lamp")}" aria-pressed="false">
         <span class="studio-toggle-dot"></span><b>LIGHT</b>
       </button>
-      <button type="button" data-studio-time aria-label="切换昼夜" aria-pressed="false">
+      <button type="button" data-studio-time aria-label="${t("切换昼夜", "Toggle day and night")}" aria-pressed="false">
         <span class="studio-toggle-dot"></span><b>DAY / NIGHT</b>
       </button>
     </div>
-    <nav class="studio-index" data-studio-index aria-label="工作室展品"></nav>
+    <nav class="studio-index" data-studio-index aria-label="${t("工作室展品", "Studio exhibits")}"></nav>
     <p class="studio-hint" data-studio-hint aria-live="polite"></p>
     <aside class="studio-detail" data-studio-detail role="dialog" aria-modal="false" aria-labelledby="studio-detail-title" hidden inert>
-      <button class="studio-close" type="button" data-studio-close aria-label="关闭详情">&#215;</button>
+      <button class="studio-close" type="button" data-studio-close aria-label="${t("关闭详情", "Close details")}">&#215;</button>
       <p class="studio-object" data-studio-object></p>
       <h2 id="studio-detail-title" data-studio-title></h2>
       <p class="studio-summary" data-studio-summary></p>
       <div class="studio-media" data-studio-media hidden></div>
       <p class="studio-description" data-studio-description></p>
       <div class="studio-tags" data-studio-tags></div>
-      <nav class="studio-links" data-studio-links aria-label="相关链接"></nav>
+      <nav class="studio-links" data-studio-links aria-label="${t("相关链接", "Related links")}"></nav>
     </aside>
   `;
 
@@ -82,7 +83,7 @@ export function createStudioOverlay(options: StudioOverlayOptions) {
     const button = document.createElement("button");
     button.type = "button";
     button.setAttribute("aria-pressed", "false");
-    button.setAttribute("aria-label", `打开 ${binding.objectLabel}`);
+    button.setAttribute("aria-label", t(`打开 ${binding.objectLabel}`, `Open ${binding.objectLabel}`));
     const number = document.createElement("span");
     const label = document.createElement("b");
     number.textContent = String(bindingIndex + 1).padStart(2, "0");

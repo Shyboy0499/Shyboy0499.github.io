@@ -13,6 +13,7 @@ import { portfolio, portfolioProjectById } from "../../content/portfolio";
 import { cosmicManifest } from "./manifest";
 import { WORLD_NAMING, type KnownWorldId } from "../worlds.config";
 import { WORLD_PORTALS } from "../portals.config";
+import { t } from "../../i18n";
 
 type Vector3Tuple = readonly [number, number, number];
 
@@ -1195,7 +1196,7 @@ export const cosmicWorld: WorldModule = {
       const label =
         targetWorldId === WORLD_NAMING.archipelago.id
           ? "CHOOSE A WORLD"
-          : `ENTER ${WORLD_NAMING[targetWorldId].chineseTitle}`;
+          : `ENTER ${t(WORLD_NAMING[targetWorldId].chineseTitle, WORLD_NAMING[targetWorldId].englishTitle.toUpperCase())}`;
       return {
         ...base,
         id: `cosmic-world-select-${targetWorldId}`,

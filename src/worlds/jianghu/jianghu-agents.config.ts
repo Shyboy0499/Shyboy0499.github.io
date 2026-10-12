@@ -1,5 +1,7 @@
 // 江湖角色配置集中管理人物坐标、sprite 目录、气泡和对话文案。
-// DOM 场景只消费这些数据，不在渲染逻辑中夹带业务文案。
+// DOM 场景只消费这些数据，不在渲染逻辑中夹带业务文案；英文页只替换文案，坐标与 sprite 共用。
+import { pageLang } from "../../i18n";
+
 export type JianghuAgentStatus = "online" | "busy" | "offline";
 export type JianghuSpritePose = "doze" | "startle" | "cheer";
 
@@ -24,7 +26,7 @@ export const JIANGHU_SCENE_SIZE = {
 
 export const JIANGHU_PORTAL_AGENT_ID = "product-cocreate-agent";
 
-export const JIANGHU_AGENTS: readonly JianghuAgentSpec[] = [
+const JIANGHU_AGENTS_ZH: readonly JianghuAgentSpec[] = [
   { id: "ceo", name: "总控台", role: "个人叙事主线", color: "#d43f2f", folder: "caocao", asset: "caocao", x: 965, y: 202, bubble: "第三世界接管活场景，所有界面都要会动。", status: "busy", dialogue: ["欢迎来到江湖世界。这里不是展板，而是把经历变成人物，让你一个个问过去。", "每次对话都会补上一块 Shyboy 的来路：做过什么、为什么做、下一座世界会长成什么。"] },
   { id: "strategist-agent", name: "世界编排", role: "世界结构", color: "#8b5cf6", folder: "zhangliang", asset: "zhangliang", x: 725, y: 258, bubble: "先定动线，再定入口和出口。", status: "online", dialogue: ["我负责把世界接起来：世界一是入口，海岛是作品航线，这里是人物访谈。", "你看到的不是菜单，而是一套可以继续扩展的网站叙事结构。"] },
   { id: "brand-reviewer", name: "体验审校", role: "工程判断", color: "#f59e0b", folder: "baozheng", asset: "baozheng", x: 1208, y: 258, bubble: "风格可以狂，交互必须清楚。", status: "online", dialogue: ["这个项目的野心是“网站的终点”，所以每个世界都要有自己的风格和规矩。", "好看只是第一层，能让人愿意继续探索，才算站住。"] },
@@ -45,10 +47,51 @@ export const JIANGHU_AGENTS: readonly JianghuAgentSpec[] = [
   { id: "culture", name: "风格档案", role: "价值底色", color: "#7fd6bd", folder: "kongzi", asset: "kongzi", x: 287, y: 522, bubble: "所有网站风格，终将在这里归档。", status: "online", dialogue: ["我代表价值底色。技术很快，但真正留下来的，是你如何组织经验。", "把经历变成人物，让作品开口说话，这就是第三世界的入口。"] },
 ] as const;
 
-export const JIANGHU_SCENES = [
+const JIANGHU_SCENES_ZH = [
   ["x-twitter-agent", "xhs-agent", "入口文案要像宣言。"],
   ["geo-expert-agent", "market-insight-agent", "把访客送到该去的风格房间。"],
   ["analyst-agent", "visual-agent", "角色别糊，贴图先还原。"],
   ["brand-reviewer", "growth-agent", "动效可以密，层级不能乱。"],
   ["ceo", "strategist-agent", "第三世界先活起来，再长成系统。"],
 ] as const;
+
+type JianghuAgentText = Pick<JianghuAgentSpec, "name" | "role" | "bubble" | "dialogue">;
+
+const JIANGHU_AGENT_TEXT_EN: Record<string, JianghuAgentText> = {
+  ceo: { name: "Control Desk", role: "Personal storyline", bubble: "The third world runs live — every interface has to move.", dialogue: ["Welcome to Jianghu World. This isn't a display board: experiences become characters you can question one by one.", "Every conversation fills in a piece of Shyboy's path: what was built, why, and what the next world will grow into."] },
+  "strategist-agent": { name: "World Weaver", role: "World structure", bubble: "Set the paths first, then the doors in and out.", dialogue: ["I connect the worlds: the first is the entrance, the islands are the project route, and this is the interview hall.", "What you see isn't a menu — it's a site narrative that can keep growing."] },
+  "brand-reviewer": { name: "Experience Critic", role: "Engineering judgement", bubble: "The style can be wild; the interaction must be clear.", dialogue: ["This project aims to be 'the end of websites', so every world needs its own style and rules.", "Looking good is only layer one — making people want to keep exploring is what counts."] },
+  "geo-expert-agent": { name: "Map Designer", role: "Exploration", bubble: "Every website style can become a room.", dialogue: ["I stand for exploration: getting from an idea to a world you can enter takes trial, error and observation.", "Next, each experience can become a room you visit instead of a line on a résumé."] },
+  "market-insight-agent": { name: "Visitor Guide", role: "Entry points", bubble: "Before anyone clicks, intent has already walked in.", dialogue: ["I represent the visitor. People don't come to read a manual — the scene has to invite them.", "So here you move, approach and talk first, and gather project details along the way."] },
+  "xhs-agent": { name: "Mood Writer", role: "Expression", bubble: "First glance should feel like a work, not an admin panel.", dialogue: ["I stand for expression. Work needs a title, a feeling and a memorable first look.", "Don't write experience as a log — make it a scene worth a screenshot."] },
+  "growth-agent": { name: "Motion Driver", role: "Momentum", bubble: "Once characters move, the page feels alive.", dialogue: ["I stand for execution. Many things don't start once they're figured out — you learn where it sticks after you set sail.", "Portals, mobile controls, the asset wall — all shaped by building and looking."] },
+  "analyst-agent": { name: "Layout Surveyor", role: "Technical detail", bubble: "Three pixels off and the whole mood collapses.", dialogue: ["I stand for technical detail. One grey background or wrong layer breaks the whole world's credibility.", "So dialogue UI, texture rendering and the way back all need to sit exactly right."] },
+  "podcast-agent": { name: "Sound Scripter", role: "Medium", bubble: "Next version, the world could speak.", dialogue: ["I stand for the medium. One day this could carry narration, sound and character voices, not just subtitles.", "A website can feel like a game — or a documentary."] },
+  "visual-agent": { name: "Visual Maker", role: "Visual work", bubble: "The background is the stage; characters are the interface.", dialogue: ["I stand for visual work. Background, characters and subtitles should feel born from one world.", "For now Jianghu uses existing art; later it can be replaced with portraits that truly match Shyboy."] },
+  "email-agent": { name: "Task Courier", role: "Delivery", bubble: "Break requests into little walking people.", dialogue: ["I stand for delivery. Every change has to land in code, a build and a check.", "That's this project's core spirit: imagination has to actually run."] },
+  "seo-expert-agent": { name: "Path Indexer", role: "Information architecture", bubble: "Many worlds — the paths can't get tangled.", dialogue: ["I stand for information architecture. However many worlds there are, they must be findable, understandable and returnable.", "Jianghu World becomes the index between experiences and projects."] },
+  "x-twitter-agent": { name: "Headline Poet", role: "Public voice", bubble: "Write 'the end of websites' right on the door.", dialogue: ["I stand for public voice. This project should dare to say AI can already build great web experiences.", "So a website stops being pages and becomes worlds you can switch between."] },
+  "meta-ads-agent": { name: "Experiment Lab", role: "Product experiments", bubble: "Every button should know why it exists.", dialogue: ["I stand for product experiments. Each world tests an interaction, a style or a story.", "If it's not right, change it — see a problem, make it better right away."] },
+  "brand-audit-agent": { name: "Brand Patrol", role: "Brand perception", bubble: "This isn't a template site — it's a museum of styles.", dialogue: ["I stand for brand perception. Shyboy's portfolio isn't a pile of templates; it collects the shapes a website can take.", "When every project becomes a scene, a personal brand starts to feel like a universe."] },
+  "global-content-agent": { name: "Domain Translator", role: "Cross-domain learning", bubble: "SaaS, portfolios, games, communities — all can plug in.", dialogue: ["I stand for cross-domain learning. Tech stacks can change, and so can a world's language.", "Vue islands, a plain-DOM jianghu, a future React world — they can all coexist."] },
+  "product-cocreate-agent": { name: "Paper Door Smith", role: "Guide to the fourth world", bubble: "Want to reach the white paper realm? Talk to me.", dialogue: ["Jianghu tells stories through people; the next world folds the colour away, leaving only space, light and line.", "Is Shyboy's linework studio behind the paper door?", "There's a glowing computer, a build log wall, and projects and life tucked into the room.", "Please open the door for me — I want to see it myself.", "All right. Follow this ink line; the paper door opens after the last word."] },
+  culture: { name: "Style Archive", role: "Core values", bubble: "Every website style ends up archived here.", dialogue: ["I stand for core values. Technology moves fast; what lasts is how you organise experience.", "Turn experience into characters and let the work speak — that's the entrance to the third world."] },
+};
+
+const JIANGHU_SCENE_LINE_EN: Record<string, string> = {
+  "入口文案要像宣言。": "Entry copy should read like a manifesto.",
+  "把访客送到该去的风格房间。": "Send visitors to the style room they belong in.",
+  "角色别糊，贴图先还原。": "Keep characters sharp — restore the textures first.",
+  "动效可以密，层级不能乱。": "Motion can be dense; hierarchy can't be messy.",
+  "第三世界先活起来，再长成系统。": "Bring the third world to life, then grow it into a system.",
+};
+
+const isEnglish = pageLang() === "en";
+
+export const JIANGHU_AGENTS: readonly JianghuAgentSpec[] = isEnglish
+  ? JIANGHU_AGENTS_ZH.map((agent) => ({ ...agent, ...JIANGHU_AGENT_TEXT_EN[agent.id] }))
+  : JIANGHU_AGENTS_ZH;
+
+export const JIANGHU_SCENES = isEnglish
+  ? JIANGHU_SCENES_ZH.map(([from, to, line]) => [from, to, JIANGHU_SCENE_LINE_EN[line] ?? line] as const)
+  : JIANGHU_SCENES_ZH;

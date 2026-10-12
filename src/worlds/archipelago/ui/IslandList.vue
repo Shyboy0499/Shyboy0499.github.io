@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from "../../../i18n";
 import { ref, computed } from "vue";
 import { statusOf, store } from "../store";
 import { getWorld } from "../scene/world/island-world";
@@ -8,8 +9,8 @@ const open = ref(false);
 const q = ref("");
 
 const STATUS_TXT: Record<string, string> = {
-  locked: "待发现",
-  visited: "已到访",
+  locked: t("待发现", "Undiscovered"),
+  visited: t("已到访", "Visited"),
 };
 
 const list = computed(() => {
@@ -40,30 +41,30 @@ function go(id: string) {
       class="finder-btn"
       @click="open = !open"
       :aria-expanded="open"
-      aria-label="打开岛屿目录"
+      :aria-label="t('打开岛屿目录', 'Open island index')"
     >
       <span class="finder-mark" aria-hidden="true"></span>
-      <span><small>航海图</small>岛屿目录</span>
+      <span><small>{{ t("航海图", "Chart") }}</small>{{ t("岛屿目录", "Island index") }}</span>
     </button>
     <transition name="toast">
       <div v-if="open" class="list-panel">
         <header class="list-heading">
           <div>
             <small>SHYBOY0499'S ARCHIPELAGO</small>
-            <h2>作品岛航海志</h2>
+            <h2>{{ t("作品岛航海志", "Island Logbook") }}</h2>
           </div>
           <button
             class="list-close"
             type="button"
-            aria-label="关闭岛屿志"
+            :aria-label="t('关闭岛屿志', 'Close logbook')"
             @click="open = false"
           >
             ×
           </button>
         </header>
         <label class="list-search-wrap">
-          <span>索引</span>
-          <input v-model="q" class="list-search" placeholder="输入作品名" />
+          <span>{{ t("索引", "Index") }}</span>
+          <input v-model="q" class="list-search" :placeholder="t('输入作品名', 'Search projects')" />
         </label>
         <div class="list-scroll">
           <button
@@ -76,10 +77,10 @@ function go(id: string) {
             <span class="nm">{{ it.name }}</span>
             <span class="st">{{ STATUS_TXT[it.status] }}</span>
           </button>
-          <div v-if="!list.length" class="empty">没有找到这座作品岛</div>
+          <div v-if="!list.length" class="empty">{{ t("没有找到这座作品岛", "No island matches that name") }}</div>
         </div>
         <footer class="list-footer">
-          <span>沿航线选择一座岛</span>
+          <span>{{ t("沿航线选择一座岛", "Pick an island along the route") }}</span>
           <span>{{ list.length }} ISLANDS</span>
         </footer>
       </div>

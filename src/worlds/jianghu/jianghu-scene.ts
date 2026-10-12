@@ -10,6 +10,7 @@ import {
   type JianghuAgentSpec,
   type JianghuSpritePose,
 } from "./jianghu-agents.config";
+import { t } from "../../i18n";
 
 interface VisitState {
   id: string;
@@ -145,7 +146,7 @@ export class JianghuScene {
     this.onRequestPortal = onRequestPortal;
     this.root = document.createElement("section");
     this.root.className = "jianghu-world-root";
-    this.root.setAttribute("aria-label", `${WORLD_NAMING.jianghu.chineseTitle}第三世界`);
+    this.root.setAttribute("aria-label", t(`${WORLD_NAMING.jianghu.chineseTitle}第三世界`, `${WORLD_NAMING.jianghu.englishTitle} — the third world`));
     this.style = document.createElement("style");
     this.style.textContent = css;
     document.head.append(this.style);
@@ -200,19 +201,19 @@ export class JianghuScene {
     stage.innerHTML = `
       <img class="jianghu-stage-bg" src="${this.baseUrl}${WORLD_NAMING.jianghu.sceneBackground}" alt="" draggable="false" />
       <div class="jianghu-controls">
-        <button type="button" data-jianghu-handoff>观察动线</button>
-        <button type="button" data-jianghu-return>前往线稿世界</button>
+        <button type="button" data-jianghu-handoff>${t("观察动线", "Watch the flow")}</button>
+        <button type="button" data-jianghu-return>${t("前往线稿世界", "Go to Linework World")}</button>
       </div>
-      <div class="jianghu-help">WASD / 方向键移动访客 · 靠近人物时按 E 对话</div>
+      <div class="jianghu-help">${t("WASD / 方向键移动访客 · 靠近人物时按 E 对话", "WASD / arrow keys to move · press E near a character to talk")}</div>
       <div class="jianghu-vignette" aria-hidden="true"></div>
       <div class="jianghu-dialog" data-jianghu-dialog hidden>
-        <button class="jianghu-dialog-close" type="button" data-dialog-close aria-label="离开对话">×</button>
+        <button class="jianghu-dialog-close" type="button" data-dialog-close aria-label="${t("离开对话", "Leave conversation")}">×</button>
         <div class="jianghu-dialog-portrait left">
           <img data-dialog-guest alt="" draggable="false" />
-          <strong>访客</strong>
+          <strong>${t("访客", "Visitor")}</strong>
           <span>PLAYER</span>
         </div>
-        <div class="jianghu-subtitle" role="dialog" aria-live="polite" aria-label="人物对话">
+        <div class="jianghu-subtitle" role="dialog" aria-live="polite" aria-label="${t("人物对话", "Conversation")}">
           <header>
             <div>
               <strong data-dialog-speaker></strong>
@@ -232,13 +233,13 @@ export class JianghuScene {
     stageWrap.append(stage);
     const mobileControls = document.createElement("div");
     mobileControls.className = "jianghu-mobile-controls";
-    mobileControls.setAttribute("aria-label", "访客移动控制");
+    mobileControls.setAttribute("aria-label", t("访客移动控制", "Visitor movement controls"));
     mobileControls.innerHTML = `
-      <button type="button" data-jianghu-move="up" aria-label="向上移动">↑</button>
-      <button type="button" data-jianghu-move="left" aria-label="向左移动">←</button>
-      <button type="button" data-jianghu-move="down" aria-label="向下移动">↓</button>
-      <button type="button" data-jianghu-move="right" aria-label="向右移动">→</button>
-      <button type="button" data-jianghu-talk aria-label="和最近的人物对话">聊</button>
+      <button type="button" data-jianghu-move="up" aria-label="${t("向上移动", "Move up")}">↑</button>
+      <button type="button" data-jianghu-move="left" aria-label="${t("向左移动", "Move left")}">←</button>
+      <button type="button" data-jianghu-move="down" aria-label="${t("向下移动", "Move down")}">↓</button>
+      <button type="button" data-jianghu-move="right" aria-label="${t("向右移动", "Move right")}">→</button>
+      <button type="button" data-jianghu-talk aria-label="${t("和最近的人物对话", "Talk to the nearest character")}">${t("聊", "Talk")}</button>
     `;
     stageWrap.append(mobileControls);
     this.root.append(stageWrap);
@@ -280,7 +281,7 @@ export class JianghuScene {
       el.style.zIndex = String(Math.round(agent.y));
       el.innerHTML = `
         <div class="jianghu-bubble" hidden></div>
-        ${agent.id === JIANGHU_PORTAL_AGENT_ID ? '<div class="jianghu-guide-hint">按 E / 点「聊」· 请我开纸门</div>' : ""}
+        ${agent.id === JIANGHU_PORTAL_AGENT_ID ? `<div class="jianghu-guide-hint">${t("按 E / 点「聊」· 请我开纸门", "Press E / tap Talk · ask me to open the paper door")}</div>` : ""}
         <div class="jianghu-shadow"></div>
         <div class="jianghu-sprite"><img alt="" draggable="false" /></div>
         <div class="jianghu-name" style="border-top:2px solid ${agent.color}">${agent.name}</div>
@@ -300,9 +301,9 @@ export class JianghuScene {
     guest.className = "jianghu-guest";
     guest.hidden = true;
     guest.innerHTML = `
-      <div class="jianghu-bubble" hidden>进度如何？</div>
+      <div class="jianghu-bubble" hidden>${t("进度如何？", "How's it going?")}</div>
       <img alt="" draggable="false" />
-      <div class="jianghu-name" style="border-top:2px solid #7fd6bd">访客</div>
+      <div class="jianghu-name" style="border-top:2px solid #7fd6bd">${t("访客", "Visitor")}</div>
     `;
     stage.append(guest);
     this.agentEls.set("__guest", guest);
@@ -370,7 +371,7 @@ export class JianghuScene {
     const { agent, lineIndex, lines } = this.dialogue;
     const agentSpeaking = lineIndex % 2 === 0;
     dialog.hidden = false;
-    speaker.textContent = agentSpeaking ? agent.name : "访客";
+    speaker.textContent = agentSpeaking ? agent.name : t("访客", "Visitor");
     role.textContent = agentSpeaking ? this.roleFor(agent) : "PLAYER";
     count.textContent = `${lineIndex + 1} / ${lines.length}`;
     line.textContent = lines[lineIndex];
@@ -424,7 +425,7 @@ export class JianghuScene {
       returning: false,
     };
     this.speak(from, line, 4);
-    this.speak(to, "收到，交给下一个模块。", 3.6);
+    this.speak(to, t("收到，交给下一个模块。", "Got it — passing it to the next module."), 3.6);
   }
 
   private updateVisit(elapsed: number): void {

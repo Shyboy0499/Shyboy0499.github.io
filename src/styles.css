@@ -192,7 +192,8 @@ html[data-world="cosmic"] .portal-trigger {
   display: flex;
 }
 .site-header nav a,
-.github-link {
+.github-link,
+.lang-toggle {
   font-size: 11px;
   font-weight: 900;
 }
@@ -217,10 +218,24 @@ html[data-world="cosmic"] .portal-trigger {
   transform-origin: 0;
   transform: scaleX(1);
 }
-.github-link {
-  border: 1px solid var(--line);
+.header-actions {
   justify-self: end;
+  align-items: center;
+  gap: 8px;
+  display: flex;
+}
+.github-link,
+.lang-toggle {
+  border: 1px solid var(--line);
   padding: 9px 12px;
+}
+.lang-toggle {
+  color: var(--acid);
+  border-color: color-mix(in srgb, var(--acid) 45%, transparent);
+}
+.lang-toggle:hover,
+.lang-toggle:focus-visible {
+  background: color-mix(in srgb, var(--acid) 14%, transparent);
 }
 .asset-page {
   background: #070707;
@@ -2464,11 +2479,16 @@ h1 span {
     gap: 11px;
   }
   .site-header nav a,
-  .github-link {
+  .github-link,
+  .lang-toggle {
     font-size: 8px;
   }
-  .github-link {
+  .github-link,
+  .lang-toggle {
     padding: 7px;
+  }
+  .header-actions {
+    gap: 5px;
   }
   .asset-main {
     width: auto;

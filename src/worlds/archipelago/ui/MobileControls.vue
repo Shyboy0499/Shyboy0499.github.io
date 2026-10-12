@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from "../../../i18n";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { getWorld } from "../scene/world/island-world";
 import { renderArchipelagoBoostPreview } from "../ui-actions";
@@ -65,15 +66,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mobile-controls" aria-label="移动端航行控制">
+  <div class="mobile-controls" :aria-label="t('移动端航行控制', 'Sailing controls')">
     <div class="direction-wrap">
-      <span class="control-label">航向</span>
-      <div class="direction-pad" role="group" aria-label="方向控制">
+      <span class="control-label">{{ t("航向", "Heading") }}</span>
+      <div class="direction-pad" role="group" :aria-label="t('方向控制', 'Direction')">
         <span aria-hidden="true"></span>
         <button
           class="direction-button"
           type="button"
-          aria-label="向前航行"
+          :aria-label="t('向前航行', 'Sail forward')"
           @pointerdown.prevent="onDirectionDown($event, 'up')"
           @pointerup.prevent="setDirection('up', false)"
           @pointercancel.prevent="setDirection('up', false)"
@@ -85,7 +86,7 @@ onBeforeUnmount(() => {
         <button
           class="direction-button"
           type="button"
-          aria-label="向左转向"
+          :aria-label="t('向左转向', 'Turn left')"
           @pointerdown.prevent="onDirectionDown($event, 'left')"
           @pointerup.prevent="setDirection('left', false)"
           @pointercancel.prevent="setDirection('left', false)"
@@ -97,7 +98,7 @@ onBeforeUnmount(() => {
         <button
           class="direction-button"
           type="button"
-          aria-label="向右转向"
+          :aria-label="t('向右转向', 'Turn right')"
           @pointerdown.prevent="onDirectionDown($event, 'right')"
           @pointerup.prevent="setDirection('right', false)"
           @pointercancel.prevent="setDirection('right', false)"
@@ -109,7 +110,7 @@ onBeforeUnmount(() => {
         <button
           class="direction-button"
           type="button"
-          aria-label="向后航行"
+          :aria-label="t('向后航行', 'Sail backward')"
           @pointerdown.prevent="onDirectionDown($event, 'down')"
           @pointerup.prevent="setDirection('down', false)"
           @pointercancel.prevent="setDirection('down', false)"
@@ -124,7 +125,7 @@ onBeforeUnmount(() => {
     <button
       class="sprint-control"
       type="button"
-      aria-label="按住加速航行"
+      :aria-label="t('按住加速航行', 'Hold to boost')"
       @pointerdown.prevent="onSprintDown"
       @pointerup.prevent="clearSprint"
       @pointercancel.prevent="clearSprint"
