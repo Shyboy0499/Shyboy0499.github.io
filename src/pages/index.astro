@@ -1,32 +1,48 @@
 ---
-// 站点唯一页面：Chris Yu 的个人主页，内容与外链集中在本文件维护。
-// 项目数据内联在此，条目少、无需后端，保持单文件以降低维护成本。
+// 站点唯一页面：Chris Yu 的动效个人主页。
+// 内容、外链与交互脚本集中在本文件，保持单文件静态页，便于部署与维护。
 const profile = {
   name: "Chris Yu",
-  tagline: "Building small, sharp tools for developers and agents.",
+  handle: "@Shyboy0499",
+  // 轮播角色词，用于 hero 区打字动效。
+  roles: ["developer tools", "AI agents", "self-correcting systems", "clean Mac setups"],
+  blurb:
+    "I build small, sharp tools for developers and agents — systems that check themselves instead of guessing.",
   github: "https://github.com/Shyboy0499",
+  email: "krisyu0911@gmail.com",
 };
 
 const projects = [
   {
     name: "antibody",
-    blurb: "A TypeScript project exploring resilient, self-correcting systems.",
+    blurb: "Resilient, self-correcting systems — software that detects and repairs its own faults.",
     href: "https://github.com/Shyboy0499/antibody",
     lang: "TypeScript",
+    stars: "263",
+    glow: "var(--c1)",
   },
   {
     name: "precondition-library",
     blurb:
-      "An agent that compiles git maintenance chores into reusable programs, then decides whether to replay them by running checks rather than guessing.",
+      "An agent that compiles git chores into reusable programs, then replays them by running checks — not by guessing a task looks familiar.",
     href: "https://github.com/Shyboy0499/precondition-library",
     lang: "Python",
+    stars: "142",
+    glow: "var(--c2)",
   },
   {
     name: "MacOS-Config",
-    blurb: "My own configuration for my own Mac — dotfiles, tweaks, and setup.",
+    blurb: "My own config for my own Mac — dotfiles, window tweaks, and a setup that just feels right.",
     href: "https://github.com/Shyboy0499/MacOS-Config",
     lang: "Swift",
+    stars: "24",
+    glow: "var(--c3)",
   },
+];
+
+const marquee = [
+  "TypeScript", "Python", "Swift", "Agents", "Git automation",
+  "Program synthesis", "LLM tooling", "Open source",
 ];
 
 const year = new Date().getFullYear();
@@ -37,188 +53,529 @@ const year = new Date().getFullYear();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{profile.name}</title>
-    <meta name="description" content={profile.tagline} />
-    <link rel="icon" href="data:," />
+    <title>{profile.name} — {profile.handle}</title>
+    <meta name="description" content={profile.blurb} />
+    <meta property="og:title" content={profile.name} />
+    <meta property="og:description" content={profile.blurb} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <main>
-      <header class="intro">
-        <h1>{profile.name}</h1>
-        <p class="tagline">{profile.tagline}</p>
+    <!-- 动态背景层：极光渐变 + 网格 + 跟随鼠标的光斑 -->
+    <div class="bg" aria-hidden="true">
+      <div class="aurora a1"></div>
+      <div class="aurora a2"></div>
+      <div class="aurora a3"></div>
+      <div class="grid"></div>
+      <div class="spotlight" id="spotlight"></div>
+      <div class="noise"></div>
+    </div>
+
+    <nav class="nav">
+      <a class="brand" href="#top">
+        <span class="brand-mark">✦</span> {profile.name}
+      </a>
+      <div class="nav-links">
+        <a href="#work">Work</a>
+        <a href="#about">About</a>
+        <a class="nav-cta" href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      </div>
+    </nav>
+
+    <main id="top">
+      <!-- Hero -->
+      <header class="hero">
+        <p class="eyebrow reveal">{profile.handle} · based on GitHub</p>
+        <h1 class="title reveal">
+          <span class="line">Hi, I'm</span>
+          <span class="line grad">{profile.name}</span>
+        </h1>
+        <p class="role reveal">
+          I build <span class="role-rotate" id="roleRotate">{profile.roles[0]}</span>
+        </p>
+        <p class="lede reveal">{profile.blurb}</p>
+        <div class="cta-row reveal">
+          <a class="btn btn-primary" href="#work">View my work</a>
+          <a class="btn btn-ghost" href={profile.github} target="_blank" rel="noopener noreferrer">
+            GitHub profile ↗
+          </a>
+        </div>
+        <div class="scroll-hint reveal" aria-hidden="true">
+          <span>scroll</span>
+          <span class="scroll-line"></span>
+        </div>
       </header>
 
-      <section aria-labelledby="work-heading">
-        <h2 id="work-heading">Selected work</h2>
-        <ul class="projects">
+      <!-- Marquee -->
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          {marquee.map((m) => <span class="chip">{m}</span>)}
+          {marquee.map((m) => <span class="chip">{m}</span>)}
+        </div>
+      </div>
+
+      <!-- Work -->
+      <section id="work" class="section">
+        <div class="section-head reveal">
+          <h2>Selected work</h2>
+          <p>Things I've built, open on GitHub.</p>
+        </div>
+        <div class="cards">
           {
-            projects.map((p) => (
-              <li>
-                <a class="project" href={p.href} target="_blank" rel="noopener noreferrer">
-                  <span class="project-head">
-                    <span class="project-name">{p.name}</span>
-                    <span class="project-lang">{p.lang}</span>
+            projects.map((p, i) => (
+              <a
+                class="card tilt reveal"
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={`--glow:${p.glow};--i:${i}`}
+              >
+                <div class="card-glow" aria-hidden="true"></div>
+                <div class="card-top">
+                  <span class="card-name">{p.name}</span>
+                  <span class="card-star">★ {p.stars}</span>
+                </div>
+                <p class="card-blurb">{p.blurb}</p>
+                <div class="card-foot">
+                  <span class="card-lang">
+                    <span class="dot" aria-hidden="true"></span>
+                    {p.lang}
                   </span>
-                  <span class="project-blurb">{p.blurb}</span>
-                </a>
-              </li>
+                  <span class="card-arrow">→</span>
+                </div>
+              </a>
             ))
           }
-        </ul>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="section about">
+        <div class="section-head reveal">
+          <h2>About</h2>
+        </div>
+        <div class="about-body reveal">
+          <p>
+            I'm a developer who likes building tools that are small, sharp, and a little
+            opinionated. Most of my work lives at the seam between developers and agents:
+            automation that earns trust by <em>verifying</em> its own work rather than assuming.
+          </p>
+          <p>
+            When I'm not shipping, I'm tuning my Mac setup until it feels exactly right —
+            and occasionally shipping that too.
+          </p>
+          <div class="about-links">
+            <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            <a href={`mailto:${profile.email}`}>Email ↗</a>
+          </div>
+        </div>
       </section>
 
       <footer class="footer">
-        <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-        <span class="dot" aria-hidden="true">·</span>
-        <span class="copyright">© {year} {profile.name}</span>
+        <span>✦ {profile.name}</span>
+        <span class="muted">© {year} · Built with care</span>
       </footer>
     </main>
+
+    <script is:inline>
+      // 交互脚本：鼠标光斑、角色词轮播、滚动显现、卡片 3D 倾斜。
+      // 全部尊重 prefers-reduced-motion，减少动效时退化为静态显示。
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // 光斑跟随鼠标（节流到动画帧）。
+      const spotlight = document.getElementById("spotlight");
+      if (spotlight && !reduce) {
+        let tx = window.innerWidth / 2,
+          ty = window.innerHeight / 2,
+          cx = tx,
+          cy = ty,
+          raf = 0;
+        window.addEventListener("pointermove", (e) => {
+          tx = e.clientX;
+          ty = e.clientY;
+          if (!raf) raf = requestAnimationFrame(move);
+        });
+        function move() {
+          cx += (tx - cx) * 0.12;
+          cy += (ty - cy) * 0.12;
+          spotlight.style.transform = `translate(${cx}px, ${cy}px)`;
+          raf = Math.abs(tx - cx) + Math.abs(ty - cy) > 0.5 ? requestAnimationFrame(move) : 0;
+        }
+        move();
+      }
+
+      // Hero 角色词打字轮播。
+      const rotate = document.getElementById("roleRotate");
+      const roles = ["developer tools", "AI agents", "self-correcting systems", "clean Mac setups"];
+      if (rotate && !reduce) {
+        let ri = 0,
+          ci = 0,
+          deleting = false;
+        function tick() {
+          const word = roles[ri];
+          ci += deleting ? -1 : 1;
+          rotate.textContent = word.slice(0, ci);
+          let delay = deleting ? 45 : 90;
+          if (!deleting && ci === word.length) {
+            delay = 1500;
+            deleting = true;
+          } else if (deleting && ci === 0) {
+            deleting = false;
+            ri = (ri + 1) % roles.length;
+            delay = 350;
+          }
+          setTimeout(tick, delay);
+        }
+        setTimeout(tick, 900);
+      }
+
+      // 滚动进入视口时逐个显现。
+      const items = document.querySelectorAll(".reveal");
+      if (reduce) {
+        items.forEach((el) => el.classList.add("in"));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((en) => {
+              if (en.isIntersecting) {
+                en.target.classList.add("in");
+                io.unobserve(en.target);
+              }
+            });
+          },
+          { threshold: 0.15 },
+        );
+        items.forEach((el) => io.observe(el));
+      }
+
+      // 卡片随指针 3D 倾斜。
+      if (!reduce) {
+        document.querySelectorAll(".tilt").forEach((card) => {
+          card.addEventListener("pointermove", (e) => {
+            const r = card.getBoundingClientRect();
+            const px = (e.clientX - r.left) / r.width - 0.5;
+            const py = (e.clientY - r.top) / r.height - 0.5;
+            card.style.transform = `perspective(900px) rotateX(${-py * 6}deg) rotateY(${px * 8}deg) translateY(-4px)`;
+            card.style.setProperty("--mx", `${(px + 0.5) * 100}%`);
+            card.style.setProperty("--my", `${(py + 0.5) * 100}%`);
+          });
+          card.addEventListener("pointerleave", () => {
+            card.style.transform = "";
+          });
+        });
+      }
+    </script>
+
+    <style is:global>
+      :root {
+        --bg: #07070b;
+        --fg: #ecedf2;
+        --muted: #9a9bab;
+        --line: rgba(255, 255, 255, 0.08);
+        --card: rgba(255, 255, 255, 0.035);
+        --c1: #7c5cff; /* violet */
+        --c2: #36d6c3; /* teal   */
+        --c3: #ff7a59; /* coral  */
+        --sans: "Space Grotesk", system-ui, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, monospace;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--sans);
+        line-height: 1.6;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a { color: inherit; }
+
+      /* ---------- Background ---------- */
+      .bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+
+      .aurora {
+        position: absolute;
+        width: 60vmax;
+        height: 60vmax;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.5;
+        mix-blend-mode: screen;
+        will-change: transform;
+      }
+      .a1 { background: var(--c1); top: -18vmax; left: -10vmax; animation: drift1 22s ease-in-out infinite; }
+      .a2 { background: var(--c2); bottom: -22vmax; right: -12vmax; animation: drift2 26s ease-in-out infinite; }
+      .a3 { background: var(--c3); top: 30vmax; left: 40vmax; opacity: 0.32; animation: drift3 30s ease-in-out infinite; }
+
+      @keyframes drift1 { 50% { transform: translate(14vmax, 10vmax) scale(1.15); } }
+      @keyframes drift2 { 50% { transform: translate(-12vmax, -8vmax) scale(1.1); } }
+      @keyframes drift3 { 50% { transform: translate(-16vmax, 6vmax) scale(0.9); } }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 54px 54px;
+        mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 85%);
+        opacity: 0.6;
+      }
+
+      .spotlight {
+        position: absolute;
+        top: 0; left: 0;
+        width: 540px; height: 540px;
+        margin: -270px 0 0 -270px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(124, 92, 255, 0.18), transparent 60%);
+        pointer-events: none;
+      }
+
+      .noise {
+        position: absolute;
+        inset: 0;
+        opacity: 0.04;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      /* ---------- Nav ---------- */
+      .nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px clamp(20px, 5vw, 56px);
+        backdrop-filter: blur(10px);
+        background: linear-gradient(to bottom, rgba(7, 7, 11, 0.7), transparent);
+      }
+      .brand { font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
+      .brand-mark { color: var(--c1); }
+      .nav-links { display: flex; align-items: center; gap: clamp(14px, 3vw, 30px); font-size: 0.92rem; }
+      .nav-links a { text-decoration: none; color: var(--muted); transition: color 0.2s; }
+      .nav-links a:hover { color: var(--fg); }
+      .nav-cta {
+        padding: 7px 15px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--fg) !important;
+      }
+      .nav-cta:hover { border-color: var(--c1); background: rgba(124, 92, 255, 0.12); }
+
+      /* ---------- Layout ---------- */
+      main { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 40px); }
+
+      .section { padding: clamp(70px, 12vh, 140px) 0; }
+      .section-head h2 {
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .section-head p { color: var(--muted); margin: 0.4rem 0 0; }
+
+      /* ---------- Hero ---------- */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 120px 0 60px;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        color: var(--c2);
+        margin: 0 0 1.2rem;
+        letter-spacing: 0.04em;
+      }
+      .title {
+        font-size: clamp(2.8rem, 10vw, 6.2rem);
+        line-height: 0.98;
+        margin: 0;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .title .line { display: block; }
+      .grad {
+        background: linear-gradient(100deg, var(--c1), var(--c2) 55%, var(--c3));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        background-size: 200% auto;
+        animation: shine 7s linear infinite;
+      }
+      @keyframes shine { to { background-position: 200% center; } }
+
+      .role {
+        font-size: clamp(1.1rem, 3vw, 1.6rem);
+        margin: 1.6rem 0 0;
+        color: var(--fg);
+      }
+      .role-rotate {
+        font-family: var(--mono);
+        color: var(--c2);
+        border-right: 2px solid var(--c2);
+        padding-right: 2px;
+        animation: caret 1s step-end infinite;
+      }
+      @keyframes caret { 50% { border-color: transparent; } }
+
+      .lede {
+        max-width: 54ch;
+        color: var(--muted);
+        font-size: clamp(1rem, 2vw, 1.12rem);
+        margin: 1.4rem 0 0;
+      }
+
+      .cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 2.4rem; }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 13px 24px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.98rem;
+        transition: transform 0.18s ease, box-shadow 0.25s ease, background 0.2s;
+      }
+      .btn:hover { transform: translateY(-2px); }
+      .btn-primary {
+        background: linear-gradient(100deg, var(--c1), var(--c2));
+        color: #06060a;
+        font-weight: 600;
+        box-shadow: 0 10px 30px -10px rgba(124, 92, 255, 0.7);
+      }
+      .btn-primary:hover { box-shadow: 0 16px 40px -12px rgba(124, 92, 255, 0.9); }
+      .btn-ghost { border: 1px solid var(--line); color: var(--fg); }
+      .btn-ghost:hover { border-color: var(--c2); background: rgba(54, 214, 195, 0.08); }
+
+      .scroll-hint {
+        margin-top: 4rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .scroll-line {
+        width: 48px; height: 1px;
+        background: linear-gradient(90deg, var(--c2), transparent);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse { 50% { opacity: 0.3; transform: translateX(6px); } }
+
+      /* ---------- Marquee ---------- */
+      .marquee {
+        overflow: hidden;
+        border-block: 1px solid var(--line);
+        padding: 18px 0;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+      }
+      .marquee-track { display: flex; gap: 14px; width: max-content; animation: scroll 28s linear infinite; }
+      .marquee:hover .marquee-track { animation-play-state: paused; }
+      .chip {
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        color: var(--muted);
+        padding: 6px 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      @keyframes scroll { to { transform: translateX(-50%); } }
+
+      /* ---------- Cards ---------- */
+      .cards {
+        margin-top: 2.6rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 26px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--card);
+        text-decoration: none;
+        overflow: hidden;
+        transition: transform 0.2s ease, border-color 0.3s;
+        transform-style: preserve-3d;
+      }
+      .card:hover { border-color: color-mix(in srgb, var(--glow) 55%, transparent); }
+      .card-glow {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.3s;
+        background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--glow) 22%, transparent), transparent 55%);
+      }
+      .card:hover .card-glow { opacity: 1; }
+      .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .card-name { font-size: 1.22rem; font-weight: 600; letter-spacing: -0.01em; }
+      .card-star { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+      .card-blurb { color: var(--muted); margin: 0.9rem 0 1.6rem; font-size: 0.96rem; flex: 1; }
+      .card-foot { display: flex; align-items: center; justify-content: space-between; }
+      .card-lang { font-family: var(--mono); font-size: 0.8rem; color: var(--fg); display: inline-flex; align-items: center; gap: 8px; }
+      .card-lang .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--glow); box-shadow: 0 0 10px var(--glow); }
+      .card-arrow { color: var(--glow); font-size: 1.2rem; transition: transform 0.2s; }
+      .card:hover .card-arrow { transform: translateX(5px); }
+
+      /* ---------- About ---------- */
+      .about-body { margin-top: 2rem; max-width: 62ch; }
+      .about-body p { color: var(--muted); font-size: clamp(1rem, 2vw, 1.15rem); }
+      .about-body em { color: var(--fg); font-style: normal; border-bottom: 1px solid var(--c2); }
+      .about-links { display: flex; gap: 22px; margin-top: 2rem; font-family: var(--mono); font-size: 0.92rem; }
+      .about-links a { text-decoration: none; color: var(--fg); border-bottom: 1px solid var(--line); padding-bottom: 2px; transition: border-color 0.2s; }
+      .about-links a:hover { border-color: var(--c1); }
+
+      /* ---------- Footer ---------- */
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 40px 0 60px;
+        border-top: 1px solid var(--line);
+        font-size: 0.88rem;
+      }
+      .footer .muted { color: var(--muted); }
+
+      /* ---------- Reveal ---------- */
+      .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+      .reveal.in { opacity: 1; transform: none; }
+      .card.reveal { transition-delay: calc(var(--i, 0) * 90ms); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .aurora, .grad, .scroll-line, .marquee-track, .role-rotate { animation: none !important; }
+        html { scroll-behavior: auto; }
+        .reveal { opacity: 1; transform: none; }
+      }
+
+      @media (max-width: 560px) {
+        .nav-links a:not(.nav-cta) { display: none; }
+      }
+    </style>
   </body>
 </html>
-
-<style is:global>
-  :root {
-    --bg: #0d0d0f;
-    --fg: #ededee;
-    --muted: #8a8a92;
-    --line: #26262b;
-    --accent: #e6e6e8;
-  }
-
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #fafafa;
-      --fg: #18181b;
-      --muted: #6b6b73;
-      --line: #e3e3e6;
-      --accent: #18181b;
-    }
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  html {
-    -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
-      "Liberation Mono", monospace;
-    font-size: 15px;
-    line-height: 1.6;
-    letter-spacing: 0.01em;
-  }
-
-  main {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 18vh 24px 10vh;
-  }
-
-  .intro h1 {
-    margin: 0;
-    font-size: 1.6rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-
-  .tagline {
-    margin: 0.6rem 0 0;
-    color: var(--muted);
-    max-width: 44ch;
-  }
-
-  h2 {
-    margin: 4rem 0 1.25rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-  }
-
-  .projects {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .projects li {
-    border-top: 1px solid var(--line);
-  }
-
-  .projects li:last-child {
-    border-bottom: 1px solid var(--line);
-  }
-
-  .project {
-    display: block;
-    padding: 1.1rem 0;
-    text-decoration: none;
-    color: inherit;
-    transition: opacity 0.15s ease, padding-left 0.15s ease;
-  }
-
-  .project:hover,
-  .project:focus-visible {
-    padding-left: 0.5rem;
-    outline: none;
-  }
-
-  .project-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .project-name {
-    font-weight: 600;
-    color: var(--accent);
-  }
-
-  .project-lang {
-    font-size: 0.72rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    flex-shrink: 0;
-  }
-
-  .project-blurb {
-    display: block;
-    margin-top: 0.35rem;
-    color: var(--muted);
-  }
-
-  .footer {
-    margin-top: 5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--line);
-    font-size: 0.82rem;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .footer a {
-    color: var(--fg);
-    text-decoration: none;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 1px;
-  }
-
-  .footer a:hover {
-    border-color: var(--fg);
-  }
-
-  .dot {
-    color: var(--line);
-  }
-</style>
