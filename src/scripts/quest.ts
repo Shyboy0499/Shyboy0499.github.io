@@ -21,8 +21,8 @@ const SCALE = 3;
 const WALK_SPEED = 62;
 const TYPE_SPEED = 42;
 const INTERACT_RANGE = 20;
-// 角色脚下的碰撞盒，相对精灵左上角；只让脚部碰墙，身体可以略微越过桌椅的边。
-const BOX = { x: 3, y: 10, w: 8, h: 6 };
+// 角色脚下的碰撞盒，相对精灵左上角（精灵高 22）；只让脚部碰墙，身体可以略微越过物件的边。
+const BOX = { x: 4, y: 18, w: 8, h: 4 };
 
 const KEY_DIRS: Record<string, [number, number]> = {
   arrowup: [0, -1],
@@ -75,7 +75,7 @@ export function mountQuest(root: HTMLElement): void {
   photo.src = "/art/studio-cat.jpg";
 
   // 角色从房间中央偏下出生；坐标为精灵左上角，单位是缓冲区像素。
-  const player = { x: 11 * TILE + 1, y: 9 * TILE - 6, facing: 1 };
+  const player = { x: 11 * TILE + 4, y: 9 * TILE - 10, facing: 1 };
   let walking = false;
   let animT = 0;
   let started = false;
@@ -132,8 +132,9 @@ export function mountQuest(root: HTMLElement): void {
   }
 
   function nearestInteractable(): MapObject | null {
-    const cx = player.x + 7;
-    const cy = player.y + 9;
+    // 以脚底中心计算距离：物件是实体，角色只能站在它前面，身体中心离得更远。
+    const cx = player.x + 8;
+    const cy = player.y + 20;
     let best: MapObject | null = null;
     let bestDist = INTERACT_RANGE;
     for (const o of objects) {
@@ -301,7 +302,7 @@ export function mountQuest(root: HTMLElement): void {
       draw: () => drawObject(o, unlocked),
     }));
     items.push({
-      y: player.y + 16,
+      y: player.y + 22,
       draw: () => drawRows(bctx, playerFrame(walking, animT), Math.round(player.x), Math.round(player.y), player.facing < 0),
     });
     items.sort((a, b) => a.y - b.y).forEach((item) => item.draw());

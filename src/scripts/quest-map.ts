@@ -70,20 +70,23 @@ export function buildStaticLayer(): HTMLCanvasElement {
       const x = tx * TILE;
       const y = ty * TILE;
       if (grid[ty][tx] === "#") {
-        ctx.fillStyle = "#1b1b2e";
+        // 墙面：天蓝色的墙加一圈奶白色的墙顶，底部一道墨线，卡通式的厚度感。
+        ctx.fillStyle = "#1d1433";
         ctx.fillRect(x, y, TILE, TILE);
-        // 砖缝与底部阴影，让墙面有体积感。
-        ctx.fillStyle = "#26263d";
-        ctx.fillRect(x, y + 5, TILE, 1);
-        ctx.fillRect(x + (ty % 2 ? 4 : 10), y + 6, 1, 5);
-        ctx.fillStyle = "#0c0c16";
-        ctx.fillRect(x, y + 15, TILE, 1);
+        ctx.fillStyle = "#7ec8ff";
+        ctx.fillRect(x, y + 3, TILE, TILE - 4);
+        ctx.fillStyle = "#e9f8ff";
+        ctx.fillRect(x, y, TILE, 3);
+        ctx.fillStyle = "#5aa9e8";
+        ctx.fillRect(x + (ty % 2 ? 4 : 10), y + 6, 1, 6);
       } else {
-        ctx.fillStyle = (tx + ty) % 2 === 0 ? "#131320" : "#16162a";
+        // 地板：暖色木板，相邻两行错开接缝，画面更像手绘的房间。
+        ctx.fillStyle = (tx + ty) % 2 === 0 ? "#f7d59a" : "#f2c78a";
         ctx.fillRect(x, y, TILE, TILE);
-        ctx.fillStyle = "#1d1d33";
-        ctx.fillRect(x + 4, y + 4, 1, 1);
-        ctx.fillRect(x + 11, y + 10, 1, 1);
+        ctx.fillStyle = "#e0a85e";
+        ctx.fillRect(x, y + 7, TILE, 1);
+        ctx.fillRect(x + (ty % 2 ? 6 : 12), y, 1, 7);
+        ctx.fillRect(x + (ty % 2 ? 12 : 4), y + 8, 1, 8);
       }
     }
   }
