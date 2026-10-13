@@ -2,6 +2,7 @@
 // 站点唯一页面：顶部是可漫游的 3D 世界，下方是作品、关于与页脚。
 // 页面只负责结构、样式与开场编排；3D 运行时在 scripts/playground.ts，数据在 content/projects.ts。
 import { profile, projects } from "../content/projects";
+import { artworks } from "../content/gallery";
 
 const year = new Date().getFullYear();
 // 统计数字由作品数据推导，避免与列表不一致。
@@ -45,6 +46,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       <a class="brand" href="#top"><span class="brand-mark">✦</span> {profile.name}</a>
       <div class="nav-links">
         <a href="#work">Work</a>
+        <a href="#studio">Studio</a>
         <a href="#about">About</a>
         <a class="nav-cta" href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
       </div>
@@ -162,9 +164,30 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         </div>
       </section>
 
+      <!-- 视觉作品：第一张为照片的大图，其余为生成艺术；图片数据见 content/gallery.ts。 -->
+      <section id="studio" class="section" data-reveal>
+        <header class="section-head">
+          <p class="kicker">02 — Studio</p>
+          <h2>Pictures and experiments</h2>
+        </header>
+        <div class="gallery">
+          {
+            artworks.map((a, i) => (
+              <figure class={`art${i === 0 ? " art-feature" : ""}`}>
+                <img src={a.src} alt={a.alt} loading="lazy" decoding="async" />
+                <figcaption>
+                  <span class="art-title">{a.title}</span>
+                  <span class="art-note">{a.note}</span>
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+      </section>
+
       <section id="about" class="section about" data-reveal>
         <header class="section-head">
-          <p class="kicker">02 — About</p>
+          <p class="kicker">03 — About</p>
         </header>
         <p class="statement">
           I build tools that <em>check their own work</em>: agents, git automation, and the
@@ -620,6 +643,49 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       .tile-open { color: var(--fg); }
       .tile-open span { display: inline-block; transition: transform 0.25s var(--ease); }
       .tile:hover .tile-open span { transform: translate(3px, -3px); }
+
+      /* ---------- 视觉作品 ---------- */
+      .gallery {
+        margin-top: 2.6rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .art {
+        position: relative;
+        margin: 0;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--card);
+      }
+      .art-feature { grid-column: span 2; aspect-ratio: 2 / 1; }
+      .art img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
+      .art-feature img { object-position: 50% 62%; }
+      .art:hover img { transform: scale(1.06); }
+      .art figcaption {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 42px 18px 16px;
+        background: linear-gradient(to top, rgba(7, 7, 11, 0.85), transparent);
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+      }
+      .art:hover figcaption, .art:focus-within figcaption { opacity: 1; transform: none; }
+      .art-title { font-weight: 600; }
+      .art-note { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+      @media (max-width: 900px) {
+        .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 600px) {
+        .gallery { grid-template-columns: 1fr; }
+        .art-feature { grid-column: auto; aspect-ratio: 1; }
+      }
 
       /* ---------- 关于 ---------- */
       .statement {
