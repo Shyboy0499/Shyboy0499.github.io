@@ -1,5 +1,5 @@
 ---
-// 站点唯一页面：顶部是 2D 像素房间的任务式入口，下方是作品、视觉作品与关于。
+// 站点唯一页面：顶部是卡通风格的像素房间任务入口，下方是作品、视觉作品与关于。
 // 页面只负责结构与样式；游戏运行时在 scripts/quest.ts，数据在 content/*.ts。
 import { profile, projects } from "../content/projects";
 import { artworks } from "../content/gallery";
@@ -26,13 +26,13 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <nav class="nav">
-      <a class="brand" href="#top"><span class="brand-mark">✦</span> {profile.name}</a>
+      <a class="brand" href="#top"><span class="brand-mark">★</span> {profile.name}</a>
       <div class="nav-links">
         <a href="#quest">Play</a>
         <a href="#work">Work</a>
@@ -43,20 +43,20 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
     </nav>
 
     <main id="top">
-      <!-- 2D 任务式入口：房间里的物件各自揭示一段信息，四个任务全部完成后打开大门。 -->
+      <!-- 任务式入口：房间里的物件各自揭示一段信息，四个任务全部完成后打开大门。 -->
       <section id="quest" class="quest" aria-labelledby="quest-title">
         <header class="quest-head">
-          <p class="kicker">{profile.handle} · a quest intro</p>
+          <p class="sticker">{profile.handle} · a quest intro</p>
           <h1 id="quest-title" class="title">{profile.name}</h1>
           <p class="lede">{profile.blurb}</p>
         </header>
 
         <div class="quest-layout">
           <div class="stage">
-            <canvas class="game" data-canvas tabindex="0" role="img" aria-label="A small pixel room. Walk with the arrow keys or WASD, press E to read an object. Finish the four missions to open the gate to the portfolio."></canvas>
+            <canvas class="game" data-canvas tabindex="0" role="img" aria-label="A small cartoon room. Walk with the arrow keys or WASD, press E to read an object. Finish the four missions to open the gate to the portfolio."></canvas>
 
             <div class="start">
-              <button class="btn" type="button" data-start>Start quest</button>
+              <button class="btn btn-big" type="button" data-start>Start quest!</button>
               <p class="start-hint">Arrow keys or WASD to walk · E to interact</p>
             </div>
 
@@ -88,7 +88,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
               {
                 missions.map((m) => (
                   <li data-mission={m.id}>
-                    <span class="check" aria-hidden="true"></span>
+                    <span class="check" aria-hidden="true">✓</span>
                     <div>
                       <p class="m-title">
                         {m.title}
@@ -112,14 +112,14 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
 
       <div class="marquee" aria-hidden="true">
         <div class="marquee-track">
-          {[...keywords, ...keywords].map((k) => <span class="chip">{k}<span class="sep">✦</span></span>)}
+          {[...keywords, ...keywords].map((k) => <span class="chip">{k}<span class="sep">★</span></span>)}
         </div>
       </div>
 
       <!-- 作品：Bento 网格，首张大卡片；指针在卡片上移动时点亮高光。 -->
       <section id="work" class="section" data-reveal>
         <header class="section-head">
-          <p class="kicker">01 — Work</p>
+          <p class="sticker">01 — Work</p>
           <h2>Selected projects</h2>
         </header>
         <div class="bento">
@@ -157,7 +157,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       <!-- 视觉作品：第一张为照片的大图，其余为生成艺术；图片数据见 content/gallery.ts。 -->
       <section id="studio" class="section" data-reveal>
         <header class="section-head">
-          <p class="kicker">02 — Studio</p>
+          <p class="sticker">02 — Studio</p>
           <h2>Pictures and experiments</h2>
         </header>
         <div class="gallery">
@@ -177,16 +177,16 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
 
       <section id="about" class="section about" data-reveal>
         <header class="section-head">
-          <p class="kicker">03 — About</p>
+          <p class="sticker">03 — About</p>
         </header>
         <p class="statement">
-          I build tools that <em>check their own work</em>: agents, git automation, and the
+          I build tools that <mark>check their own work</mark>: agents, git automation, and the
           Mac setups that make a machine feel like mine.
         </p>
         <dl class="stats">
-          <div><dt>Projects</dt><dd>{projects.length}</dd></div>
-          <div><dt>GitHub stars</dt><dd>{totalStars}</dd></div>
-          <div><dt>Languages</dt><dd>{languageCount}</dd></div>
+          <div class="stat-a"><dt>Projects</dt><dd>{projects.length}</dd></div>
+          <div class="stat-b"><dt>GitHub stars</dt><dd>{totalStars}</dd></div>
+          <div class="stat-c"><dt>Languages</dt><dd>{languageCount}</dd></div>
         </dl>
         <div class="about-links">
           <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
@@ -197,8 +197,8 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       <footer class="footer">
         <div class="giant" aria-hidden="true">Chris Yu</div>
         <div class="footer-row">
-          <span>✦ {profile.name} · {profile.handle}</span>
-          <span class="muted">© {year} · Built with care</span>
+          <span>★ {profile.name} · {profile.handle}</span>
+          <span>© {year} · Built with care</span>
         </div>
       </footer>
     </main>
@@ -220,7 +220,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         });
       });
 
-      // 段落进入视口时淡入上浮。
+      // 段落进入视口时弹出。
       const revealEls = document.querySelectorAll<HTMLElement>("[data-reveal]");
       if (reduce) {
         revealEls.forEach((el) => el.classList.add("in"));
@@ -242,35 +242,67 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
 
     <style is:global>
       :root {
-        --bg: #07070b;
-        --fg: #ecedf2;
-        --muted: #9a9bab;
-        --line: rgba(255, 255, 255, 0.09);
-        --card: rgba(255, 255, 255, 0.03);
-        --c1: #7c5cff;
-        --c2: #36d6c3;
-        --c3: #ff7a59;
-        --sans: "Space Grotesk", system-ui, sans-serif;
-        --mono: "JetBrains Mono", ui-monospace, monospace;
-        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --sky: #9be2ff;
+        --sky-light: #e9faff;
+        --ink: #1d1433;
+        --cream: #fff6e5;
+        --sun: #ffd23f;
+        --coral: #ff6b6b;
+        --mint: #5ee6b8;
+        --violet: #7b5cff;
+        --pink: #ff9ecf;
+        --blue: #3b4cca;
+        --font: "Fredoka", system-ui, sans-serif;
+        --pop: 6px 6px 0 var(--ink);
+        --ease: cubic-bezier(0.34, 1.4, 0.64, 1);
       }
 
       * { box-sizing: border-box; }
       html { scroll-behavior: smooth; }
       body {
         margin: 0;
-        background: var(--bg);
-        color: var(--fg);
-        font-family: var(--sans);
-        line-height: 1.6;
+        background: linear-gradient(180deg, var(--sky) 0%, var(--sky-light) 45%, var(--sky-light) 100%);
+        color: var(--ink);
+        font-family: var(--font);
+        font-size: 17px;
+        line-height: 1.5;
         overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
       }
       a { color: inherit; }
       [hidden] { display: none !important; }
-      :focus-visible { outline: 2px solid var(--c2); outline-offset: 3px; }
-      .muted { color: var(--muted); }
-      .kicker { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c2); margin: 0; }
+      :focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+
+      /* 通用卡通部件：墨线、硬投影与圆角。 */
+      .sticker {
+        display: inline-block;
+        margin: 0;
+        padding: 4px 14px;
+        background: var(--sun);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--ink);
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        transform: rotate(-2deg);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 26px;
+        border: 3px solid var(--ink);
+        border-radius: 16px;
+        background: var(--sun);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 700;
+        box-shadow: var(--pop);
+        cursor: pointer;
+        transition: transform 0.12s var(--ease), box-shadow 0.12s;
+      }
+      .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+      .btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--ink); }
+      .btn-big { font-size: 1.4rem; padding: 16px 38px; }
 
       /* ---------- 导航 ---------- */
       .nav {
@@ -280,54 +312,78 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 18px clamp(20px, 5vw, 56px);
+        padding: 14px clamp(16px, 4vw, 48px);
         pointer-events: none;
-        background: linear-gradient(to bottom, rgba(7, 7, 11, 0.8), transparent);
       }
       .nav > * { pointer-events: auto; }
-      .brand { font-weight: 600; text-decoration: none; }
-      .brand-mark { color: var(--c1); }
-      .nav-links { display: flex; align-items: center; gap: clamp(12px, 2.4vw, 26px); font-size: 0.92rem; }
-      .nav-links a:not(.nav-cta) { text-decoration: none; color: var(--muted); transition: color 0.2s; }
-      .nav-links a:not(.nav-cta):hover { color: var(--fg); }
-      .nav-cta {
-        padding: 7px 15px;
-        border: 1px solid var(--line);
+      .brand {
+        padding: 6px 14px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
         border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--ink);
+        font-weight: 700;
         text-decoration: none;
-        background: rgba(7, 7, 11, 0.5);
-        backdrop-filter: blur(8px);
-        transition: border-color 0.2s, background 0.2s;
       }
-      .nav-cta:hover { border-color: var(--c2); background: rgba(54, 214, 195, 0.08); }
+      .brand-mark { color: var(--coral); }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .nav-links a:not(.nav-cta) { padding: 4px 12px; border-radius: 999px; text-decoration: none; font-weight: 500; transition: background 0.15s; }
+      .nav-links a:not(.nav-cta):hover { background: var(--sky); }
+      .nav-cta { padding: 5px 14px; background: var(--mint); border: 2px solid var(--ink); border-radius: 999px; text-decoration: none; font-weight: 700; }
+      .nav-cta:hover { background: var(--pink); }
 
       main { margin: 0 auto; }
 
-      /* ---------- 2D 任务入口 ---------- */
+      /* ---------- 任务入口 ---------- */
       .quest {
+        position: relative;
         max-width: 1180px;
         margin: 0 auto;
-        padding: 120px clamp(20px, 5vw, 40px) 40px;
-        background: radial-gradient(ellipse at 30% 0%, #17102e 0%, var(--bg) 60%);
+        padding: 120px clamp(18px, 5vw, 40px) 50px;
+      }
+      /* 右上角的一朵云，装饰用；放在文字区之外，避免压住介绍文字。 */
+      .quest::before {
+        content: "";
+        position: absolute;
+        top: 130px;
+        right: -40px;
+        width: 260px;
+        height: 70px;
+        pointer-events: none;
+        background: #ffffff;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 4px 4px 0 var(--ink);
+        opacity: 0.9;
       }
       .title {
-        margin: 0.4rem 0 0;
-        font-size: clamp(2.8rem, 8vw, 5.4rem);
+        position: relative;
+        margin: 0.5rem 0 0;
+        font-size: clamp(3.2rem, 10vw, 6.4rem);
         line-height: 0.95;
         font-weight: 700;
-        letter-spacing: -0.04em;
-        background: linear-gradient(100deg, var(--c1), var(--c2) 55%, var(--c3));
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+        color: var(--sun);
+        -webkit-text-stroke: 3px var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 5px 5px 0 var(--ink);
+        letter-spacing: -0.01em;
       }
-      .lede { color: var(--muted); margin: 0.9rem 0 0; max-width: 56ch; font-size: clamp(0.98rem, 2vw, 1.08rem); }
+      .lede { margin: 1rem 0 0; max-width: 40ch; font-size: clamp(1.05rem, 2vw, 1.25rem); font-weight: 500; }
 
       .quest-layout {
-        margin-top: 2rem;
+        margin-top: 2.2rem;
         display: grid;
         grid-template-columns: minmax(0, 1fr) 300px;
-        gap: 22px;
+        gap: 26px;
         align-items: start;
       }
       .stage { position: relative; }
@@ -337,10 +393,10 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         height: auto;
         aspect-ratio: 24 / 14;
         image-rendering: pixelated;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        background: #07070b;
-        box-shadow: 0 30px 80px -40px rgba(124, 92, 255, 0.5);
+        border: 4px solid var(--ink);
+        border-radius: 22px;
+        background: #f2c78a;
+        box-shadow: 10px 10px 0 var(--ink);
       }
       .start {
         position: absolute;
@@ -348,272 +404,375 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         display: grid;
         place-content: center;
         justify-items: center;
-        gap: 14px;
+        gap: 16px;
         border-radius: 18px;
-        background: rgba(7, 7, 11, 0.7);
-        backdrop-filter: blur(4px);
+        background: rgba(255, 246, 229, 0.82);
       }
       .is-started .start { display: none; }
-      .start-hint { margin: 0; font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
-      .btn {
-        padding: 13px 30px;
-        border: 0;
+      .start-hint {
+        margin: 0;
+        padding: 6px 14px;
+        background: var(--cream);
+        border: 2px solid var(--ink);
         border-radius: 999px;
-        font: inherit;
-        font-weight: 600;
-        color: #06060a;
-        background: linear-gradient(100deg, var(--c1), var(--c2));
-        box-shadow: 0 12px 34px -12px rgba(124, 92, 255, 0.8);
-        cursor: pointer;
-        transition: transform 0.18s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
       }
-      .btn:hover { transform: translateY(-2px); }
 
+      /* 对话气泡：墨线圆角框，底部一个小尾巴指向房间。 */
       .dialog {
         position: absolute;
-        left: 16px;
-        right: 16px;
-        bottom: 16px;
-        padding: 16px 20px;
-        border: 1px solid var(--c2);
-        border-radius: 14px;
-        background: rgba(10, 10, 16, 0.94);
-        box-shadow: 0 0 30px -10px var(--c2);
+        left: 22px;
+        right: 22px;
+        bottom: 26px;
+        padding: 14px 20px 16px;
+        background: var(--cream);
+        border: 4px solid var(--ink);
+        border-radius: 20px;
+        box-shadow: 6px 6px 0 var(--ink);
       }
-      .dialog-title { margin: 0; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c2); }
-      .dialog-text { margin: 0.4rem 0 0; min-height: 3em; font-size: 1rem; }
-      .dialog-next { margin: 0.5rem 0 0; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+      .dialog::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -18px;
+        width: 22px;
+        height: 22px;
+        background: var(--cream);
+        border-right: 4px solid var(--ink);
+        border-bottom: 4px solid var(--ink);
+        transform: translateX(-50%) rotate(45deg);
+      }
+      .dialog-title {
+        display: inline-block;
+        margin: 0;
+        padding: 2px 12px;
+        background: var(--pink);
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+      .dialog-text { margin: 0.5rem 0 0; min-height: 2.6em; font-size: 1.12rem; font-weight: 500; }
+      .dialog-next { margin: 0.4rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--blue); }
 
       .hud-hint {
         position: absolute;
-        top: 14px;
-        left: 14px;
+        top: 16px;
+        left: 16px;
         margin: 0;
-        padding: 5px 12px;
-        border: 1px solid var(--line);
+        padding: 5px 14px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
         border-radius: 999px;
-        background: rgba(7, 7, 11, 0.75);
-        font-family: var(--mono);
-        font-size: 0.76rem;
+        box-shadow: 3px 3px 0 var(--ink);
+        font-size: 0.92rem;
+        font-weight: 600;
         pointer-events: none;
       }
       .hud-hint:empty { display: none; }
 
-      .touch { display: none; margin-top: 14px; justify-content: space-between; align-items: center; }
+      .touch { display: none; margin-top: 16px; justify-content: space-between; align-items: center; }
       @media (pointer: coarse) { .touch { display: flex; } }
-      .dpad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(2, 56px); gap: 8px; }
+      .dpad { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(2, 58px); gap: 8px; }
       .dpad [data-dir="up"] { grid-column: 2; grid-row: 1; }
       .dpad [data-dir="left"] { grid-column: 1; grid-row: 2; }
       .dpad [data-dir="right"] { grid-column: 3; grid-row: 2; }
       .dpad [data-dir="down"] { grid-column: 2; grid-row: 2; }
       .touch button {
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: var(--card);
-        color: var(--fg);
+        border: 3px solid var(--ink);
+        border-radius: 16px;
+        background: var(--cream);
+        color: var(--ink);
         font: inherit;
+        font-size: 1.1rem;
+        box-shadow: 4px 4px 0 var(--ink);
         touch-action: none;
       }
+      .touch button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
       .action {
-        width: 84px;
-        height: 84px;
+        width: 90px;
+        height: 90px;
         border-radius: 50% !important;
-        border-color: var(--c2) !important;
-        color: var(--c2);
-        font-family: var(--mono);
-        font-weight: 600;
+        background: var(--mint) !important;
+        font-weight: 700 !important;
+        font-size: 1.4rem !important;
       }
 
+      /* 笔记：一张贴着纸胶带的便签。 */
       .notes {
-        padding: 22px;
-        border: 1px solid var(--line);
+        position: relative;
+        padding: 24px 22px 22px;
+        background: var(--cream);
+        border: 4px solid var(--ink);
         border-radius: 22px;
-        background: var(--card);
+        box-shadow: 8px 8px 0 var(--ink);
+        transform: rotate(1deg);
       }
-      .notes-head { display: flex; align-items: baseline; justify-content: space-between; }
-      .notes h2 { margin: 0; font-size: 1.2rem; letter-spacing: -0.01em; }
-      .progress { font-family: var(--mono); font-size: 0.82rem; color: var(--c2); }
-      .missions { list-style: none; margin: 1.1rem 0 0; padding: 0; display: grid; gap: 10px; }
+      .notes::before {
+        content: "";
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        width: 90px;
+        height: 26px;
+        background: rgba(255, 210, 63, 0.85);
+        border: 2px dashed var(--ink);
+        transform: translateX(-50%) rotate(-3deg);
+      }
+      .notes-head { display: flex; align-items: center; justify-content: space-between; }
+      .notes h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+      .progress {
+        padding: 2px 12px;
+        background: var(--mint);
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      .missions { list-style: none; margin: 1.1rem 0 0; padding: 0; display: grid; gap: 12px; }
       .missions li {
         display: flex;
         gap: 12px;
-        padding: 14px;
-        border: 1px solid var(--line);
+        align-items: flex-start;
+        padding: 12px 14px;
+        background: #ffffff;
+        border: 3px solid var(--ink);
         border-radius: 16px;
-        background: rgba(255, 255, 255, 0.02);
-        transition: border-color 0.3s, background 0.3s;
+        box-shadow: 3px 3px 0 var(--ink);
+        transition: background 0.25s;
       }
-      .missions li.done { border-color: color-mix(in srgb, var(--c2) 45%, transparent); background: color-mix(in srgb, var(--c2) 6%, transparent); }
       .check {
         flex-shrink: 0;
-        width: 13px;
-        height: 13px;
-        margin-top: 5px;
-        border: 1px solid var(--muted);
-        border-radius: 3px;
-        transition: background 0.3s, box-shadow 0.3s;
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border: 3px solid var(--ink);
+        border-radius: 50%;
+        background: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: transparent;
       }
-      .done .check { background: var(--c2); border-color: var(--c2); box-shadow: 0 0 10px var(--c2); }
+      .missions li.done { background: #dcfff1; }
+      .missions li.done .check { background: var(--mint); color: var(--ink); }
       .m-title { margin: 0; font-weight: 600; }
-      .m-count { margin-left: 6px; font-family: var(--mono); font-size: 0.72rem; font-weight: 400; color: var(--muted); }
-      .m-summary { margin: 0.3rem 0 0; font-size: 0.9rem; color: var(--muted); }
+      .m-count { margin-left: 6px; font-size: 0.85rem; font-weight: 500; color: var(--blue); }
+      .m-summary { margin: 0.3rem 0 0; font-size: 0.92rem; }
       .reset {
-        margin-top: 16px;
-        padding: 8px 14px;
-        border: 1px solid var(--line);
+        margin-top: 18px;
+        padding: 8px 16px;
+        border: 3px solid var(--ink);
         border-radius: 999px;
-        background: transparent;
-        color: var(--muted);
+        background: var(--pink);
+        color: var(--ink);
         font: inherit;
-        font-size: 0.82rem;
+        font-weight: 600;
+        box-shadow: 3px 3px 0 var(--ink);
         cursor: pointer;
       }
-      .reset:hover { color: var(--fg); border-color: var(--fg); }
-      .fallback { color: var(--muted); }
+      .reset:hover { transform: translate(-1px, -1px); }
+      .fallback { font-weight: 500; }
 
       /* ---------- 跑马灯 ---------- */
       .marquee {
         overflow: hidden;
-        border-block: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.015);
-        padding: 16px 0;
-        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        margin: 30px 0;
+        padding: 14px 0;
+        background: var(--ink);
+        transform: rotate(-1.5deg);
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
       }
-      .marquee-track { display: flex; gap: 14px; width: max-content; animation: marquee 34s linear infinite; }
+      .marquee-track { display: flex; gap: 18px; width: max-content; animation: marquee 30s linear infinite; }
       .marquee:hover .marquee-track { animation-play-state: paused; }
-      .chip { display: inline-flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
-      .sep { color: var(--c2); font-size: 0.7rem; }
+      .chip { display: inline-flex; align-items: center; gap: 18px; font-size: 1.1rem; font-weight: 600; color: var(--cream); white-space: nowrap; }
+      .sep { color: var(--sun); }
       @keyframes marquee { to { transform: translateX(-50%); } }
 
       /* ---------- 通用段落 ---------- */
       .section {
         max-width: 1120px;
         margin: 0 auto;
-        padding: clamp(80px, 13vh, 150px) clamp(20px, 5vw, 40px) 0;
+        padding: clamp(60px, 10vh, 110px) clamp(18px, 5vw, 40px) 0;
         opacity: 0;
-        transform: translateY(40px);
-        transition: opacity 1s var(--ease), transform 1s var(--ease);
+        transform: translateY(30px) rotate(-0.5deg);
+        transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
       }
       .section.in { opacity: 1; transform: none; }
-      .section-head h2 { margin: 0.5rem 0 0; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; letter-spacing: -0.03em; }
+      .section-head h2 {
+        margin: 0.7rem 0 0;
+        font-size: clamp(2.2rem, 5vw, 3.4rem);
+        font-weight: 700;
+        line-height: 1.05;
+        -webkit-text-stroke: 1.5px var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 3px 3px 0 var(--pink);
+      }
 
       /* ---------- Bento 作品网格 ---------- */
       .bento {
-        margin-top: 2.6rem;
+        margin-top: 2.4rem;
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         grid-auto-rows: minmax(230px, auto);
-        gap: 18px;
+        gap: 24px;
       }
       .tile {
         position: relative;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        padding: 26px;
-        border: 1px solid var(--line);
-        border-radius: 24px;
+        padding: 24px;
         background:
-          radial-gradient(circle at var(--mx, 85%) var(--my, 10%), color-mix(in srgb, var(--accent) 26%, transparent), transparent 55%),
-          var(--card);
+          radial-gradient(circle at var(--mx, 90%) var(--my, 8%), color-mix(in srgb, var(--accent) 45%, transparent), transparent 42%),
+          var(--cream);
+        border: 4px solid var(--ink);
+        border-radius: 26px;
+        box-shadow: var(--pop);
         text-decoration: none;
-        transition: transform 0.35s var(--ease), border-color 0.35s;
+        transition: transform 0.2s var(--ease), box-shadow 0.2s;
       }
-      .tile:hover { transform: translateY(-5px); border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+      .tile:hover { transform: translate(-3px, -3px) rotate(-0.6deg); box-shadow: 10px 10px 0 var(--ink); }
       .tile-wide { grid-column: span 2; grid-row: span 2; padding: 34px; }
       .tile-glyph {
         position: absolute;
-        right: -10px;
-        top: -10px;
-        width: 150px;
-        height: 150px;
+        right: -14px;
+        top: -14px;
+        width: 140px;
+        height: 140px;
         fill: none;
-        stroke: var(--accent);
-        stroke-width: 1.2;
-        opacity: 0.35;
-        transition: transform 0.8s var(--ease), opacity 0.4s;
+        stroke: var(--ink);
+        stroke-width: 2.4;
+        opacity: 0.25;
+        transition: transform 0.6s var(--ease);
       }
-      /* 小卡片的图形放到右下角，避免压住右上角的语言标签。 */
-      .tile:not(.tile-wide) .tile-glyph { top: auto; bottom: -34px; right: -34px; }
-      .tile-wide .tile-glyph { width: 340px; height: 340px; right: -60px; top: -40px; opacity: 0.22; }
-      .tile:hover .tile-glyph { transform: rotate(40deg) scale(1.05); opacity: 0.6; }
+      .tile:not(.tile-wide) .tile-glyph { top: auto; bottom: -30px; right: -30px; }
+      .tile-wide .tile-glyph { width: 320px; height: 320px; right: -60px; top: -50px; opacity: 0.18; }
+      .tile:hover .tile-glyph { transform: rotate(30deg) scale(1.06); }
       .tile-top { display: flex; justify-content: space-between; align-items: center; position: relative; }
-      .tile-index { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+      .tile-index { font-weight: 700; font-size: 1.1rem; }
       .tile-lang {
-        font-family: var(--mono);
-        font-size: 0.72rem;
-        padding: 4px 10px;
-        border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+        padding: 3px 12px;
+        background: var(--accent);
+        border: 3px solid var(--ink);
         border-radius: 999px;
-        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 700;
       }
-      .tile-name { margin: auto 0 0.5rem; padding-top: 2rem; font-size: clamp(1.4rem, 2.4vw, 1.7rem); font-weight: 600; letter-spacing: -0.02em; position: relative; }
-      .tile-wide .tile-name { font-size: clamp(2.2rem, 4.6vw, 3.6rem); letter-spacing: -0.035em; }
-      .tile-blurb { color: var(--muted); margin: 0 0 1.4rem; font-size: 0.96rem; max-width: 46ch; position: relative; }
-      .tile-foot { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.8rem; position: relative; }
-      .tile-star { color: var(--muted); }
-      .tile-open span { display: inline-block; transition: transform 0.25s var(--ease); }
+      .tile-name { margin: auto 0 0.4rem; padding-top: 2rem; font-size: clamp(1.5rem, 2.6vw, 1.9rem); font-weight: 700; position: relative; }
+      .tile-wide .tile-name { font-size: clamp(2.3rem, 4.8vw, 3.8rem); }
+      .tile-blurb { margin: 0 0 1.2rem; font-size: 1rem; max-width: 46ch; position: relative; }
+      .tile-foot { display: flex; justify-content: space-between; align-items: center; font-weight: 600; position: relative; }
+      .tile-open span { display: inline-block; transition: transform 0.2s var(--ease); }
       .tile:hover .tile-open span { transform: translate(3px, -3px); }
 
       /* ---------- 视觉作品 ---------- */
-      .gallery { margin-top: 2.6rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-      .art { position: relative; margin: 0; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--card); }
+      .gallery { margin-top: 2.4rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+      .art {
+        position: relative;
+        margin: 0;
+        aspect-ratio: 1;
+        overflow: hidden;
+        background: #ffffff;
+        border: 4px solid var(--ink);
+        border-radius: 22px;
+        box-shadow: var(--pop);
+        transition: transform 0.2s var(--ease);
+      }
+      .art:hover { transform: rotate(-1.5deg) scale(1.02); }
       .art-feature { grid-column: span 2; aspect-ratio: 2 / 1; }
-      .art img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease); }
+      .art img { display: block; width: 100%; height: 100%; object-fit: cover; }
       .art-feature img { object-position: 50% 62%; }
-      .art:hover img { transform: scale(1.06); }
       .art figcaption {
         position: absolute;
-        left: 0; right: 0; bottom: 0;
+        left: 14px;
+        bottom: 14px;
         display: flex;
         flex-direction: column;
-        gap: 2px;
-        padding: 42px 18px 16px;
-        background: linear-gradient(to top, rgba(7, 7, 11, 0.85), transparent);
+        padding: 4px 12px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
+        border-radius: 12px;
         opacity: 0;
-        transform: translateY(8px);
-        transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+        transform: translateY(6px);
+        transition: opacity 0.2s, transform 0.2s var(--ease);
       }
       .art:hover figcaption, .art:focus-within figcaption { opacity: 1; transform: none; }
-      .art-title { font-weight: 600; }
-      .art-note { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+      .art-title { font-weight: 700; }
+      .art-note { font-size: 0.8rem; font-weight: 500; }
 
       /* ---------- 关于 ---------- */
-      .statement { margin: 1.8rem 0 0; max-width: 22ch; font-size: clamp(2rem, 5.4vw, 3.9rem); line-height: 1.12; letter-spacing: -0.03em; font-weight: 500; }
-      .statement em {
-        font-style: normal;
-        background: linear-gradient(100deg, var(--c1), var(--c2));
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+      .statement {
+        margin: 1.8rem 0 0;
+        max-width: 24ch;
+        font-size: clamp(2rem, 5vw, 3.6rem);
+        line-height: 1.12;
+        font-weight: 600;
       }
-      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 3rem 0 0; padding: 0; }
-      .stats div { padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); }
-      .stats dt { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
-      .stats dd { margin: 0.4rem 0 0; font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-      .about-links { display: flex; gap: 24px; margin-top: 2rem; font-family: var(--mono); font-size: 0.92rem; }
-      .about-links a { text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; transition: border-color 0.2s, color 0.2s; }
-      .about-links a:hover { border-color: var(--c2); color: var(--c2); }
+      .statement mark {
+        padding: 0 8px;
+        background: var(--mint);
+        border: 3px solid var(--ink);
+        border-radius: 12px;
+        color: var(--ink);
+      }
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 22px; margin: 3rem 0 0; padding: 0; }
+      .stats div {
+        padding: 22px;
+        border: 4px solid var(--ink);
+        border-radius: 24px;
+        box-shadow: var(--pop);
+      }
+      .stat-a { background: var(--sun); }
+      .stat-b { background: var(--pink); }
+      .stat-c { background: var(--mint); }
+      .stats dt { font-size: 0.95rem; font-weight: 600; }
+      .stats dd { margin: 0.2rem 0 0; font-size: clamp(2.4rem, 5vw, 3.2rem); font-weight: 700; line-height: 1; }
+      .about-links { display: flex; gap: 16px; margin-top: 2.2rem; }
+      .about-links a {
+        padding: 10px 20px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--ink);
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.12s var(--ease);
+      }
+      .about-links a:hover { transform: translate(-2px, -2px); }
 
       /* ---------- 页脚 ---------- */
       .footer {
         max-width: 1120px;
-        margin: clamp(100px, 16vh, 180px) auto 0;
-        padding: 0 clamp(20px, 5vw, 40px) 40px;
+        margin: clamp(90px, 14vh, 160px) auto 0;
+        padding: 0 clamp(18px, 5vw, 40px) 40px;
         overflow: hidden;
       }
       .giant {
-        font-size: clamp(4.5rem, 19vw, 16rem);
+        font-size: clamp(4.5rem, 19vw, 15rem);
         font-weight: 700;
-        line-height: 0.82;
-        letter-spacing: -0.06em;
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(236, 237, 242, 0.14);
+        line-height: 0.85;
+        color: var(--sun);
+        -webkit-text-stroke: 4px var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 10px 10px 0 var(--ink);
         white-space: nowrap;
         user-select: none;
       }
-      .footer-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 0.88rem; }
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 30px;
+        padding: 14px 20px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        font-weight: 500;
+      }
 
       @media (max-width: 900px) {
         .quest-layout { grid-template-columns: 1fr; }
@@ -625,10 +784,11 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         .nav-links a:not(.nav-cta) { display: none; }
         .bento { grid-template-columns: 1fr; }
         .tile-wide { grid-column: auto; }
-        .tile-wide .tile-glyph { width: 220px; height: 220px; }
+        .tile-wide .tile-glyph { width: 200px; height: 200px; }
         .gallery { grid-template-columns: 1fr; }
         .art-feature { grid-column: auto; aspect-ratio: 1; }
-        .dialog { left: 10px; right: 10px; bottom: 10px; padding: 12px 14px; }
+        .dialog { left: 12px; right: 12px; bottom: 14px; padding: 12px 14px; }
+        .game { box-shadow: 6px 6px 0 var(--ink); }
       }
 
       @media (prefers-reduced-motion: reduce) {
