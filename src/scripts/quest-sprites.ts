@@ -180,3 +180,85 @@ export function drawDoor(ctx: CanvasRenderingContext2D, tx: number, ty: number, 
     inkBox(ctx, x + 6, y + 7, 4, 4, "#c9c3dc");
   }
 }
+
+// 书架：木框加三层搁板，每层排着颜色不同的书脊，最上面放一个小盆栽。
+export function drawBookshelf(ctx: CanvasRenderingContext2D, tx: number, ty: number): void {
+  const x = tx * TILE;
+  const y = ty * TILE;
+  inkBox(ctx, x + 1, y + 1, 14, 14, "#c98b4a");
+  const spines = ["#ff6b6b", "#5ee6b8", "#9b7bff", "#ffd23f", "#ff9ecf"];
+  for (let shelf = 0; shelf < 2; shelf++) {
+    const sy = y + 3 + shelf * 6;
+    ctx.fillStyle = INK;
+    ctx.fillRect(x + 2, sy + 4, 12, 1);
+    for (let i = 0; i < 5; i++) {
+      ctx.fillStyle = spines[(i + shelf * 2) % spines.length];
+      ctx.fillRect(x + 3 + i * 2, sy, 2, 4);
+    }
+  }
+  inkBox(ctx, x + 6, y - 1, 4, 2, "#5ee6b8");
+}
+
+// 台灯：圆底加细杆，黄色灯罩；灯光在地板上发出柔和的光晕，随时间轻轻闪烁。
+export function drawLamp(ctx: CanvasRenderingContext2D, tx: number, ty: number, t: number): void {
+  const x = tx * TILE;
+  const y = ty * TILE;
+  const glow = ctx.createRadialGradient(x + 8, y + 9, 0, x + 8, y + 9, 14);
+  glow.addColorStop(0, `rgba(255, 210, 63, ${0.25 + 0.05 * Math.sin(t * 3)})`);
+  glow.addColorStop(1, "rgba(255, 210, 63, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(x - 6, y - 5, 28, 28);
+  inkBox(ctx, x + 5, y + 13, 6, 2, "#5a4a7a");
+  ctx.fillStyle = INK;
+  ctx.fillRect(x + 7, y + 6, 2, 8);
+  inkPath(
+    ctx,
+    [
+      [x + 3, y + 7],
+      [x + 13, y + 7],
+      [x + 11, y + 2],
+      [x + 5, y + 2],
+    ],
+    "#ffd23f",
+  );
+}
+
+// 猫咪：趴在地毯上打盹的橘色小猫，尾巴轻轻摆动，耳朵随呼吸起伏。
+// 原创形象，只做氛围，不参与交互与碰撞。
+const CAT_IDLE: string[] = [
+  "..OO....OO..",
+  ".OCCO..OCCO.",
+  ".OCCCCCCCCO.",
+  "OCCCCCCCCCCO",
+  "OCEECCCCEECO",
+  "OCCCCWWWWCCO",
+  "OCCCCCCCCCCO",
+  ".OCCCCCCCCO.",
+  ".OOOOOOOOOO.",
+];
+const CAT_PALETTE: Record<string, string> = { O: INK, C: "#ffb36b", E: INK, W: "#fff3e0" };
+
+export function drawCat(ctx: CanvasRenderingContext2D, tx: number, ty: number, t: number): void {
+  const x = tx * TILE + 2;
+  const y = ty * TILE + 7 + (Math.floor(t * 1.5) % 2 === 0 ? 0 : 1);
+  // 尾巴：从身体右侧弯出去，随时间左右摆。
+  const sway = Math.sin(t * 2) * 2;
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + 12, y + 7);
+  ctx.quadraticCurveTo(x + 17, y + 3 + sway, x + 15, y - 2 + sway);
+  ctx.stroke();
+  ctx.strokeStyle = "#ffb36b";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  for (let r = 0; r < CAT_IDLE.length; r++) {
+    const row = CAT_IDLE[r];
+    for (let c = 0; c < row.length; c++) {
+      const color = CAT_PALETTE[row[c]];
+      if (!color) continue;
+      ctx.fillStyle = color;
+      ctx.fillRect(x + c, y + r, 1, 1);
+    }
+  }
+}
