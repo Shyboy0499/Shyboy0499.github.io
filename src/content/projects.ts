@@ -1,12 +1,12 @@
-// 作品与个人信息的唯一来源：页面列表与 3D 场景的基座、颜色都从这里读取。
-// 新增项目时在此追加；3D 场景按数组顺序排布基座，建议不超过 5 个以免拥挤。
+// 作品与个人信息的唯一来源：页面列表与房间里的水晶都从这里读取。
+// 数量必须与 scripts/quest-map.ts 中的水晶（C）个数一致，目前为 3 个；每个项目按数组顺序对应一颗水晶。
 export type Project = {
   name: string;
   blurb: string;
   href: string;
   lang: string;
   stars: string;
-  // 基座晶体与卡片的强调色，同时用于 3D 材质和 CSS 变量。
+  // 水晶、卡片与标签的强调色。
   accent: string;
 };
 

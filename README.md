@@ -1,8 +1,9 @@
 # Shyboy0499.github.io
 
-Personal site for Chris Yu — a playable 3D intro (Three.js) followed by a static
-portfolio of selected GitHub projects. Built with [Astro](https://astro.build/)
-and deployed to GitHub Pages.
+Personal site for Chris Yu — a 2D pixel-room quest that gathers my info (walk
+around, read objects, finish missions to open the gate), followed by a portfolio,
+studio, and About section. Built with [Astro](https://astro.build/) and deployed
+to GitHub Pages.
 
 ## Develop
 
@@ -20,12 +21,15 @@ and publishes `./dist` to GitHub Pages.
 
 ## Structure
 
-- `src/content/projects.ts` — profile and project data (edit this to change content)
-- `src/pages/index.astro` — page layout, styles, and the loading sequence
-- `src/scripts/playground.ts` — the 3D scene, character movement, and project interaction
-- `src/scripts/world-shaders.ts` — floor and sky shaders
-- `src/scripts/trail.ts` — the character's dust trail
+- `src/content/projects.ts` — profile and project data
+- `src/content/missions.ts` — quest missions and the dialog text for each object
+- `src/content/gallery.ts` — studio artworks
+- `src/pages/index.astro` — page layout and styles
+- `src/scripts/quest.ts` — game loop, input, dialogs, and mission progress
+- `src/scripts/quest-map.ts` — room layout (edit `PLACEMENTS` to move objects)
+- `src/scripts/quest-sprites.ts` — pixel-art character and objects
+- `scripts/gen-art.mjs` — generates the SVG artworks in `public/art/`
 - `astro.config.mjs` — static output config
 
-If WebGL is unavailable, the 3D intro is hidden and the static project list and
-About section still render.
+If canvas 2D is unavailable, the quest is hidden and the portfolio, studio, and
+About sections still render.
