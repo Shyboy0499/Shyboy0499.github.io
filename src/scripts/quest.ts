@@ -3,10 +3,13 @@
 // 进度只保存在本机 localStorage，是访客自己的便利记录；页面下方的静态作品与关于始终可读。
 import { dialogs, missions } from "../content/missions";
 import { projects } from "../content/projects";
-import { COLS, ROWS, TILE, buildStaticLayer, isSolid, objects, type MapObject } from "./quest-map";
+import { CAT, COLS, ROWS, TILE, buildStaticLayer, isSolid, objects, type MapObject } from "./quest-map";
 import {
+  drawBookshelf,
+  drawCat,
   drawCrystal,
   drawDoor,
+  drawLamp,
   drawMailbox,
   drawPlant,
   drawPortrait,
@@ -288,6 +291,12 @@ export function mountQuest(root: HTMLElement): void {
       case "T":
         drawPlant(bctx, o.tx, o.ty);
         break;
+      case "B":
+        drawBookshelf(bctx, o.tx, o.ty);
+        break;
+      case "L":
+        drawLamp(bctx, o.tx, o.ty, animT);
+        break;
     }
   }
 
@@ -305,7 +314,17 @@ export function mountQuest(root: HTMLElement): void {
       y: player.y + 22,
       draw: () => drawRows(bctx, playerFrame(walking, animT), Math.round(player.x), Math.round(player.y), player.facing < 0),
     });
+    items.push({ y: CAT.ty * TILE + TILE, draw: () => drawCat(bctx, CAT.tx, CAT.ty, animT) });
     items.sort((a, b) => a.y - b.y).forEach((item) => item.draw());
+
+    // 空气中的浮尘：缓慢地飘过房间，让画面有一点生气。
+    bctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    const H = buffer.height;
+    for (let i = 0; i < 16; i++) {
+      const mx = (i * 47 + animT * (4 + (i % 4))) % buffer.width;
+      const my = (i * 29 + Math.sin(animT + i) * 6 + H) % H;
+      bctx.fillRect(Math.floor(mx), Math.floor(my), 1, 1);
+    }
 
     if (near && !dialog.active) {
       bctx.globalAlpha = 0.5 + 0.3 * Math.sin(animT * 5);
