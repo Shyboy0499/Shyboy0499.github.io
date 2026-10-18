@@ -1,4 +1,5 @@
 // 仓库页：在浏览器里从 GitHub API 读取公开仓库，实时计算数量、星标与语言，并提供搜索、筛选与排序。
+// 数据只请求一次并缓存，仓库页与玩家卡的星标徽章共用同一份结果。
 // 不负责页面结构（见 pages/index.astro）；请求失败时保留快照数字，并在状态栏说明。
 import { FEATURED, GITHUB_USER, SNAPSHOT } from "../content/github";
 
@@ -12,6 +13,13 @@ type Repo = {
   updated_at: string;
   fork: boolean;
   topics?: string[];
+};
+
+export type RepoStats = {
+  repos: Repo[];
+  publicCount: number;
+  stars: number;
+  languages: string[];
 };
 
 const PAGE_SIZE = 100;
@@ -41,6 +49,26 @@ async function fetchPublicCount(): Promise<number> {
   if (!res.ok) throw new Error(`GitHub ${res.status}`);
   const user: { public_repos: number } = await res.json();
   return user.public_repos;
+}
+
+// 第一次调用时发起请求，之后返回同一个 Promise，页面上的所有组件共享结果。
+let statsPromise: Promise<RepoStats> | null = null;
+
+export function loadRepoStats(): Promise<RepoStats> {
+  if (!statsPromise) {
+    statsPromise = Promise.all([fetchRepos(), fetchPublicCount()]).then(([repos, publicCount]) => {
+      const languages = [...new Set(repos.map((r) => r.language).filter((l): l is string => Boolean(l)))].sort((a, b) =>
+        a.localeCompare(b),
+      );
+      const stars = repos.reduce((sum, r) => sum + r.stargazers_count, 0);
+      return { repos, publicCount, stars, languages };
+    });
+    // 失败时清掉缓存，下次调用可以重新请求。
+    statsPromise.catch(() => {
+      statsPromise = null;
+    });
+  }
+  return statsPromise;
 }
 
 function dotColor(language: string): string {
@@ -156,19 +184,18 @@ export async function mountRepos(root: HTMLElement): Promise<void> {
   });
 
   try {
-    const [list, publicCount] = await Promise.all([fetchRepos(), fetchPublicCount()]);
-    repos = list;
-    const stars = repos.reduce((sum, r) => sum + r.stargazers_count, 0);
-    const languages = new Set(repos.map((r) => r.language).filter((l): l is string => Boolean(l)));
-    setStat("repos", publicCount);
-    setStat("stars", stars);
-    setStat("languages", languages.size);
+    const stats = await loadRepoStats();
+    repos = stats.repos;
+    setStat("repos", stats.publicCount);
+    setStat("stars", stats.stars);
+    setStat("languages", stats.languages.length);
 
-    for (const lang of [...languages].sort((a, b) => a.localeCompare(b))) {
-      langSelect.append(el("option", undefined, lang));
-      langSelect.lastElementChild!.setAttribute("value", lang);
+    for (const lang of stats.languages) {
+      const option = el("option", undefined, lang);
+      option.value = lang;
+      langSelect.append(option);
     }
-    status.textContent = `Live from GitHub · ${publicCount} public repos`;
+    status.textContent = `Live from GitHub · ${stats.publicCount} public repos`;
     render();
   } catch {
     // 请求失败时保留快照数字，并说明数据不是实时的。

@@ -61,6 +61,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
             <p class="pc-xp" data-pc-xp>Quest progress</p>
           </div>
           <span class="pc-level" data-pc-level>Lv.1</span>
+          <a class="pc-stars" href="#repos" data-pc-stars title="See all repos">★ {SNAPSHOT.stars} stars</a>
           <span class="pc-status">Currently: building in public</span>
         </aside>
 
@@ -288,7 +289,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
 
     <script>
       import { mountQuest } from "../scripts/quest";
-      import { mountRepos } from "../scripts/repos";
+      import { loadRepoStats, mountRepos } from "../scripts/repos";
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -317,6 +318,18 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         });
         pcXp.textContent = `${done} / ${keys.length} keys found`;
         pcLevel.textContent = `Lv.${1 + done}`;
+      }
+
+      // 玩家卡的星标徽章：与仓库页共用同一份 GitHub 数据；失败时保留快照数字。
+      const pcStars = document.querySelector<HTMLElement>("[data-pc-stars]");
+      if (pcStars) {
+        loadRepoStats()
+          .then((stats) => {
+            pcStars.textContent = `★ ${stats.stars} stars`;
+          })
+          .catch(() => {
+            // 保留快照数字即可。
+          });
       }
 
       const repos = document.getElementById("repos");
@@ -568,6 +581,22 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         font-weight: 600;
         transform: rotate(-3deg);
       }
+      .pc-stars {
+        position: absolute;
+        top: -14px;
+        left: 18px;
+        padding: 2px 10px;
+        background: var(--sun);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 2px 2px 0 var(--ink);
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        transform: rotate(-4deg);
+        transition: transform 0.15s var(--ease);
+      }
+      .pc-stars:hover { transform: rotate(0deg) scale(1.06); }
       @media (max-width: 900px) {
         .player-card { position: relative; top: auto; right: auto; margin: 0 0 28px; transform: none; }
         .player-card:hover { transform: none; }
