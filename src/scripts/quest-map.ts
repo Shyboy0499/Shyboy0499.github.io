@@ -52,6 +52,8 @@ for (let y = 0; y < ROWS; y++) {
 
 export const objects: MapObject[] = [];
 let crystalIndex = 0;
+let plantIndex = 0;
+let shelfIndex = 0;
 // 按阅读顺序排列，保证水晶序号与 crystal:<n> 的键一一对应。
 const ordered = [...PLACEMENTS].sort(([, ax, ay], [, bx, by]) => ay - by || ax - bx);
 for (const [char, ix, iy] of ordered) {
@@ -65,6 +67,9 @@ for (const [char, ix, iy] of ordered) {
   if (char === "P") key = "portrait";
   if (char === "D") key = "door";
   if (char === "O") key = "secret";
+  if (char === "L") key = "lamp";
+  if (char === "T") key = `plant:${plantIndex++}`;
+  if (char === "B") key = `shelf:${shelfIndex++}`;
   objects.push({ char, key, tx, ty });
 }
 
