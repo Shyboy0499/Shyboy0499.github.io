@@ -304,3 +304,17 @@ export function drawSecretOrb(ctx: CanvasRenderingContext2D, tx: number, ty: num
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(Math.round(cx - 2), Math.round(cy - 3), 2, 2);
 }
+
+// 浇过水的植物：叶子更高更多，顶上开一朵小花。
+export function drawPlantWatered(ctx: CanvasRenderingContext2D, tx: number, ty: number, t: number): void {
+  const x = tx * TILE;
+  const y = ty * TILE;
+  inkPath(ctx, [[x + 2, y + 4], [x + 6, y + 9], [x + 1, y + 9]], "#5ee6b8");
+  inkPath(ctx, [[x + 14, y + 4], [x + 10, y + 9], [x + 15, y + 9]], "#5ee6b8");
+  inkPath(ctx, [[x + 8, y - 2], [x + 12, y + 9], [x + 4, y + 9]], "#7bf0c7");
+  inkPath(ctx, [[x + 8, y + 3], [x + 10, y + 6], [x + 6, y + 6]], "#9b7bff");
+  inkBox(ctx, x + 4, y + 10, 8, 5, "#ff9f6b");
+  // 花心轻轻摇动。
+  ctx.fillStyle = "#ffd23f";
+  ctx.fillRect(x + 8 + Math.round(Math.sin(t * 2)), y + 1, 1, 1);
+}

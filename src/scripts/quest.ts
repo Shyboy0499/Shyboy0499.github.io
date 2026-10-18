@@ -1,8 +1,8 @@
 // 2D 任务式入口：角色在房间里走动，与物件互动即可逐步收集个人信息。
-// 负责循环、输入、对话、任务进度、过场、声音与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，
-// 特效见 quest-fx.ts，声音见 quest-audio.ts，文案见 content/missions.ts。
-// 进度只保存在本机 localStorage，是访客自己的便利记录；页面下方的静态作品与关于始终可读。
-import { dialogs, missions } from "../content/missions";
+// 负责循环、输入、对话、任务进度、过场、声音、灯光、猫与植物的互动及绘制；
+// 地图见 quest-map.ts，素材见 quest-sprites.ts，特效见 quest-fx.ts，声音见 quest-audio.ts，文案见 content/missions.ts。
+// 进度与状态只保存在本机 localStorage，是访客自己的便利记录；页面下方的静态作品与关于始终可读。
+import { dialogs, missions, plantKeys } from "../content/missions";
 import { projects } from "../content/projects";
 import { CAT, COLS, ROWS, TILE, WINDOWS, buildStaticLayer, isSolid, objects, type MapObject } from "./quest-map";
 import {
@@ -13,6 +13,7 @@ import {
   drawLamp,
   drawMailbox,
   drawPlant,
+  drawPlantWatered,
   drawPortrait,
   drawRows,
   drawSecretOrb,
@@ -23,7 +24,10 @@ import {
 import { createFx } from "./quest-fx";
 import { createAudio } from "./quest-audio";
 
-const STORAGE_KEY = "quest-visited-v1";
+const VISITED_KEY = "quest-visited-v1";
+const LAMP_KEY = "quest-lamp";
+const PETS_KEY = "quest-pets";
+const PLANTS_KEY = "quest-plants";
 // 显示缓冲区是逻辑分辨率，再整数放大到画布，保证像素边缘干净。
 const SCALE = 3;
 const WALK_SPEED = 62;
@@ -33,6 +37,8 @@ const INTERACT_RANGE = 20;
 // 角色脚下的碰撞盒，相对精灵左上角（精灵高 22）；只让脚部碰墙，身体可以略微越过物件的边。
 const BOX = { x: 4, y: 18, w: 8, h: 4 };
 const CELEBRATE_COLORS = ["#ff6b6b", "#5ee6b8", "#9b7bff", "#ffd23f", "#ff9ecf"];
+const HEART_COLORS = ["#ff9ecf", "#ffffff"];
+const PLANT_COLORS = ["#5ee6b8", "#7bf0c7", "#ffd23f"];
 
 const KEY_DIRS: Record<string, [number, number]> = {
   arrowup: [0, -1],
@@ -50,6 +56,24 @@ const TOUCH_DIRS: Record<string, [number, number]> = {
   left: [-1, 0],
   right: [1, 0],
 };
+
+// 本地存储的读写统一包一层：存储不可用或数据损坏时，回退为默认值，游戏照常进行。
+function readStore<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : (JSON.parse(raw) as T);
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStore(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // 存储不可用时忽略，本次访问仍然有效。
+  }
+}
 
 export function mountQuest(root: HTMLElement): void {
   const canvas = root.querySelector<HTMLCanvasElement>("[data-canvas]");
@@ -107,7 +131,9 @@ export function mountQuest(root: HTMLElement): void {
   const audio = createAudio();
 
   const door = objects.find((o) => o.char === "D")!;
-  const secret = objects.find((o) => o.key === "secret")!;
+  // 猫不在地图网格里（它不挡路），这里补一个虚拟的可互动物件，让它和其它物件一样能被交互。
+  const catObject: MapObject = { char: "K", key: "cat", tx: CAT.tx, ty: CAT.ty };
+  const interactables: MapObject[] = [...objects, catObject];
 
   // 角色从房间中央偏下出生；坐标为精灵左上角，单位是缓冲区像素。
   const player = { x: 11 * TILE + 4, y: 9 * TILE - 10, facing: 1 };
@@ -124,7 +150,11 @@ export function mountQuest(root: HTMLElement): void {
 
   const held = new Set<string>();
   const touchHeld = new Set<string>();
-  const visited = loadVisited();
+  const visited = new Set(readStore<unknown[]>(VISITED_KEY, []).filter((v): v is string => typeof v === "string"));
+  // 灯、猫、植物的状态：灯开关、摸猫次数、浇过水的植物。
+  let lampOn = readStore<boolean>(LAMP_KEY, true);
+  let pets = readStore<number>(PETS_KEY, 0);
+  const watered = new Set(readStore<unknown[]>(PLANTS_KEY, []).filter((v): v is string => typeof v === "string"));
 
   const dialog = {
     active: false,
@@ -150,6 +180,12 @@ export function mountQuest(root: HTMLElement): void {
 
   function completedIds(): Set<string> {
     return new Set(missions.filter((m) => m.keys.every((k) => visited.has(k))).map((m) => m.id));
+  }
+
+  // 猫在第三次摸它时给出提示：列出还没找到的任务。
+  function stillToFindLine(): string {
+    const left = missions.filter((m) => !m.keys.every((k) => visited.has(k))).map((m) => m.title);
+    return left.length === 0 ? "Everything is found. Go on, open the gate." : `Still to find: ${left.join(", ")}.`;
   }
 
   // 笔记面板：未完成的任务显示进度，完成后展示收集到的信息摘要；CG 按钮随进度开放。
@@ -206,6 +242,17 @@ export function mountQuest(root: HTMLElement): void {
     }, 2400);
   }
 
+  // 记录一个物件已访问：保存进度、刷新笔记，并为新完成的任务庆祝；全部完成时进入通关过场。
+  function markVisited(key: string, target: MapObject): void {
+    const before = completedIds();
+    visited.add(key);
+    writeStore(VISITED_KEY, [...visited]);
+    renderNotes();
+    const newly = missions.filter((m) => !before.has(m.id) && completedIds().has(m.id));
+    for (const m of newly) celebrate(target, `Mission complete: ${m.title}`);
+    if (newly.length > 0 && allDone()) unlockCelebration();
+  }
+
   // 全部任务完成的瞬间：门前爆出光束与震动，标题故障闪烁，随后进入过场。
   function unlockCelebration(): void {
     const [x, y] = objectCenter(door);
@@ -251,7 +298,7 @@ export function mountQuest(root: HTMLElement): void {
     const cy = player.y + 20;
     let best: MapObject | null = null;
     let bestDist = INTERACT_RANGE;
-    for (const o of objects) {
+    for (const o of interactables) {
       if (!o.key) continue;
       // 隐藏的宝珠只在全部任务完成后才可以互动。
       if (o.key === "secret" && !allDone()) continue;
@@ -304,7 +351,9 @@ export function mountQuest(root: HTMLElement): void {
     const target = nearestInteractable();
     if (!target || !target.key) return;
     audio.sfx("blip");
-    if (target.key === "door") {
+    const key = target.key;
+
+    if (key === "door") {
       if (allDone()) {
         audio.sfx("whoosh");
         openDialog("The gate", ["The gate swings open.", "Here is the full portfolio."], () => {
@@ -316,25 +365,65 @@ export function mountQuest(root: HTMLElement): void {
       }
       return;
     }
-    if (target.key === "secret") {
+
+    if (key === "secret") {
       const [x, y] = objectCenter(target);
       fx.burst(x, y, CELEBRATE_COLORS, 30);
       openDialog(dialogs.secret.title, dialogs.secret.lines);
       return;
     }
-    const d = dialogs[target.key];
+
+    // 台灯：开关灯，夜里房间变暗；这次互动也计入"Look around"任务。
+    if (key === "lamp") {
+      lampOn = !lampOn;
+      writeStore(LAMP_KEY, lampOn);
+      openDialog(
+        dialogs.lamp.title,
+        lampOn ? ["The lamp is on. The room is warm.", "Press E again to dim it."] : ["The room is dim now. Cozy.", "Press E to turn the lamp back on."],
+      );
+      markVisited(key, target);
+      return;
+    }
+
+    // 猫：摸一次会呼噜，摸到第三次它会告诉你还差什么。
+    if (key === "cat") {
+      pets++;
+      writeStore(PETS_KEY, pets);
+      const [x, y] = objectCenter(target);
+      fx.burst(x, y - 6, HEART_COLORS, 12);
+      const lines =
+        pets === 1
+          ? ["The cat opens one eye.", "Then it purrs."]
+          : pets === 2
+            ? ["It stretches, then settles back onto the rug."]
+            : pets === 3
+              ? ["The cat stands up, looks at you, and trots to the door.", stillToFindLine()]
+              : ["It purrs again, unimpressed."];
+      openDialog(dialogs.cat.title, lines);
+      markVisited(key, target);
+      return;
+    }
+
+    // 植物：浇水会让它长大，四盆都浇过会有一条"绿色房间"的提示。
+    if (key.startsWith("plant:")) {
+      if (watered.has(key)) {
+        openDialog(dialogs[key].title, ["It's already watered and happy."]);
+        return;
+      }
+      watered.add(key);
+      writeStore(PLANTS_KEY, [...watered]);
+      const [x, y] = objectCenter(target);
+      fx.burst(x, y - 4, PLANT_COLORS, 14);
+      openDialog(dialogs[key].title, ["You water the plant.", "It looks a little taller already."]);
+      if (watered.size === plantKeys.length) showToast("Green room: every plant watered");
+      return;
+    }
+
+    const d = dialogs[key];
     if (!d) return;
-
-    const before = completedIds();
-    visited.add(target.key);
-    saveVisited();
-    renderNotes();
     openDialog(d.title, d.lines);
-
-    // 只为这一次新完成的任务庆祝，已完成的任务不会重复。
-    const newly = missions.filter((m) => !before.has(m.id) && completedIds().has(m.id));
-    for (const m of newly) celebrate(target, `Mission complete: ${m.title}`);
-    if (newly.length > 0 && allDone()) unlockCelebration();
+    // 只有计入任务的物件（招牌、信箱、照片墙、水晶、书架）才会推进进度。
+    markVisited(key, target);
   }
 
   // 开始：这是用户的第一次操作，音频也从这里启动（浏览器要求）。
@@ -435,7 +524,9 @@ export function mountQuest(root: HTMLElement): void {
         drawDoor(bctx, o.tx, o.ty, unlocked, animT);
         break;
       case "T":
-        drawPlant(bctx, o.tx, o.ty);
+        // 浇过水的植物会长高、开花。
+        if (watered.has(o.key!)) drawPlantWatered(bctx, o.tx, o.ty, animT);
+        else drawPlant(bctx, o.tx, o.ty);
         break;
       case "B":
         drawBookshelf(bctx, o.tx, o.ty);
@@ -502,6 +593,12 @@ export function mountQuest(root: HTMLElement): void {
     const [doorX, doorY] = objectCenter(door);
     fx.draw(bctx, animT, doorX, doorY);
 
+    // 灯关着时房间变暗，只剩窗外的光与台灯的光晕。
+    if (!lampOn) {
+      bctx.fillStyle = "rgba(7, 5, 18, 0.5)";
+      bctx.fillRect(0, 0, buffer.width, buffer.height);
+    }
+
     if (near && !dialog.active) {
       drawPointer(near);
       bctx.globalAlpha = 0.5 + 0.3 * Math.sin(animT * 5);
@@ -539,25 +636,6 @@ export function mountQuest(root: HTMLElement): void {
     }
   }
 
-  function loadVisited(): Set<string> {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const list: unknown = raw ? JSON.parse(raw) : [];
-      return new Set(Array.isArray(list) ? list.filter((v): v is string => typeof v === "string") : []);
-    } catch {
-      // 隐私模式或禁用存储时，进度只保留在本次访问中。
-      return new Set();
-    }
-  }
-
-  function saveVisited(): void {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...visited]));
-    } catch {
-      // 存储不可用时忽略，游戏仍可进行。
-    }
-  }
-
   renderNotes();
   updateSoundButton();
 
@@ -591,7 +669,13 @@ export function mountQuest(root: HTMLElement): void {
 
   resetButton.addEventListener("click", () => {
     visited.clear();
-    saveVisited();
+    writeStore(VISITED_KEY, []);
+    lampOn = true;
+    writeStore(LAMP_KEY, true);
+    pets = 0;
+    writeStore(PETS_KEY, 0);
+    watered.clear();
+    writeStore(PLANTS_KEY, []);
     dialog.active = false;
     dialog.onClose = null;
     dialogEl.hidden = true;
