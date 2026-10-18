@@ -1,5 +1,5 @@
 // 2D 任务式入口：角色在房间里走动，与物件互动即可逐步收集个人信息。
-// 负责循环、输入、对话、任务进度与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，文案见 content/missions.ts。
+// 负责循环、输入、对话、任务进度与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，特效见 quest-fx.ts，文案见 content/missions.ts。
 // 进度只保存在本机 localStorage，是访客自己的便利记录；页面下方的静态作品与关于始终可读。
 import { dialogs, missions } from "../content/missions";
 import { projects } from "../content/projects";
@@ -17,6 +17,7 @@ import {
   drawSign,
   playerFrame,
 } from "./quest-sprites";
+import { createFx } from "./quest-fx";
 
 const STORAGE_KEY = "quest-visited-v1";
 // 显示缓冲区是逻辑分辨率，再整数放大到画布，保证像素边缘干净。
@@ -26,6 +27,7 @@ const TYPE_SPEED = 42;
 const INTERACT_RANGE = 20;
 // 角色脚下的碰撞盒，相对精灵左上角（精灵高 22）；只让脚部碰墙，身体可以略微越过物件的边。
 const BOX = { x: 4, y: 18, w: 8, h: 4 };
+const CELEBRATE_COLORS = ["#ff6b6b", "#5ee6b8", "#9b7bff", "#ffd23f", "#ff9ecf"];
 
 const KEY_DIRS: Record<string, [number, number]> = {
   arrowup: [0, -1],
@@ -54,7 +56,11 @@ export function mountQuest(root: HTMLElement): void {
   const progress = root.querySelector<HTMLElement>("[data-progress]");
   const resetButton = root.querySelector<HTMLButtonElement>("[data-reset]");
   const actionButton = root.querySelector<HTMLButtonElement>("[data-action]");
-  if (!canvas || !startButton || !dialogEl || !dialogTitle || !dialogText || !hint || !progress || !resetButton) return;
+  const toast = root.querySelector<HTMLElement>("[data-toast]");
+  const cinema = root.querySelector<HTMLElement>("[data-cinema]");
+  const cinemaGo = root.querySelector<HTMLButtonElement>("[data-cinema-go]");
+  const title = root.querySelector<HTMLElement>(".title");
+  if (!canvas || !startButton || !dialogEl || !dialogTitle || !dialogText || !hint || !progress || !resetButton || !toast || !cinema || !cinemaGo || !title) return;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -62,6 +68,9 @@ export function mountQuest(root: HTMLElement): void {
     root.classList.add("no-canvas");
     return;
   }
+
+  // 减少动效时不做震动、闪光与故障效果，但仍保留开场过场的文字。
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // 低分辨率缓冲区：所有绘制在 COLS×TILE 的像素空间进行，最后整体放大。
   const buffer = document.createElement("canvas");
@@ -76,6 +85,9 @@ export function mountQuest(root: HTMLElement): void {
   const staticLayer = buildStaticLayer();
   const photo = new Image();
   photo.src = "/art/studio-cat.jpg";
+  const fx = createFx();
+
+  const door = objects.find((o) => o.char === "D")!;
 
   // 角色从房间中央偏下出生；坐标为精灵左上角，单位是缓冲区像素。
   const player = { x: 11 * TILE + 4, y: 9 * TILE - 10, facing: 1 };
@@ -86,6 +98,8 @@ export function mountQuest(root: HTMLElement): void {
   let pendingScroll = false;
   let lastHint = "";
   let lastShown = "";
+  let toastTimer = 0;
+  let cinemaTimer = 0;
 
   const held = new Set<string>();
   const touchHeld = new Set<string>();
@@ -113,6 +127,10 @@ export function mountQuest(root: HTMLElement): void {
     return missions.filter((m) => !m.keys.every((k) => visited.has(k))).length;
   }
 
+  function completedIds(): Set<string> {
+    return new Set(missions.filter((m) => m.keys.every((k) => visited.has(k))).map((m) => m.id));
+  }
+
   // 笔记面板：未完成的任务显示进度，完成后展示收集到的信息摘要。
   function renderNotes(): void {
     let done = 0;
@@ -132,6 +150,56 @@ export function mountQuest(root: HTMLElement): void {
       }
     }
     progress.textContent = `${done} / ${missions.length}`;
+  }
+
+  function objectCenter(o: MapObject): [number, number] {
+    return [o.tx * TILE + 8, o.ty * TILE + 8];
+  }
+
+  // 完成任务的庆祝：在物件上迸发彩色粒子，并弹出一条提示。
+  function celebrate(o: MapObject, text: string): void {
+    const [x, y] = objectCenter(o);
+    fx.burst(x, y, CELEBRATE_COLORS, 26);
+    showToast(text);
+  }
+
+  function showToast(text: string): void {
+    toast.textContent = text;
+    toast.hidden = false;
+    toast.classList.remove("show");
+    // 强制回流，让同一个动画可以重新播放。
+    void toast.offsetWidth;
+    toast.classList.add("show");
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      toast.hidden = true;
+    }, 2400);
+  }
+
+  // 全部任务完成的瞬间：门前爆出光束与震动，标题故障闪烁，随后进入过场。
+  function unlockCelebration(): void {
+    const [x, y] = objectCenter(door);
+    fx.burst(x, y, CELEBRATE_COLORS, 40);
+    if (!reduce) {
+      fx.surge();
+      title.classList.add("glitch");
+    }
+    window.setTimeout(openCinema, reduce ? 0 : 700);
+  }
+
+  // 过场不抢焦点，几秒后自动收起，避免挡住房间里的操作；按钮仍可直接前往作品区。
+  function openCinema(): void {
+    cinema.hidden = false;
+    requestAnimationFrame(() => cinema.classList.add("show"));
+    window.clearTimeout(cinemaTimer);
+    cinemaTimer = window.setTimeout(closeCinema, 4500);
+  }
+
+  function closeCinema(): void {
+    window.clearTimeout(cinemaTimer);
+    cinema.classList.remove("show");
+    cinema.hidden = true;
+    title.classList.remove("glitch");
   }
 
   function nearestInteractable(): MapObject | null {
@@ -202,10 +270,17 @@ export function mountQuest(root: HTMLElement): void {
     }
     const d = dialogs[target.key];
     if (!d) return;
+
+    const before = completedIds();
     visited.add(target.key);
     saveVisited();
     renderNotes();
     openDialog(d.title, d.lines);
+
+    // 只为这一次新完成的任务庆祝，已完成的任务不会重复。
+    const newly = missions.filter((m) => !before.has(m.id) && completedIds().has(m.id));
+    for (const m of newly) celebrate(target, `Mission complete: ${m.title}`);
+    if (newly.length > 0 && allDone()) unlockCelebration();
   }
 
   function start(): void {
@@ -326,6 +401,9 @@ export function mountQuest(root: HTMLElement): void {
       bctx.fillRect(Math.floor(mx), Math.floor(my), 1, 1);
     }
 
+    const [doorX, doorY] = objectCenter(door);
+    fx.draw(bctx, animT, doorX, doorY);
+
     if (near && !dialog.active) {
       bctx.globalAlpha = 0.5 + 0.3 * Math.sin(animT * 5);
       bctx.strokeStyle = "#ecedf2";
@@ -333,7 +411,9 @@ export function mountQuest(root: HTMLElement): void {
       bctx.globalAlpha = 1;
     }
 
-    ctx!.drawImage(buffer, 0, 0, canvas!.width, canvas!.height);
+    // 震动只平移整张画面，不影响碰撞与交互坐标。
+    const [ox, oy] = fx.offset();
+    ctx!.drawImage(buffer, ox * SCALE, oy * SCALE, canvas!.width, canvas!.height);
     updateText(near, unlocked);
   }
 
@@ -406,7 +486,14 @@ export function mountQuest(root: HTMLElement): void {
     dialog.active = false;
     dialog.onClose = null;
     dialogEl.hidden = true;
+    closeCinema();
+    toast.hidden = true;
     renderNotes();
+  });
+
+  cinemaGo.addEventListener("click", () => {
+    closeCinema();
+    document.getElementById("work")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
   });
 
   window.addEventListener("keydown", (e) => {
@@ -441,10 +528,13 @@ export function mountQuest(root: HTMLElement): void {
     if (!inView) return;
     if (started) step(dt);
     else animT += dt;
+    // 全部完成后门前保持一层淡淡的光束，作为常驻的"已解锁"提示。
+    fx.setAmbient(allDone() ? 0.35 : 0);
+    fx.update(dt);
     render();
     if (pendingScroll && !dialog.active) {
       pendingScroll = false;
-      document.getElementById("work")?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById("work")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
     }
   }
   requestAnimationFrame(frame);
