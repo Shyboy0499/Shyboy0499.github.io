@@ -293,9 +293,22 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
     <!-- 页面切换时的擦除转场：由 quest.ts 在前往作品区时触发。 -->
     <div class="wipe" data-wipe aria-hidden="true"></div>
 
+    <!-- 游戏里的卡片：书架的阅读清单、猫与植物的插画，由 quest:card 事件打开。 -->
+    <dialog class="card-dialog" data-card-dialog>
+      <div class="card-art"><img data-card-img src="" alt="" /></div>
+      <div class="card-body">
+        <p class="card-kicker" data-card-kicker></p>
+        <h3 class="card-h" data-card-title></h3>
+        <p class="card-text" data-card-text></p>
+        <div class="card-books" data-card-books hidden></div>
+        <button class="more-btn" type="button" data-card-close>Close</button>
+      </div>
+    </dialog>
+
     <script>
       import { mountQuest } from "../scripts/quest";
       import { loadRepoStats, mountRepos } from "../scripts/repos";
+      import { CAT_CARD, PLANT_CARD, shelves, type CardEvent } from "../content/cards";
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -325,6 +338,59 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         pcXp.textContent = `${done} / ${keys.length} keys found`;
         pcLevel.textContent = `Lv.${1 + done}`;
       }
+
+      // 游戏里的卡片：书架显示三本书的封面与推荐语，猫与植物显示各自的插画。
+      const card = document.querySelector<HTMLDialogElement>("[data-card-dialog]");
+      const cardImg = document.querySelector<HTMLImageElement>("[data-card-img]");
+      const cardKicker = document.querySelector<HTMLElement>("[data-card-kicker]");
+      const cardTitle = document.querySelector<HTMLElement>("[data-card-title]");
+      const cardText = document.querySelector<HTMLElement>("[data-card-text]");
+      const cardBooks = document.querySelector<HTMLElement>("[data-card-books]");
+      document.querySelector<HTMLButtonElement>("[data-card-close]")?.addEventListener("click", () => card?.close());
+      window.addEventListener("quest:card", (e) => {
+        if (!card || !cardImg || !cardKicker || !cardTitle || !cardText || !cardBooks) return;
+        const d = (e as CustomEvent<CardEvent>).detail;
+        cardBooks.replaceChildren();
+        cardBooks.hidden = true;
+        cardImg.hidden = false;
+        if (d.kind === "shelf") {
+          const shelf = shelves[d.key];
+          cardImg.hidden = true;
+          cardKicker.textContent = "Reading list";
+          cardTitle.textContent = shelf.title;
+          cardText.textContent = "Three books on this shelf. Each cover has a short note.";
+          cardBooks.hidden = false;
+          for (const book of shelf.books) {
+            const figure = document.createElement("figure");
+            figure.className = "book";
+            const img = document.createElement("img");
+            img.src = book.cover;
+            img.alt = `Cover of ${book.title}`;
+            img.loading = "lazy";
+            const caption = document.createElement("figcaption");
+            const name = document.createElement("strong");
+            name.textContent = book.title;
+            const note = document.createElement("span");
+            note.textContent = book.note;
+            caption.append(name, note);
+            figure.append(img, caption);
+            cardBooks.append(figure);
+          }
+        } else if (d.kind === "cat") {
+          cardImg.src = CAT_CARD;
+          cardImg.alt = "A happy orange cat with a small heart above its head";
+          cardKicker.textContent = "Studio cat";
+          cardTitle.textContent = d.pets === 3 ? "A hint from the cat" : "Purr meter";
+          cardText.textContent = d.pets === 3 ? d.line : "It purrs when you pet it. Come back for more.";
+        } else {
+          cardImg.src = PLANT_CARD;
+          cardImg.alt = "A potted plant with a purple flower in bloom";
+          cardKicker.textContent = "Potted plant";
+          cardTitle.textContent = "Look at it grow";
+          cardText.textContent = "Watered, and blooming.";
+        }
+        card.showModal();
+      });
 
       // 玩家卡的星标徽章：与仓库页共用同一份 GitHub 数据；失败时保留快照数字。
       const pcStars = document.querySelector<HTMLElement>("[data-pc-stars]");
@@ -954,6 +1020,30 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         cursor: pointer;
       }
       .sound[aria-pressed="false"] { background: #ffffff; }
+      .card-dialog {
+        width: min(92vw, 720px);
+        padding: 0;
+        border: 4px solid var(--ink);
+        border-radius: 22px;
+        background: var(--cream);
+        box-shadow: 10px 10px 0 var(--ink);
+        color: var(--ink);
+      }
+      .card-dialog::backdrop { background: rgba(29, 20, 51, 0.6); }
+      .card-art { background: #ffffff; border-bottom: 4px solid var(--ink); }
+      .card-art img { display: block; width: 100%; max-height: 300px; object-fit: contain; }
+      .card-art:has(img[hidden]) { display: none; }
+      .card-body { padding: 16px 22px 20px; }
+      .card-kicker { margin: 0; font-family: var(--font); font-size: 0.85rem; font-weight: 700; color: var(--blue); }
+      .card-h { margin: 0.2rem 0 0; font-size: 1.6rem; font-weight: 700; }
+      .card-text { margin: 0.6rem 0 0; font-size: 1rem; }
+      .card-books { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+      .card-books[hidden] { display: none; }
+      .book { margin: 0; display: grid; gap: 8px; }
+      .book img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border: 3px solid var(--ink); border-radius: 12px; box-shadow: 4px 4px 0 var(--ink); }
+      .book figcaption { display: grid; gap: 2px; font-size: 0.85rem; }
+      .book figcaption span { color: #3d3556; }
+      @media (max-width: 600px) { .card-books { grid-template-columns: 1fr; } }
       .fallback { font-weight: 500; }
 
       /* ---------- 跑马灯 ---------- */

@@ -23,6 +23,7 @@ import {
 } from "./quest-sprites";
 import { createFx } from "./quest-fx";
 import { createAudio } from "./quest-audio";
+import type { CardEvent } from "../content/cards";
 
 const VISITED_KEY = "quest-visited-v1";
 const LAMP_KEY = "quest-lamp";
@@ -343,7 +344,18 @@ export function mountQuest(root: HTMLElement): void {
     closeDialog();
   }
 
+  // 卡片（书架的阅读清单、猫与植物的插画）由页面展示；这里只发出事件，不关心怎么画。
+  function showCard(detail: CardEvent): void {
+    window.dispatchEvent(new CustomEvent<CardEvent>("quest:card", { detail }));
+  }
+
+  // 卡片打开时，房间里的按键暂停，避免在卡片后面误触发互动。
+  function cardOpen(): boolean {
+    return document.querySelector("[data-card-dialog][open]") !== null;
+  }
+
   function interact(): void {
+    if (cardOpen()) return;
     if (dialog.active) {
       advanceDialog();
       return;
@@ -399,7 +411,11 @@ export function mountQuest(root: HTMLElement): void {
             : pets === 3
               ? ["The cat stands up, looks at you, and trots to the door.", stillToFindLine()]
               : ["It purrs again, unimpressed."];
-      openDialog(dialogs.cat.title, lines);
+      openDialog(
+        dialogs.cat.title,
+        lines,
+        pets === 1 || pets === 3 ? () => showCard({ kind: "cat", pets, line: pets === 3 ? stillToFindLine() : "" }) : undefined,
+      );
       markVisited(key, target);
       return;
     }
@@ -414,14 +430,14 @@ export function mountQuest(root: HTMLElement): void {
       writeStore(PLANTS_KEY, [...watered]);
       const [x, y] = objectCenter(target);
       fx.burst(x, y - 4, PLANT_COLORS, 14);
-      openDialog(dialogs[key].title, ["You water the plant.", "It looks a little taller already."]);
+      openDialog(dialogs[key].title, ["You water the plant.", "It looks a little taller already."], () => showCard({ kind: "plant" }));
       if (watered.size === plantKeys.length) showToast("Green room: every plant watered");
       return;
     }
 
     const d = dialogs[key];
     if (!d) return;
-    openDialog(d.title, d.lines);
+    openDialog(d.title, d.lines, key.startsWith("shelf:") ? () => showCard({ kind: "shelf", key }) : undefined);
     // 只有计入任务的物件（招牌、信箱、照片墙、水晶、书架）才会推进进度。
     markVisited(key, target);
   }
@@ -698,6 +714,7 @@ export function mountQuest(root: HTMLElement): void {
   });
 
   window.addEventListener("keydown", (e) => {
+    if (cardOpen()) return;
     const key = e.key.toLowerCase();
     if (key === "shift") {
       sprinting = true;

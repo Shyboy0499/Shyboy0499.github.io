@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">
+<rect width="240" height="320" rx="18" fill="#ffd23f"/>
+<path d="M0 60 L0 60.0 L20 71.0 L40 73.6 L60 65.6 L80 53.4 L100 46.2 L120 49.7 L140 61.1 L160 71.7 L180 73.3 L200 64.6 L220 52.4 L240 46.1" fill="none" stroke="#3b4cca" stroke-width="5" stroke-linecap="round"/><path d="M0 92 L0 103.8 L20 105.2 L40 96.4 L60 84.3 L80 78.0 L100 82.6 L120 94.4 L140 104.4 L160 104.8 L180 95.4 L200 83.3 L220 78.0 L240 83.4" fill="none" stroke="#3b4cca" stroke-width="5" stroke-linecap="round"/><path d="M0 124 L0 136.7 L20 127.2 L40 115.2 L60 110.0 L80 115.6 L100 127.6 L120 136.9 L140 136.2 L160 126.1 L180 114.4 L200 110.1 L220 116.5 L240 128.7" fill="none" stroke="#3b4cca" stroke-width="5" stroke-linecap="round"/><path d="M0 156 L0 158.0 L20 146.3 L40 142.1 L60 148.6 L80 160.8 L100 169.3 L120 167.6 L140 156.9 L160 145.5 L180 142.2 L200 149.6 L220 161.9 L240 169.6" fill="none" stroke="#3b4cca" stroke-width="5" stroke-linecap="round"/><path d="M0 188 L0 177.4 L20 174.3 L40 181.7 L60 194.0 L80 201.7 L100 198.8 L120 187.6 L140 176.7 L160 174.5 L180 182.7 L200 195.0 L220 201.9 L240 198.0" fill="none" stroke="#3b4cca" stroke-width="5" stroke-linecap="round"/>
+<rect x="10" y="10" width="220" height="300" rx="14" fill="none" stroke="#1d1433" stroke-width="4"/>
+<rect x="22" y="232" width="196" height="50" rx="10" fill="#1d1433"/>
+<text x="120" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#fff6e5">Git, Slowly</text>
+</svg>
