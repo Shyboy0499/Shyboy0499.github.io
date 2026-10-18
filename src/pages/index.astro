@@ -29,6 +29,32 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
     />
   </head>
   <body>
+    <!-- 贴纸图形的共享定义：原创的小爱心、闪光、星星、花朵与云，通过 <use> 复用。 -->
+    <svg class="sprites" aria-hidden="true" focusable="false">
+      <symbol id="d-heart" viewBox="0 0 64 64">
+        <path d="M32 56C10 40 4 28 4 20C4 10 12 4 20 4C26 4 30 8 32 12C34 8 38 4 44 4C52 4 60 10 60 20C60 28 54 40 32 56Z" fill="currentColor" stroke="#1d1433" stroke-width="4" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="d-sparkle" viewBox="0 0 64 64">
+        <path d="M32 2C34 22 42 30 62 32C42 34 34 42 32 62C30 42 22 34 2 32C22 30 30 22 32 2Z" fill="currentColor" stroke="#1d1433" stroke-width="4" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="d-star" viewBox="0 0 64 64">
+        <polygon points="32,2 39,22 60,23 43,36 49,56 32,44 14,56 21,36 3,23 25,22" fill="currentColor" stroke="#1d1433" stroke-width="4" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="d-flower" viewBox="0 0 64 64">
+        <g fill="currentColor" stroke="#1d1433" stroke-width="3">
+          <circle cx="32" cy="17" r="11" />
+          <circle cx="46" cy="27" r="11" />
+          <circle cx="41" cy="44" r="11" />
+          <circle cx="23" cy="44" r="11" />
+          <circle cx="18" cy="27" r="11" />
+        </g>
+        <circle cx="32" cy="32" r="8" fill="#ffd23f" stroke="#1d1433" stroke-width="3" />
+      </symbol>
+      <symbol id="d-cloud" viewBox="0 0 64 64">
+        <path d="M16 46C6 46 4 34 14 31C14 20 28 16 34 24C38 14 54 16 54 28C62 28 62 46 52 46Z" fill="currentColor" stroke="#1d1433" stroke-width="4" stroke-linejoin="round" />
+      </symbol>
+    </svg>
+
     <nav class="nav">
       <a class="brand" href="#top"><span class="brand-mark">★</span> {profile.name}</a>
       <div class="nav-links">
@@ -48,6 +74,10 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
           <p class="sticker">{profile.handle} · a quest intro</p>
           <h1 id="quest-title" class="title">{profile.name}</h1>
           <p class="lede">{profile.blurb}</p>
+          <!-- 标题周围的贴纸装饰，纯装饰，不参与阅读与点击。 -->
+          <svg class="doodle d-sparkle p-hero-a" viewBox="0 0 64 64" aria-hidden="true"><use href="#d-sparkle" /></svg>
+          <svg class="doodle d-heart p-hero-b" viewBox="0 0 64 64" aria-hidden="true"><use href="#d-heart" /></svg>
+          <svg class="doodle d-star p-hero-c" viewBox="0 0 64 64" aria-hidden="true"><use href="#d-star" /></svg>
         </header>
 
         <aside class="player-card" aria-label="Player card">
@@ -271,6 +301,9 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         <header class="section-head">
           <p class="sticker">04 — About</p>
         </header>
+        <!-- 关于区的贴纸装饰。 -->
+        <svg class="doodle d-flower p-about-a" viewBox="0 0 64 64" aria-hidden="true"><use href="#d-flower" /></svg>
+        <svg class="doodle d-cloud p-about-b" viewBox="0 0 64 64" aria-hidden="true"><use href="#d-cloud" /></svg>
         <p class="statement">
           I build tools that <mark>check their own work</mark>: agents, git automation, and the
           Mac setups that make a machine feel like mine.
@@ -525,7 +558,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         cursor: pointer;
         transition: transform 0.12s var(--ease), box-shadow 0.12s;
       }
-      .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+      .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); animation: wiggle 0.5s ease-in-out; }
       .btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--ink); }
       .btn-big { font-size: 1.4rem; padding: 16px 38px; }
       .more-btn {
@@ -541,6 +574,46 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         cursor: pointer;
       }
       .more-btn:hover { transform: translate(-1px, -1px); }
+
+      /* ---------- 可爱的贴纸装饰 ---------- */
+      /* 共享图形的容器隐藏在页面外，只为 <use> 提供定义。 */
+      .sprites { position: absolute; width: 0; height: 0; overflow: hidden; }
+      .quest-head { position: relative; }
+      .about { position: relative; }
+      /* 贴纸轻轻上下漂浮，各自的节奏不同，显得热闹但不抢眼。 */
+      .doodle {
+        position: absolute;
+        z-index: 0;
+        width: 46px;
+        height: 46px;
+        pointer-events: none;
+        animation: bob 4.6s ease-in-out infinite;
+      }
+      .doodle.d-heart { color: var(--pink); }
+      .doodle.d-sparkle { color: var(--mint); }
+      .doodle.d-star { color: var(--sun); }
+      .doodle.d-flower { color: var(--pink); }
+      .doodle.d-cloud { color: var(--sky-light); }
+      .p-hero-a { top: -8px; left: 47%; width: 40px; height: 40px; }
+      .p-hero-b { top: 200px; left: 44%; width: 38px; height: 38px; animation-duration: 5.4s; animation-delay: -1.8s; }
+      .p-hero-c { top: 10px; right: 20%; width: 34px; height: 34px; animation-duration: 4.1s; animation-delay: -2.6s; }
+      .p-about-a { top: 26px; right: 6%; width: 64px; height: 64px; }
+      .p-about-b { top: 150px; right: 14%; width: 72px; height: 72px; animation-duration: 6.2s; animation-delay: -3.4s; }
+      @keyframes bob {
+        0%, 100% { transform: translateY(0) rotate(-6deg); }
+        50% { transform: translateY(-12px) rotate(8deg); }
+      }
+      /* 按钮与关于的链接悬停时轻轻摇一下，用独立的 rotate 属性，不和 transform 冲突。 */
+      @keyframes wiggle {
+        0%, 100% { rotate: 0deg; }
+        25% { rotate: -2.5deg; }
+        75% { rotate: 2.5deg; }
+      }
+      @media (max-width: 600px) {
+        .doodle { width: 30px !important; height: 30px !important; }
+        .p-hero-a { top: auto; bottom: 8px; left: auto; right: 4%; }
+        .p-hero-b, .p-hero-c { display: none; }
+      }
 
       /* ---------- 导航 ---------- */
       .nav {
@@ -1283,7 +1356,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         text-decoration: none;
         transition: transform 0.12s var(--ease);
       }
-      .about-links a:hover { transform: translate(-2px, -2px); }
+      .about-links a:hover { transform: translate(-2px, -2px); animation: wiggle 0.5s ease-in-out; }
 
       /* ---------- 页脚 ---------- */
       .footer {
@@ -1339,6 +1412,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         .marquee-track { animation: none !important; }
         .section { transition: none !important; opacity: 1; transform: none; }
         .wipe.run { animation: none; }
+        .doodle, .btn:hover, .about-links a:hover { animation: none; }
       }
     </style>
   </body>
