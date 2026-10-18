@@ -25,7 +25,7 @@ export const projects: Project[] = [
     blurb: "Resilient, self-correcting systems — software that detects and repairs its own faults.",
     href: "https://github.com/Shyboy0499/antibody",
     lang: "TypeScript",
-    stars: "263",
+    stars: "131",
     accent: "#7c5cff",
   },
   {
@@ -34,7 +34,7 @@ export const projects: Project[] = [
       "An agent that compiles git chores into reusable programs, then replays them by running checks — not by guessing a task looks familiar.",
     href: "https://github.com/Shyboy0499/precondition-library",
     lang: "Python",
-    stars: "142",
+    stars: "143",
     accent: "#36d6c3",
   },
   {

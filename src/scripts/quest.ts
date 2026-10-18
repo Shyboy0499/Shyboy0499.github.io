@@ -1,5 +1,6 @@
 // 2D 任务式入口：角色在房间里走动，与物件互动即可逐步收集个人信息。
-// 负责循环、输入、对话、任务进度、过场与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，特效见 quest-fx.ts，文案见 content/missions.ts。
+// 负责循环、输入、对话、任务进度、过场、声音与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，
+// 特效见 quest-fx.ts，声音见 quest-audio.ts，文案见 content/missions.ts。
 // 进度只保存在本机 localStorage，是访客自己的便利记录；页面下方的静态作品与关于始终可读。
 import { dialogs, missions } from "../content/missions";
 import { projects } from "../content/projects";
@@ -20,11 +21,13 @@ import {
   playerFrame,
 } from "./quest-sprites";
 import { createFx } from "./quest-fx";
+import { createAudio } from "./quest-audio";
 
 const STORAGE_KEY = "quest-visited-v1";
 // 显示缓冲区是逻辑分辨率，再整数放大到画布，保证像素边缘干净。
 const SCALE = 3;
 const WALK_SPEED = 62;
+const RUN_SPEED = 98;
 const TYPE_SPEED = 42;
 const INTERACT_RANGE = 20;
 // 角色脚下的碰撞盒，相对精灵左上角（精灵高 22）；只让脚部碰墙，身体可以略微越过物件的边。
@@ -64,11 +67,15 @@ export function mountQuest(root: HTMLElement): void {
   const cinemaTitle = root.querySelector<HTMLElement>("[data-cinema-title]");
   const cinemaSub = root.querySelector<HTMLElement>("[data-cinema-sub]");
   const cinemaGo = root.querySelector<HTMLButtonElement>("[data-cinema-go]");
+  const soundButton = root.querySelector<HTMLButtonElement>("[data-sound]");
+  const cgOpenButton = root.querySelector<HTMLButtonElement>("[data-cg-open]");
+  const cgFinaleButton = root.querySelector<HTMLButtonElement>("[data-cg-finale]");
   const wipe = document.querySelector<HTMLElement>("[data-wipe]");
   const title = root.querySelector<HTMLElement>(".title");
   if (
     !canvas || !startButton || !dialogEl || !dialogTitle || !dialogText || !hint || !progress ||
-    !resetButton || !toast || !cinema || !cinemaSticker || !cinemaTitle || !cinemaSub || !cinemaGo || !title
+    !resetButton || !toast || !cinema || !cinemaSticker || !cinemaTitle || !cinemaSub || !cinemaGo ||
+    !soundButton || !cgOpenButton || !cgFinaleButton || !title
   ) {
     return;
   }
@@ -97,6 +104,7 @@ export function mountQuest(root: HTMLElement): void {
   const photo = new Image();
   photo.src = "/art/studio-cat.jpg";
   const fx = createFx();
+  const audio = createAudio();
 
   const door = objects.find((o) => o.char === "D")!;
   const secret = objects.find((o) => o.key === "secret")!;
@@ -104,6 +112,7 @@ export function mountQuest(root: HTMLElement): void {
   // 角色从房间中央偏下出生；坐标为精灵左上角，单位是缓冲区像素。
   const player = { x: 11 * TILE + 4, y: 9 * TILE - 10, facing: 1 };
   let walking = false;
+  let sprinting = false;
   let animT = 0;
   let started = false;
   let inView = false;
@@ -143,7 +152,7 @@ export function mountQuest(root: HTMLElement): void {
     return new Set(missions.filter((m) => m.keys.every((k) => visited.has(k))).map((m) => m.id));
   }
 
-  // 笔记面板：未完成的任务显示进度，完成后展示收集到的信息摘要。
+  // 笔记面板：未完成的任务显示进度，完成后展示收集到的信息摘要；CG 按钮随进度开放。
   function renderNotes(): void {
     let done = 0;
     for (const m of missions) {
@@ -162,6 +171,14 @@ export function mountQuest(root: HTMLElement): void {
       }
     }
     progress.textContent = `${done} / ${missions.length}`;
+    cgFinaleButton.disabled = !allDone();
+    cgFinaleButton.textContent = allDone() ? "Finale CG" : "Finale CG · locked";
+  }
+
+  function updateSoundButton(): void {
+    const on = !audio.isMuted();
+    soundButton.textContent = on ? "♪ Sound on" : "♪ Sound off";
+    soundButton.setAttribute("aria-pressed", String(on));
   }
 
   function objectCenter(o: MapObject): [number, number] {
@@ -173,6 +190,7 @@ export function mountQuest(root: HTMLElement): void {
     const [x, y] = objectCenter(o);
     fx.burst(x, y, CELEBRATE_COLORS, 26);
     showToast(text);
+    audio.sfx("chime");
   }
 
   function showToast(text: string): void {
@@ -192,6 +210,7 @@ export function mountQuest(root: HTMLElement): void {
   function unlockCelebration(): void {
     const [x, y] = objectCenter(door);
     fx.burst(x, y, CELEBRATE_COLORS, 40);
+    audio.sfx("whoosh");
     if (!reduce) {
       fx.surge();
       title.classList.add("glitch");
@@ -271,6 +290,7 @@ export function mountQuest(root: HTMLElement): void {
     if (dialog.index < dialog.lines.length - 1) {
       dialog.index++;
       dialog.typed = 0;
+      audio.sfx("blip");
       return;
     }
     closeDialog();
@@ -283,8 +303,10 @@ export function mountQuest(root: HTMLElement): void {
     }
     const target = nearestInteractable();
     if (!target || !target.key) return;
+    audio.sfx("blip");
     if (target.key === "door") {
       if (allDone()) {
+        audio.sfx("whoosh");
         openDialog("The gate", ["The gate swings open.", "Here is the full portfolio."], () => {
           pendingScroll = true;
         });
@@ -315,12 +337,26 @@ export function mountQuest(root: HTMLElement): void {
     if (newly.length > 0 && allDone()) unlockCelebration();
   }
 
+  // 开始：这是用户的第一次操作，音频也从这里启动（浏览器要求）。
   function start(): void {
     if (started) return;
     started = true;
     root.classList.add("is-started");
     startButton.blur();
+    audio.unlock();
+    if (!audio.isMuted()) audio.startMusic();
+    updateSoundButton();
     if (!reduce) openCinema("intro");
+  }
+
+  function toggleSound(): void {
+    const nowMuted = !audio.isMuted();
+    audio.setMuted(nowMuted);
+    if (!nowMuted) {
+      audio.unlock();
+      audio.startMusic();
+    }
+    updateSoundButton();
   }
 
   // 移动按轴分开处理，撞墙时仍能沿另一个方向滑动。
@@ -371,8 +407,10 @@ export function mountQuest(root: HTMLElement): void {
       vx /= len;
       vy /= len;
       if (vx !== 0) player.facing = vx < 0 ? -1 : 1;
-      moveBy(vx * WALK_SPEED * dt, 0);
-      moveBy(0, vy * WALK_SPEED * dt);
+      // 按住 Shift 跑步：速度更快，脚步动画也更快。
+      const speed = (sprinting ? RUN_SPEED : WALK_SPEED) * dt;
+      moveBy(vx * speed, 0);
+      moveBy(0, vy * speed);
     }
     animT += dt;
   }
@@ -412,6 +450,26 @@ export function mountQuest(root: HTMLElement): void {
     }
   }
 
+  // 可互动物件上方的小箭头：上下浮动，告诉玩家"这里可以按 E"。
+  function drawPointer(o: MapObject): void {
+    const [cx, cy] = objectCenter(o);
+    const y = cy - 14 + Math.sin(animT * 6) * 1.5;
+    bctx.fillStyle = "#1d1433";
+    bctx.beginPath();
+    bctx.moveTo(cx - 4, y - 2);
+    bctx.lineTo(cx + 4, y - 2);
+    bctx.lineTo(cx, y + 3);
+    bctx.closePath();
+    bctx.fill();
+    bctx.fillStyle = "#5ee6b8";
+    bctx.beginPath();
+    bctx.moveTo(cx - 3, y - 3);
+    bctx.lineTo(cx + 3, y - 3);
+    bctx.lineTo(cx, y + 1);
+    bctx.closePath();
+    bctx.fill();
+  }
+
   function render(): void {
     bctx.drawImage(staticLayer, 0, 0);
     const unlocked = allDone();
@@ -445,6 +503,7 @@ export function mountQuest(root: HTMLElement): void {
     fx.draw(bctx, animT, doorX, doorY);
 
     if (near && !dialog.active) {
+      drawPointer(near);
       bctx.globalAlpha = 0.5 + 0.3 * Math.sin(animT * 5);
       bctx.strokeStyle = "#ecedf2";
       bctx.strokeRect(near.tx * TILE + 0.5, near.ty * TILE + 0.5, TILE - 1, TILE - 1);
@@ -500,12 +559,22 @@ export function mountQuest(root: HTMLElement): void {
   }
 
   renderNotes();
+  updateSoundButton();
 
   startButton.addEventListener("click", start);
   actionButton?.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     if (!started) start();
     else interact();
+  });
+  soundButton.addEventListener("click", toggleSound);
+
+  // 笔记里的 CG 回放：开场章节随时可看；结局需要先完成全部任务。
+  cgOpenButton.addEventListener("click", () => openCinema("intro"));
+  cgFinaleButton.addEventListener("click", () => {
+    if (!allDone()) return;
+    if (!reduce) fx.surge();
+    openCinema("clear");
   });
 
   root.querySelectorAll<HTMLButtonElement>("[data-dir]").forEach((btn) => {
@@ -545,8 +614,17 @@ export function mountQuest(root: HTMLElement): void {
   });
 
   window.addEventListener("keydown", (e) => {
-    if (!inView) return;
     const key = e.key.toLowerCase();
+    if (key === "shift") {
+      sprinting = true;
+      return;
+    }
+    // M 键随时切换声音，即使不在房间的视口中。
+    if (key === "m" && started) {
+      toggleSound();
+      return;
+    }
+    if (!inView) return;
     if (key in KEY_DIRS) {
       if (key.startsWith("arrow")) e.preventDefault();
       if (started) held.add(key);
@@ -560,8 +638,15 @@ export function mountQuest(root: HTMLElement): void {
       else interact();
     }
   });
-  window.addEventListener("keyup", (e) => held.delete(e.key.toLowerCase()));
-  window.addEventListener("blur", () => held.clear());
+  window.addEventListener("keyup", (e) => {
+    const key = e.key.toLowerCase();
+    if (key === "shift") sprinting = false;
+    held.delete(key);
+  });
+  window.addEventListener("blur", () => {
+    held.clear();
+    sprinting = false;
+  });
 
   // 离开视口时停止更新与绘制，省电；回到视口后时间差会被截断，不会跳帧。
   new IntersectionObserver(([entry]) => {
