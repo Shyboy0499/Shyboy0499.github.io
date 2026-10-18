@@ -50,6 +50,20 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
           <p class="lede">{profile.blurb}</p>
         </header>
 
+        <aside class="player-card" aria-label="Player card">
+          <img class="pc-avatar" src="/art/studio-cat.jpg" alt="" width="66" height="66" />
+          <div class="pc-body">
+            <p class="pc-name">{profile.name}</p>
+            <p class="pc-class">Builder of agents and tools</p>
+            <div class="pc-bar" role="progressbar" aria-label="Quest progress" aria-valuemin="0" data-pc-bar data-keys={JSON.stringify(missions.flatMap((m) => m.keys))}>
+              <i data-pc-fill></i>
+            </div>
+            <p class="pc-xp" data-pc-xp>Quest progress</p>
+          </div>
+          <span class="pc-level" data-pc-level>Lv.1</span>
+          <span class="pc-status">Currently: building in public</span>
+        </aside>
+
         <div class="quest-layout">
           <div class="stage">
             <canvas class="game" data-canvas tabindex="0" role="img" aria-label="A small cartoon room. Walk with the arrow keys or WASD, press E to read an object. Finish the four missions to open the gate to the portfolio."></canvas>
@@ -281,6 +295,30 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       const quest = document.getElementById("quest");
       if (quest) mountQuest(quest);
 
+      // 玩家卡：读取本机的任务进度，只更新经验条与等级，不影响游戏本身。
+      const pcBar = document.querySelector<HTMLElement>("[data-pc-bar]");
+      const pcFill = document.querySelector<HTMLElement>("[data-pc-fill]");
+      const pcXp = document.querySelector<HTMLElement>("[data-pc-xp]");
+      const pcLevel = document.querySelector<HTMLElement>("[data-pc-level]");
+      if (pcBar && pcFill && pcXp && pcLevel) {
+        const keys: string[] = JSON.parse(pcBar.dataset.keys ?? "[]");
+        let visited: string[] = [];
+        try {
+          visited = JSON.parse(localStorage.getItem("quest-visited-v1") ?? "[]");
+        } catch {
+          visited = [];
+        }
+        const done = keys.filter((k) => visited.includes(k)).length;
+        const pct = keys.length ? Math.round((done / keys.length) * 100) : 0;
+        pcBar.setAttribute("aria-valuemax", String(keys.length));
+        pcBar.setAttribute("aria-valuenow", String(done));
+        requestAnimationFrame(() => {
+          pcFill.style.width = pct + "%";
+        });
+        pcXp.textContent = `${done} / ${keys.length} keys found`;
+        pcLevel.textContent = `Lv.${1 + done}`;
+      }
+
       const repos = document.getElementById("repos");
       if (repos) mountRepos(repos);
 
@@ -459,20 +497,80 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         margin: 0 auto;
         padding: 120px clamp(18px, 5vw, 40px) 50px;
       }
-      /* 右上角的一朵云，装饰用；放在文字区之外，避免压住介绍文字。 */
-      .quest::before {
-        content: "";
+      /* 玩家卡：右上角的一张卡通角色卡，显示头像、等级与本机的任务进度（只读）。 */
+      .player-card {
         position: absolute;
-        top: 130px;
-        right: -40px;
-        width: 260px;
-        height: 70px;
-        pointer-events: none;
+        top: 120px;
+        right: clamp(18px, 5vw, 40px);
+        z-index: 2;
+        width: 270px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 14px;
+        background: var(--cream);
+        border: 4px solid var(--ink);
+        border-radius: 22px;
+        box-shadow: 6px 6px 0 var(--ink);
+        transform: rotate(2deg);
+        transition: transform 0.25s var(--ease);
+      }
+      .player-card:hover { transform: rotate(0deg) translateY(-3px); }
+      .pc-avatar {
+        flex-shrink: 0;
+        width: 66px;
+        height: 66px;
+        object-fit: cover;
+        object-position: 50% 55%;
+        border: 3px solid var(--ink);
+        border-radius: 50%;
+        background: var(--sun);
+      }
+      .pc-body { min-width: 0; flex: 1; }
+      .pc-name { margin: 0; font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+      .pc-class { margin: 0 0 8px; font-size: 0.82rem; font-weight: 500; color: #3d3556; }
+      .pc-bar {
+        height: 14px;
+        overflow: hidden;
         background: #ffffff;
         border: 3px solid var(--ink);
         border-radius: 999px;
-        box-shadow: 4px 4px 0 var(--ink);
-        opacity: 0.9;
+      }
+      .pc-bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--mint), var(--sun));
+        transition: width 0.8s var(--ease);
+      }
+      .pc-xp { margin: 6px 0 0; font-size: 0.78rem; font-weight: 600; }
+      .pc-level {
+        position: absolute;
+        top: -14px;
+        right: -10px;
+        padding: 2px 10px;
+        background: var(--coral);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        box-shadow: 2px 2px 0 var(--ink);
+      }
+      .pc-status {
+        position: absolute;
+        left: -10px;
+        bottom: -16px;
+        padding: 2px 10px;
+        background: #ffffff;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transform: rotate(-3deg);
+      }
+      @media (max-width: 900px) {
+        .player-card { position: relative; top: auto; right: auto; margin: 0 0 28px; transform: none; }
+        .player-card:hover { transform: none; }
       }
       .title {
         position: relative;
