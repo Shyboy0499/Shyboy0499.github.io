@@ -1,10 +1,11 @@
 // 视觉作品的数据来源：图片位于 public/art/，原创生成艺术由 scripts/gen-art.mjs 生成。
-// 新增作品时把图片放入 public/art/ 并在此追加；第一项会以大图形式展示。
+// 每件作品有一段 how：说明它是怎么画出来的，在灯箱里展示。新增作品时把图片放入 public/art/ 并在此追加。
 export type Artwork = {
   src: string;
   title: string;
   note: string;
   alt: string;
+  how: string;
 };
 
 export const artworks: Artwork[] = [
@@ -13,41 +14,48 @@ export const artworks: Artwork[] = [
     title: "Studio cat",
     note: "Photograph",
     alt: "A grey cat sitting in front of a dark floral wall print",
+    how: "A photo of the studio cat, shown as it was taken.",
   },
   {
     src: "/art/flow.svg",
     title: "Flow field",
     note: "Generative · line study",
     alt: "Abstract flowing lines on a dark background",
+    how: "260 curved lines. Each one starts at a seeded random point and steps forward along a sine/cosine angle field.",
   },
   {
     src: "/art/orbits.svg",
     title: "Orbit study",
     note: "Generative · concentric",
     alt: "Concentric rings with small coloured dots around a glowing centre",
+    how: "Concentric rings, with dots placed at seeded random angles, and a radial glow at the centre.",
   },
   {
     src: "/art/truchet.svg",
     title: "Truchet tiles",
     note: "Generative · pattern",
     alt: "A grid of curved line segments in violet and teal",
+    how: "A 12×12 grid. Each tile randomly picks one of two arc pairs, so the curves link up across tiles.",
   },
   {
     src: "/art/shards.svg",
     title: "Shard mesh",
     note: "Generative · triangulation",
     alt: "A jittered triangle mesh shaded from violet to coral",
+    how: "A 14×14 grid of points, each nudged at random, then split into triangles and shaded by position.",
   },
   {
     src: "/art/halo.svg",
     title: "Halo",
     note: "Generative · rings",
     alt: "Fading concentric rings around a bright core",
+    how: "30 rings whose opacity fades outward, around a glowing core.",
   },
   {
     src: "/art/strata.svg",
     title: "Strata",
     note: "Generative · layered waves",
     alt: "Layered wave bands fading from violet to coral",
+    how: "Nine sine waves stacked on top of each other. Each one has its own seeded amplitude and phase.",
   },
 ];

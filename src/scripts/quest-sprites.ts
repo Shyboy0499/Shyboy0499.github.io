@@ -262,3 +262,45 @@ export function drawCat(ctx: CanvasRenderingContext2D, tx: number, ty: number, t
     }
   }
 }
+
+// 窗外的云：在玻璃范围内裁剪后横向慢慢飘过，两层速度不同形成一点视差。
+export function drawWindowClouds(ctx: CanvasRenderingContext2D, wx: number, wy: number, t: number): void {
+  const x0 = wx * TILE + 2;
+  const y0 = wy * TILE + 2;
+  const w = TILE * 2 - 4;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x0, y0, w, TILE - 4);
+  ctx.clip();
+  ctx.fillStyle = "#ffffff";
+  for (let i = 0; i < 2; i++) {
+    const speed = 5 + i * 4;
+    const cx = ((t * speed + i * 30) % (w + 24)) - 12;
+    const cy = y0 + 3 + i * 3;
+    ctx.fillRect(x0 + cx, cy, 8, 3);
+    ctx.fillRect(x0 + cx + 2, cy - 2, 5, 2);
+    ctx.fillRect(x0 + cx + 5, cy - 1, 4, 2);
+  }
+  ctx.restore();
+}
+
+// 隐藏的金色宝珠：只在全部任务完成后出现，轻轻脉动。
+export function drawSecretOrb(ctx: CanvasRenderingContext2D, tx: number, ty: number, t: number): void {
+  const cx = tx * TILE + 8;
+  const cy = ty * TILE + 7 + Math.sin(t * 2.5) * 1;
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
+  glow.addColorStop(0, `rgba(255, 210, 63, ${0.55 + 0.2 * Math.sin(t * 4)})`);
+  glow.addColorStop(1, "rgba(255, 210, 63, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(cx - 12, cy - 12, 24, 24);
+  ctx.fillStyle = INK;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffd23f";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(Math.round(cx - 2), Math.round(cy - 3), 2, 2);
+}

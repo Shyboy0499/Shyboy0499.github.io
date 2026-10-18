@@ -36,6 +36,10 @@ export const dialogs: Record<string, Dialog> = {
     title: "Mailbox",
     lines: [`Email: ${profile.email}`, `GitHub: ${profile.github}`],
   },
+  secret: {
+    title: "A hidden orb",
+    lines: ["You found the secret.", `Thanks for visiting my room. Say hi: ${profile.email}`],
+  },
   portrait: {
     title: "Portrait",
     lines: [

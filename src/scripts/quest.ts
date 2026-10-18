@@ -1,9 +1,9 @@
 // 2D 任务式入口：角色在房间里走动，与物件互动即可逐步收集个人信息。
-// 负责循环、输入、对话、任务进度与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，特效见 quest-fx.ts，文案见 content/missions.ts。
+// 负责循环、输入、对话、任务进度、过场与绘制；地图见 quest-map.ts，素材见 quest-sprites.ts，特效见 quest-fx.ts，文案见 content/missions.ts。
 // 进度只保存在本机 localStorage，是访客自己的便利记录；页面下方的静态作品与关于始终可读。
 import { dialogs, missions } from "../content/missions";
 import { projects } from "../content/projects";
-import { CAT, COLS, ROWS, TILE, buildStaticLayer, isSolid, objects, type MapObject } from "./quest-map";
+import { CAT, COLS, ROWS, TILE, WINDOWS, buildStaticLayer, isSolid, objects, type MapObject } from "./quest-map";
 import {
   drawBookshelf,
   drawCat,
@@ -14,7 +14,9 @@ import {
   drawPlant,
   drawPortrait,
   drawRows,
+  drawSecretOrb,
   drawSign,
+  drawWindowClouds,
   playerFrame,
 } from "./quest-sprites";
 import { createFx } from "./quest-fx";
@@ -58,9 +60,18 @@ export function mountQuest(root: HTMLElement): void {
   const actionButton = root.querySelector<HTMLButtonElement>("[data-action]");
   const toast = root.querySelector<HTMLElement>("[data-toast]");
   const cinema = root.querySelector<HTMLElement>("[data-cinema]");
+  const cinemaSticker = root.querySelector<HTMLElement>("[data-cinema-sticker]");
+  const cinemaTitle = root.querySelector<HTMLElement>("[data-cinema-title]");
+  const cinemaSub = root.querySelector<HTMLElement>("[data-cinema-sub]");
   const cinemaGo = root.querySelector<HTMLButtonElement>("[data-cinema-go]");
+  const wipe = document.querySelector<HTMLElement>("[data-wipe]");
   const title = root.querySelector<HTMLElement>(".title");
-  if (!canvas || !startButton || !dialogEl || !dialogTitle || !dialogText || !hint || !progress || !resetButton || !toast || !cinema || !cinemaGo || !title) return;
+  if (
+    !canvas || !startButton || !dialogEl || !dialogTitle || !dialogText || !hint || !progress ||
+    !resetButton || !toast || !cinema || !cinemaSticker || !cinemaTitle || !cinemaSub || !cinemaGo || !title
+  ) {
+    return;
+  }
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -69,7 +80,7 @@ export function mountQuest(root: HTMLElement): void {
     return;
   }
 
-  // 减少动效时不做震动、闪光与故障效果，但仍保留开场过场的文字。
+  // 减少动效时不做震动、闪光、故障与过场动画，但仍保留文字。
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // 低分辨率缓冲区：所有绘制在 COLS×TILE 的像素空间进行，最后整体放大。
@@ -88,6 +99,7 @@ export function mountQuest(root: HTMLElement): void {
   const fx = createFx();
 
   const door = objects.find((o) => o.char === "D")!;
+  const secret = objects.find((o) => o.key === "secret")!;
 
   // 角色从房间中央偏下出生；坐标为精灵左上角，单位是缓冲区像素。
   const player = { x: 11 * TILE + 4, y: 9 * TILE - 10, facing: 1 };
@@ -184,15 +196,27 @@ export function mountQuest(root: HTMLElement): void {
       fx.surge();
       title.classList.add("glitch");
     }
-    window.setTimeout(openCinema, reduce ? 0 : 700);
+    window.setTimeout(() => openCinema("clear"), reduce ? 0 : 700);
   }
 
-  // 过场不抢焦点，几秒后自动收起，避免挡住房间里的操作；按钮仍可直接前往作品区。
-  function openCinema(): void {
+  // 过场卡片：开场用"Chapter 1"，通关用"Chapter clear"并带一个前往作品区的按钮。
+  // 过场不抢焦点，几秒后自动收起，避免挡住房间里的操作。
+  function openCinema(kind: "intro" | "clear"): void {
+    if (kind === "intro") {
+      cinemaSticker.textContent = "Chapter 1";
+      cinemaTitle.textContent = "A quest begins";
+      cinemaSub.textContent = "Find the four things I want you to know.";
+      cinemaGo.hidden = true;
+    } else {
+      cinemaSticker.textContent = "Chapter clear";
+      cinemaTitle.textContent = "Portfolio unlocked!";
+      cinemaSub.textContent = "Everything I've built is one scroll away.";
+      cinemaGo.hidden = false;
+    }
     cinema.hidden = false;
     requestAnimationFrame(() => cinema.classList.add("show"));
     window.clearTimeout(cinemaTimer);
-    cinemaTimer = window.setTimeout(closeCinema, 4500);
+    cinemaTimer = window.setTimeout(closeCinema, kind === "intro" ? 2600 : 4500);
   }
 
   function closeCinema(): void {
@@ -210,6 +234,8 @@ export function mountQuest(root: HTMLElement): void {
     let bestDist = INTERACT_RANGE;
     for (const o of objects) {
       if (!o.key) continue;
+      // 隐藏的宝珠只在全部任务完成后才可以互动。
+      if (o.key === "secret" && !allDone()) continue;
       const d = Math.hypot(o.tx * TILE + 8 - cx, o.ty * TILE + 8 - cy);
       if (d < bestDist) {
         bestDist = d;
@@ -268,6 +294,12 @@ export function mountQuest(root: HTMLElement): void {
       }
       return;
     }
+    if (target.key === "secret") {
+      const [x, y] = objectCenter(target);
+      fx.burst(x, y, CELEBRATE_COLORS, 30);
+      openDialog(dialogs.secret.title, dialogs.secret.lines);
+      return;
+    }
     const d = dialogs[target.key];
     if (!d) return;
 
@@ -288,6 +320,7 @@ export function mountQuest(root: HTMLElement): void {
     started = true;
     root.classList.add("is-started");
     startButton.blur();
+    if (!reduce) openCinema("intro");
   }
 
   // 移动按轴分开处理，撞墙时仍能沿另一个方向滑动。
@@ -372,6 +405,10 @@ export function mountQuest(root: HTMLElement): void {
       case "L":
         drawLamp(bctx, o.tx, o.ty, animT);
         break;
+      case "O":
+        // 宝珠在任务完成前不画出来，保持隐藏。
+        if (unlocked) drawSecretOrb(bctx, o.tx, o.ty, animT);
+        break;
     }
   }
 
@@ -379,6 +416,9 @@ export function mountQuest(root: HTMLElement): void {
     bctx.drawImage(staticLayer, 0, 0);
     const unlocked = allDone();
     const near = nearestInteractable();
+
+    // 窗外的云先画在窗口里，再叠加其它物件，避免盖住家具。
+    for (const [wx, wy] of WINDOWS) drawWindowClouds(bctx, wx, wy, animT);
 
     // 按脚下的 y 坐标排序，让角色能正确地走到物件前后。
     const items: { y: number; draw: () => void }[] = objects.map((o) => ({
@@ -491,9 +531,17 @@ export function mountQuest(root: HTMLElement): void {
     renderNotes();
   });
 
+  // 前往作品区：先用一道墨色的"擦除"转场，再滚动过去。
   cinemaGo.addEventListener("click", () => {
     closeCinema();
-    document.getElementById("work")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    if (wipe && !reduce) {
+      wipe.classList.remove("run");
+      void wipe.offsetWidth;
+      wipe.classList.add("run");
+      window.setTimeout(() => document.getElementById("work")?.scrollIntoView({ behavior: "auto" }), 380);
+    } else {
+      document.getElementById("work")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    }
   });
 
   window.addEventListener("keydown", (e) => {

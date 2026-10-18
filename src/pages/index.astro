@@ -1,14 +1,12 @@
 ---
-// 站点唯一页面：顶部是卡通风格的像素房间任务入口，下方是作品、视觉作品与关于。
-// 页面只负责结构与样式；游戏运行时在 scripts/quest.ts，数据在 content/*.ts。
+// 站点唯一页面：顶部是卡通风格的像素房间任务入口，下方是精选作品、全部仓库、视觉作品与关于。
+// 页面只负责结构与样式；运行时在 scripts/（quest.ts、repos.ts），数据在 content/*.ts。
 import { profile, projects } from "../content/projects";
 import { artworks } from "../content/gallery";
 import { missions } from "../content/missions";
+import { GITHUB_USER, SNAPSHOT } from "../content/github";
 
 const year = new Date().getFullYear();
-// 统计数字由作品数据推导，避免与列表不一致。
-const totalStars = projects.reduce((sum, p) => sum + Number(p.stars), 0);
-const languageCount = new Set(projects.map((p) => p.lang)).size;
 const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation", "Program synthesis", "LLM tooling", "Open source"];
 ---
 
@@ -36,6 +34,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       <div class="nav-links">
         <a href="#quest">Play</a>
         <a href="#work">Work</a>
+        <a href="#repos">Repos</a>
         <a href="#studio">Studio</a>
         <a href="#about">About</a>
         <a class="nav-cta" href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
@@ -73,10 +72,10 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
             <div class="cinema" data-cinema hidden>
               <div class="bar bar-top"></div>
               <div class="cinema-body">
-                <p class="sticker">Chapter clear</p>
-                <h3 class="cinema-title">Portfolio unlocked!</h3>
-                <p class="cinema-sub">Everything I've built is one scroll away.</p>
-                <button class="btn btn-big" type="button" data-cinema-go>See the work ↓</button>
+                <p class="sticker" data-cinema-sticker>Chapter 1</p>
+                <h3 class="cinema-title" data-cinema-title>A quest begins</h3>
+                <p class="cinema-sub" data-cinema-sub>Find the four things I want you to know.</p>
+                <button class="btn btn-big" type="button" data-cinema-go hidden>See the work ↓</button>
               </div>
               <div class="bar bar-bottom"></div>
             </div>
@@ -129,7 +128,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         </div>
       </div>
 
-      <!-- 作品：Bento 网格，首张大卡片；指针在卡片上移动时点亮高光。 -->
+      <!-- 精选作品：Bento 网格，首张大卡片；指针在卡片上移动时点亮高光。 -->
       <section id="work" class="section" data-reveal>
         <header class="section-head">
           <p class="sticker">01 — Work</p>
@@ -167,40 +166,94 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         </div>
       </section>
 
-      <!-- 视觉作品：第一张为照片的大图，其余为生成艺术；图片数据见 content/gallery.ts。 -->
+      <!-- 全部仓库：浏览器里从 GitHub 实时读取公开仓库，数字与列表都会更新。 -->
+      <section id="repos" class="section" data-reveal>
+        <header class="section-head">
+          <p class="sticker">02 — Repos · live</p>
+          <h2>Everything on GitHub</h2>
+          <p class="repo-intro">
+            Read straight from <a href={`https://github.com/${GITHUB_USER}`} target="_blank" rel="noopener noreferrer">{GITHUB_USER}</a>'s
+            public repos when you open this page. Private repos count in the total but aren't listed.
+          </p>
+        </header>
+
+        <dl class="stats">
+          <div class="stat-a"><dt>Repos</dt><dd data-stat="repos">{SNAPSHOT.repos}</dd></div>
+          <div class="stat-b"><dt>GitHub stars</dt><dd data-stat="stars">{SNAPSHOT.stars}</dd></div>
+          <div class="stat-c"><dt>Languages</dt><dd data-stat="languages">{SNAPSHOT.languages}</dd></div>
+        </dl>
+
+        <div class="repo-controls">
+          <input type="search" data-repo-search placeholder="Search name, topic, or language…" aria-label="Search repositories" />
+          <select data-repo-lang aria-label="Filter by language">
+            <option value="">All languages</option>
+          </select>
+          <select data-repo-sort aria-label="Sort repositories">
+            <option value="stars">Most stars</option>
+            <option value="updated">Recently updated</option>
+            <option value="name">Name</option>
+          </select>
+          <label class="toggle"><input type="checkbox" data-repo-forks /> Include forks</label>
+        </div>
+
+        <p class="repo-status" data-repo-status aria-live="polite">Loading from GitHub…</p>
+        <ul class="repo-grid" data-repo-grid></ul>
+        <button class="more-btn" type="button" data-repo-more hidden>Show more</button>
+      </section>
+
+      <!-- 工作室：用代码生成的图片。点击任一张可放大，并看到它是怎么画出来的。 -->
       <section id="studio" class="section" data-reveal>
         <header class="section-head">
-          <p class="sticker">02 — Studio</p>
-          <h2>Pictures and experiments</h2>
+          <p class="sticker">03 — Studio</p>
+          <h2>Pictures made with code</h2>
+          <p class="studio-intro">
+            Most of these are generated by a small script (<code>scripts/gen-art.mjs</code>) with a fixed seed,
+            so running it again gives the same picture. The first one is a photo of the studio cat.
+            Click any picture to see it larger and read how it was made.
+          </p>
         </header>
         <div class="gallery">
           {
             artworks.map((a, i) => (
-              <figure class={`art${i === 0 ? " art-feature" : ""}`}>
+              <button
+                class={`art${i === 0 ? " art-feature" : ""}`}
+                type="button"
+                data-art={i}
+                data-src={a.src}
+                data-title={a.title}
+                data-note={a.note}
+                data-alt={a.alt}
+                data-how={a.how}
+              >
                 <img src={a.src} alt={a.alt} loading="lazy" decoding="async" />
-                <figcaption>
+                <span class="art-cap">
                   <span class="art-title">{a.title}</span>
                   <span class="art-note">{a.note}</span>
-                </figcaption>
-              </figure>
+                </span>
+              </button>
             ))
           }
         </div>
+
+        <dialog class="lightbox" data-lightbox>
+          <img data-lightbox-img src="" alt="" />
+          <div class="lightbox-body">
+            <p class="lightbox-title" data-lightbox-title></p>
+            <p class="lightbox-note" data-lightbox-note></p>
+            <p class="lightbox-how" data-lightbox-how></p>
+            <button class="more-btn" type="button" data-lightbox-close>Close</button>
+          </div>
+        </dialog>
       </section>
 
       <section id="about" class="section about" data-reveal>
         <header class="section-head">
-          <p class="sticker">03 — About</p>
+          <p class="sticker">04 — About</p>
         </header>
         <p class="statement">
           I build tools that <mark>check their own work</mark>: agents, git automation, and the
           Mac setups that make a machine feel like mine.
         </p>
-        <dl class="stats">
-          <div class="stat-a"><dt>Projects</dt><dd>{projects.length}</dd></div>
-          <div class="stat-b"><dt>GitHub stars</dt><dd>{totalStars}</dd></div>
-          <div class="stat-c"><dt>Languages</dt><dd>{languageCount}</dd></div>
-        </dl>
         <div class="about-links">
           <a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
           <a href={`mailto:${profile.email}`}>Email ↗</a>
@@ -216,13 +269,43 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       </footer>
     </main>
 
+    <!-- 页面切换时的擦除转场：由 quest.ts 在前往作品区时触发。 -->
+    <div class="wipe" data-wipe aria-hidden="true"></div>
+
     <script>
       import { mountQuest } from "../scripts/quest";
+      import { mountRepos } from "../scripts/repos";
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       const quest = document.getElementById("quest");
       if (quest) mountQuest(quest);
+
+      const repos = document.getElementById("repos");
+      if (repos) mountRepos(repos);
+
+      // 作品灯箱：点击作品放大，显示标题、类型与制作方法。
+      const lightbox = document.querySelector<HTMLDialogElement>("[data-lightbox]");
+      const lbImg = document.querySelector<HTMLImageElement>("[data-lightbox-img]");
+      const lbTitle = document.querySelector<HTMLElement>("[data-lightbox-title]");
+      const lbNote = document.querySelector<HTMLElement>("[data-lightbox-note]");
+      const lbHow = document.querySelector<HTMLElement>("[data-lightbox-how]");
+      document.querySelectorAll<HTMLButtonElement>("[data-art]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!lightbox || !lbImg || !lbTitle || !lbNote || !lbHow) return;
+          lbImg.src = btn.dataset.src ?? "";
+          lbImg.alt = btn.dataset.alt ?? "";
+          lbTitle.textContent = btn.dataset.title ?? "";
+          lbNote.textContent = btn.dataset.note ?? "";
+          lbHow.textContent = btn.dataset.how ?? "";
+          lightbox.showModal();
+        });
+      });
+      document.querySelector<HTMLButtonElement>("[data-lightbox-close]")?.addEventListener("click", () => lightbox?.close());
+      lightbox?.addEventListener("click", (e) => {
+        // 点击灯箱外侧（遮罩）时关闭。
+        if (e.target === lightbox) lightbox.close();
+      });
 
       // 作品卡片：指针位置写入 CSS 变量，驱动高光跟随。
       document.querySelectorAll<HTMLElement>(".tile").forEach((tile) => {
@@ -284,8 +367,8 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       a { color: inherit; }
       [hidden] { display: none !important; }
       :focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+      code { font-family: ui-monospace, monospace; font-size: 0.9em; background: var(--cream); border: 2px solid var(--ink); border-radius: 8px; padding: 0 5px; }
 
-      /* 通用卡通部件：墨线、硬投影与圆角。 */
       .sticker {
         display: inline-block;
         margin: 0;
@@ -316,6 +399,19 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
       .btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--ink); }
       .btn-big { font-size: 1.4rem; padding: 16px 38px; }
+      .more-btn {
+        margin-top: 1.4rem;
+        padding: 10px 20px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        background: var(--mint);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 700;
+        box-shadow: 3px 3px 0 var(--ink);
+        cursor: pointer;
+      }
+      .more-btn:hover { transform: translate(-1px, -1px); }
 
       /* ---------- 导航 ---------- */
       .nav {
@@ -411,6 +507,20 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         background: #f2c78a;
         box-shadow: 10px 10px 0 var(--ink);
       }
+      /* 扫描线与暗角叠在画面上，让像素画更有"屏幕"的质感；不接收指针事件。 */
+      .stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        border-radius: 18px;
+        pointer-events: none;
+        background:
+          repeating-linear-gradient(0deg, rgba(29, 20, 51, 0.1) 0 1px, transparent 1px 3px),
+          radial-gradient(ellipse at center, transparent 60%, rgba(29, 20, 51, 0.35) 100%);
+        mix-blend-mode: multiply;
+      }
+      .start, .dialog, .hud-hint { z-index: 4; }
       .start {
         position: absolute;
         inset: 0;
@@ -484,6 +594,87 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         pointer-events: none;
       }
       .hud-hint:empty { display: none; }
+
+      .toast {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 6;
+        margin: 0;
+        padding: 6px 14px;
+        background: var(--mint);
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 3px 3px 0 var(--ink);
+        font-weight: 700;
+        opacity: 0;
+        transform: translateY(-8px) rotate(-2deg);
+        pointer-events: none;
+      }
+      .toast.show { opacity: 1; transform: none; transition: opacity 0.25s, transform 0.35s var(--ease); }
+
+      /* 过场：上下两条墨色"电影黑边"滑入，中间是黄色的章节卡片。 */
+      .cinema {
+        position: absolute;
+        inset: 0;
+        z-index: 7;
+        display: grid;
+        grid-template-rows: 16% 1fr 16%;
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .bar { background: var(--ink); transform: scaleY(0); transition: transform 0.6s var(--ease); }
+      .bar-top { transform-origin: top; }
+      .bar-bottom { transform-origin: bottom; }
+      .cinema.show .bar { transform: scaleY(1); }
+      .cinema-body {
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 12px;
+        text-align: center;
+        padding: 0 24px;
+        background: radial-gradient(circle, #ffe27a 0%, var(--cream) 75%);
+        opacity: 0;
+        transition: opacity 0.6s 0.3s;
+      }
+      .cinema.show .cinema-body { opacity: 1; }
+      .cinema-title {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 700;
+        color: var(--sun);
+        -webkit-text-stroke: 2px var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 4px 4px 0 var(--ink);
+      }
+      .cinema-sub { margin: 0; font-weight: 600; }
+
+      /* 门前的擦除转场：墨色的一道色块从左扫到右，中途切换到作品区。 */
+      .wipe {
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        background: var(--ink);
+        transform: translateX(-101%);
+        pointer-events: none;
+      }
+      .wipe.run { animation: wipe 0.75s var(--ease) forwards; }
+      @keyframes wipe {
+        0% { transform: translateX(-101%); }
+        50% { transform: translateX(0); }
+        100% { transform: translateX(101%); }
+      }
+
+      /* 标题的故障闪烁：短促的红青色错位，只在门开时出现一次。 */
+      .title.glitch { animation: glitch 0.6s steps(2) 3; }
+      @keyframes glitch {
+        0% { text-shadow: 5px 5px 0 var(--ink); }
+        25% { text-shadow: -4px 0 0 #ff6b6b, 4px 2px 0 #5ee6b8, 5px 5px 0 var(--ink); transform: translateX(-3px); }
+        50% { text-shadow: 6px -2px 0 #9b7bff, 5px 5px 0 var(--ink); transform: translateX(3px); }
+        75% { text-shadow: -2px 3px 0 #5ee6b8, 5px 5px 0 var(--ink); transform: none; }
+        100% { text-shadow: 5px 5px 0 var(--ink); }
+      }
 
       .touch { display: none; margin-top: 16px; justify-content: space-between; align-items: center; }
       @media (pointer: coarse) { .touch { display: flex; } }
@@ -588,87 +779,6 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       .reset:hover { transform: translate(-1px, -1px); }
       .fallback { font-weight: 500; }
 
-      /* ---------- 游戏画面的特效：扫描线、提示与过场 ---------- */
-      /* 扫描线与暗角叠在画面上，让像素画更有"屏幕"的质感；不接收指针事件。 */
-      .stage::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        border-radius: 18px;
-        pointer-events: none;
-        background:
-          repeating-linear-gradient(0deg, rgba(29, 20, 51, 0.1) 0 1px, transparent 1px 3px),
-          radial-gradient(ellipse at center, transparent 60%, rgba(29, 20, 51, 0.35) 100%);
-        mix-blend-mode: multiply;
-      }
-      .start, .dialog, .hud-hint { z-index: 4; }
-
-      .toast {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        z-index: 6;
-        margin: 0;
-        padding: 6px 14px;
-        background: var(--mint);
-        border: 3px solid var(--ink);
-        border-radius: 999px;
-        box-shadow: 3px 3px 0 var(--ink);
-        font-weight: 700;
-        opacity: 0;
-        transform: translateY(-8px) rotate(-2deg);
-        pointer-events: none;
-      }
-      .toast.show { opacity: 1; transform: none; transition: opacity 0.25s, transform 0.35s var(--ease); }
-
-      /* 过场：上下两条墨色"电影黑边"滑入，中间是黄色的章节卡片。 */
-      .cinema {
-        position: absolute;
-        inset: 0;
-        z-index: 7;
-        display: grid;
-        grid-template-rows: 16% 1fr 16%;
-        border-radius: 18px;
-        overflow: hidden;
-      }
-      .bar { background: var(--ink); transform: scaleY(0); transition: transform 0.6s var(--ease); }
-      .bar-top { transform-origin: top; }
-      .bar-bottom { transform-origin: bottom; }
-      .cinema.show .bar { transform: scaleY(1); }
-      .cinema-body {
-        display: grid;
-        place-content: center;
-        justify-items: center;
-        gap: 12px;
-        text-align: center;
-        padding: 0 24px;
-        background: radial-gradient(circle, #ffe27a 0%, var(--cream) 75%);
-        opacity: 0;
-        transition: opacity 0.6s 0.3s;
-      }
-      .cinema.show .cinema-body { opacity: 1; }
-      .cinema-title {
-        margin: 0;
-        font-size: clamp(2rem, 5vw, 3.2rem);
-        font-weight: 700;
-        color: var(--sun);
-        -webkit-text-stroke: 2px var(--ink);
-        paint-order: stroke fill;
-        text-shadow: 4px 4px 0 var(--ink);
-      }
-      .cinema-sub { margin: 0; font-weight: 600; }
-
-      /* 标题的故障闪烁：短促的红青色错位，只在门开时出现一次。 */
-      .title.glitch { animation: glitch 0.6s steps(2) 3; }
-      @keyframes glitch {
-        0% { text-shadow: 5px 5px 0 var(--ink); }
-        25% { text-shadow: -4px 0 0 #ff6b6b, 4px 2px 0 #5ee6b8, 5px 5px 0 var(--ink); transform: translateX(-3px); }
-        50% { text-shadow: 6px -2px 0 #9b7bff, 5px 5px 0 var(--ink); transform: translateX(3px); }
-        75% { text-shadow: -2px 3px 0 #5ee6b8, 5px 5px 0 var(--ink); transform: none; }
-        100% { text-shadow: 5px 5px 0 var(--ink); }
-      }
-
       /* ---------- 跑马灯 ---------- */
       .marquee {
         overflow: hidden;
@@ -704,6 +814,8 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         paint-order: stroke fill;
         text-shadow: 3px 3px 0 var(--pink);
       }
+      .repo-intro, .studio-intro { max-width: 60ch; margin: 0.8rem 0 0; font-size: 1.05rem; font-weight: 500; }
+      .repo-intro a { font-weight: 700; }
 
       /* ---------- Bento 作品网格 ---------- */
       .bento {
@@ -762,24 +874,76 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       .tile-open span { display: inline-block; transition: transform 0.2s var(--ease); }
       .tile:hover .tile-open span { transform: translate(3px, -3px); }
 
-      /* ---------- 视觉作品 ---------- */
+      /* ---------- 仓库页 ---------- */
+      .repo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 1.8rem; }
+      .repo-controls input[type="search"], .repo-controls select {
+        padding: 10px 14px;
+        border: 3px solid var(--ink);
+        border-radius: 14px;
+        background: var(--cream);
+        color: var(--ink);
+        font: inherit;
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .repo-controls input[type="search"] { flex: 1 1 260px; }
+      .toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+      .repo-status { margin: 1rem 0 0; font-weight: 600; }
+      .repo-grid {
+        list-style: none;
+        margin: 1.1rem 0 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
+      }
+      .repo-link {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        height: 100%;
+        padding: 18px;
+        background: var(--cream);
+        border: 3px solid var(--ink);
+        border-radius: 20px;
+        box-shadow: 5px 5px 0 var(--ink);
+        text-decoration: none;
+        transition: transform 0.15s var(--ease), box-shadow 0.15s;
+      }
+      .repo-link:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+      .repo-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+      .repo-name { font-weight: 700; word-break: break-word; }
+      .repo-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; background: var(--sun); border: 2px solid var(--ink); border-radius: 999px; }
+      .repo-badge-fork { background: #ffffff; }
+      .repo-desc { margin: 0; flex: 1; font-size: 0.92rem; color: #3d3556; }
+      .repo-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 0.82rem; font-weight: 600; }
+      .repo-lang { display: inline-flex; align-items: center; gap: 4px; }
+      .repo-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ink); }
+      .repo-date { margin-left: auto; font-weight: 500; color: #3d3556; }
+      .repo-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+      .repo-topic { font-size: 0.72rem; padding: 2px 8px; background: var(--mint); border: 2px solid var(--ink); border-radius: 999px; }
+
+      /* ---------- 工作室 ---------- */
       .gallery { margin-top: 2.4rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
-      .art {
+      button.art {
         position: relative;
-        margin: 0;
+        display: block;
+        padding: 0;
         aspect-ratio: 1;
         overflow: hidden;
         background: #ffffff;
         border: 4px solid var(--ink);
         border-radius: 22px;
         box-shadow: var(--pop);
+        cursor: zoom-in;
+        font: inherit;
+        color: inherit;
         transition: transform 0.2s var(--ease);
       }
-      .art:hover { transform: rotate(-1.5deg) scale(1.02); }
-      .art-feature { grid-column: span 2; aspect-ratio: 2 / 1; }
+      button.art:hover { transform: rotate(-1.5deg) scale(1.02); }
+      button.art.art-feature { grid-column: span 2; aspect-ratio: 2 / 1; }
       .art img { display: block; width: 100%; height: 100%; object-fit: cover; }
       .art-feature img { object-position: 50% 62%; }
-      .art figcaption {
+      .art-cap {
         position: absolute;
         left: 14px;
         bottom: 14px;
@@ -789,13 +953,30 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         background: var(--cream);
         border: 3px solid var(--ink);
         border-radius: 12px;
+        text-align: left;
         opacity: 0;
         transform: translateY(6px);
         transition: opacity 0.2s, transform 0.2s var(--ease);
       }
-      .art:hover figcaption, .art:focus-within figcaption { opacity: 1; transform: none; }
+      button.art:hover .art-cap, button.art:focus-visible .art-cap { opacity: 1; transform: none; }
       .art-title { font-weight: 700; }
       .art-note { font-size: 0.8rem; font-weight: 500; }
+
+      .lightbox {
+        width: min(92vw, 900px);
+        padding: 0;
+        border: 4px solid var(--ink);
+        border-radius: 22px;
+        background: var(--cream);
+        box-shadow: 10px 10px 0 var(--ink);
+        color: var(--ink);
+      }
+      .lightbox::backdrop { background: rgba(29, 20, 51, 0.6); }
+      .lightbox img { display: block; width: 100%; max-height: 66vh; object-fit: contain; background: #07070b; border-bottom: 4px solid var(--ink); }
+      .lightbox-body { padding: 16px 22px 20px; }
+      .lightbox-title { margin: 0; font-size: 1.5rem; font-weight: 700; }
+      .lightbox-note { margin: 0.2rem 0 0; font-weight: 600; color: var(--blue); }
+      .lightbox-how { margin: 0.8rem 0 0; font-size: 1rem; }
 
       /* ---------- 关于 ---------- */
       .statement {
@@ -812,7 +993,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         border-radius: 12px;
         color: var(--ink);
       }
-      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 22px; margin: 3rem 0 0; padding: 0; }
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 22px; margin: 2.4rem 0 0; padding: 0; }
       .stats div {
         padding: 22px;
         border: 4px solid var(--ink);
@@ -823,7 +1004,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
       .stat-b { background: var(--pink); }
       .stat-c { background: var(--mint); }
       .stats dt { font-size: 0.95rem; font-weight: 600; }
-      .stats dd { margin: 0.2rem 0 0; font-size: clamp(2.4rem, 5vw, 3.2rem); font-weight: 700; line-height: 1; }
+      .stats dd { margin: 0.2rem 0 0; font-size: clamp(2.4rem, 5vw, 3.2rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
       .about-links { display: flex; gap: 16px; margin-top: 2.2rem; }
       .about-links a {
         padding: 10px 20px;
@@ -880,15 +1061,17 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         .tile-wide { grid-column: auto; }
         .tile-wide .tile-glyph { width: 200px; height: 200px; }
         .gallery { grid-template-columns: 1fr; }
-        .art-feature { grid-column: auto; aspect-ratio: 1; }
+        button.art.art-feature { grid-column: auto; aspect-ratio: 1; }
         .dialog { left: 12px; right: 12px; bottom: 14px; padding: 12px 14px; }
         .game { box-shadow: 6px 6px 0 var(--ink); }
+        .repo-grid { grid-template-columns: 1fr; }
       }
 
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
         .marquee-track { animation: none !important; }
         .section { transition: none !important; opacity: 1; transform: none; }
+        .wipe.run { animation: none; }
       }
     </style>
   </body>
