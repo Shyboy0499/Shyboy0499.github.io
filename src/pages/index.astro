@@ -71,7 +71,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
 
             <div class="start">
               <button class="btn btn-big" type="button" data-start>Start quest!</button>
-              <p class="start-hint">Arrow keys or WASD to walk · E to interact</p>
+              <p class="start-hint">Arrows or WASD to walk · Shift to run · E to interact · M for sound</p>
             </div>
 
             <div class="dialog" data-dialog hidden>
@@ -127,6 +127,12 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
                 ))
               }
             </ol>
+            <div class="cg-box">
+              <p class="cg-title">CG gallery</p>
+              <button class="cg-btn" type="button" data-cg-open>Opening chapter</button>
+              <button class="cg-btn" type="button" data-cg-finale disabled>Finale CG · locked</button>
+            </div>
+            <button class="sound" type="button" data-sound aria-pressed="true">♪ Sound on</button>
             <button class="reset" type="button" data-reset>Reset progress</button>
           </aside>
         </div>
@@ -172,7 +178,7 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
                 <h3 class="tile-name">{p.name}</h3>
                 <p class="tile-blurb">{p.blurb}</p>
                 <div class="tile-foot">
-                  <span class="tile-star">★ {p.stars}</span>
+                  <span class="tile-star" data-repo-star={p.name}>★ {p.stars}</span>
                   <span class="tile-open">Open repository <span aria-hidden="true">↗</span></span>
                 </div>
               </a>
@@ -322,10 +328,16 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
 
       // 玩家卡的星标徽章：与仓库页共用同一份 GitHub 数据；失败时保留快照数字。
       const pcStars = document.querySelector<HTMLElement>("[data-pc-stars]");
-      if (pcStars) {
+      // 作品卡片上的星标同样来自实时数据，按仓库名对应。
+      const projectStars = document.querySelectorAll<HTMLElement>("[data-repo-star]");
+      if (pcStars || projectStars.length) {
         loadRepoStats()
           .then((stats) => {
-            pcStars.textContent = `★ ${stats.stars} stars`;
+            if (pcStars) pcStars.textContent = `★ ${stats.stars} stars`;
+            projectStars.forEach((node) => {
+              const repo = stats.repos.find((r) => r.name === node.dataset.repoStar);
+              if (repo) node.textContent = `★ ${repo.stargazers_count}`;
+            });
           })
           .catch(() => {
             // 保留快照数字即可。
@@ -904,6 +916,44 @@ const keywords = ["TypeScript", "Python", "Swift", "AI agents", "Git automation"
         cursor: pointer;
       }
       .reset:hover { transform: translate(-1px, -1px); }
+      .cg-box {
+        margin-top: 18px;
+        padding: 12px;
+        background: #ffffff;
+        border: 3px solid var(--ink);
+        border-radius: 16px;
+        box-shadow: 3px 3px 0 var(--ink);
+      }
+      .cg-title { margin: 0 0 8px; font-weight: 700; font-size: 0.95rem; }
+      .cg-btn {
+        display: block;
+        width: 100%;
+        margin-top: 6px;
+        padding: 7px 12px;
+        border: 3px solid var(--ink);
+        border-radius: 12px;
+        background: var(--sky-light);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+      }
+      .cg-btn:hover:not(:disabled) { background: var(--sun); }
+      .cg-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+      .sound {
+        margin-top: 14px;
+        padding: 8px 14px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        background: var(--mint);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 600;
+        box-shadow: 3px 3px 0 var(--ink);
+        cursor: pointer;
+      }
+      .sound[aria-pressed="false"] { background: #ffffff; }
       .fallback { font-weight: 500; }
 
       /* ---------- 跑马灯 ---------- */
