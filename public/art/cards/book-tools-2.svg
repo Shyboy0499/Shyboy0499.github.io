@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">
+<rect width="240" height="320" rx="18" fill="#ff6b6b"/>
+<polygon points="20,200 36,60 52,200" fill="#fff6e5" opacity="0.35"/><polygon points="52,200 68,90 84,200" fill="#fff6e5" opacity="0.55"/><polygon points="84,200 100,120 116,200" fill="#fff6e5" opacity="0.75"/><polygon points="116,200 132,60 148,200" fill="#fff6e5" opacity="0.35"/><polygon points="148,200 164,90 180,200" fill="#fff6e5" opacity="0.55"/><polygon points="180,200 196,120 212,200" fill="#fff6e5" opacity="0.75"/><polygon points="212,200 228,60 244,200" fill="#fff6e5" opacity="0.35"/>
+<rect x="10" y="10" width="220" height="300" rx="14" fill="none" stroke="#1d1433" stroke-width="4"/>
+<rect x="22" y="232" width="196" height="50" rx="10" fill="#1d1433"/>
+<text x="120" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#fff6e5">Agents on Desks</text>
+</svg>

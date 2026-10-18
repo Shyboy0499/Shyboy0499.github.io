@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">
+<rect width="240" height="320" rx="18" fill="#9b7bff"/>
+<circle cx="120" cy="120" r="20" fill="none" stroke="#fff6e5" stroke-width="3" opacity="0.90"/><circle cx="120" cy="120" r="34" fill="none" stroke="#fff6e5" stroke-width="3" opacity="0.78"/><circle cx="120" cy="120" r="48" fill="none" stroke="#fff6e5" stroke-width="3" opacity="0.66"/><circle cx="120" cy="120" r="62" fill="none" stroke="#fff6e5" stroke-width="3" opacity="0.54"/><circle cx="120" cy="120" r="76" fill="none" stroke="#fff6e5" stroke-width="3" opacity="0.42"/><circle cx="120" cy="120" r="90" fill="none" stroke="#fff6e5" stroke-width="3" opacity="0.30"/>
+<rect x="10" y="10" width="220" height="300" rx="14" fill="none" stroke="#1d1433" stroke-width="4"/>
+<rect x="22" y="232" width="196" height="50" rx="10" fill="#1d1433"/>
+<text x="120" y="263" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#fff6e5">The Tests Nobody Wrote</text>
+</svg>
