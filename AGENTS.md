@@ -6,15 +6,17 @@
 GitHub Pages 的站点：顶部是 2D 像素房间的任务式入口，下方是作品、视觉作品与关于。
 - 内容数据：`src/content/`（`projects.ts` 个人信息与作品，`missions.ts` 任务与对话，`gallery.ts` 视觉作品）
 - 页面结构与样式：`src/pages/index.astro`
-- 任务入口运行时：`src/scripts/`（`quest.ts` 循环、输入与任务进度，`quest-map.ts` 房间地图，`quest-sprites.ts` 像素素材）
+- 任务入口运行时：`src/scripts/`（`quest.ts` 循环、输入与任务进度，`quest-map.ts` 房间地图，`quest-sprites.ts` 像素素材，`quest-fx.ts` 特效）
+- 仓库页运行时：`src/scripts/repos.ts` 在浏览器里实时读取 GitHub API（公开仓库数、星标、语言、搜索与排序），配置与快照在 `src/content/github.ts`
 - 生成艺术：`scripts/gen-art.mjs` 生成 `public/art/` 下的 SVG
 
 This repo is Chris Yu's personal site, built with Astro and deployed to GitHub
-Pages: a 2D pixel-room quest at the top, followed by the portfolio, studio, and
-About sections.
+Pages: a 2D pixel-room quest at the top, followed by the featured work, a live
+repo explorer, the studio, and About.
 - Content: `src/content/` (`projects.ts` profile and projects, `missions.ts` missions and dialogs, `gallery.ts` artworks)
 - Page structure and styles: `src/pages/index.astro`
-- Quest runtime: `src/scripts/` (`quest.ts` loop, input, and mission progress; `quest-map.ts` room map; `quest-sprites.ts` pixel art)
+- Quest runtime: `src/scripts/` (`quest.ts` loop, input, and mission progress; `quest-map.ts` room map; `quest-sprites.ts` pixel art; `quest-fx.ts` effects)
+- Repo explorer: `src/scripts/repos.ts` reads the public GitHub API in the browser (repo count, stars, languages, search, sort); config and snapshot in `src/content/github.ts`
 - Generative art: `scripts/gen-art.mjs` writes SVGs to `public/art/`
 
 ## 开发规范 / Conventions

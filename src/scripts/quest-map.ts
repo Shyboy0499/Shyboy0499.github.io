@@ -1,6 +1,6 @@
 // 任务房间的地图：网格数据、碰撞判断与一次性预渲染的背景（地板、墙面、窗户、地毯与阴影）。
 // 不负责角色移动、物件状态与动态绘制（见 quest.ts、quest-sprites.ts）。
-// 物件字符约定：S 告示牌，C 项目水晶（按从上到下、从左到右对应 projects），M 信箱，P 照片墙，D 大门，T 盆栽、B 书架、L 台灯（只装饰、可碰撞）。
+// 物件字符约定：S 告示牌，C 项目水晶（按从上到下、从左到右对应 projects），M 信箱，P 照片墙，D 大门，T 盆栽、B 书架、L 台灯（只装饰、可碰撞），O 隐藏的金色宝珠（全部任务完成后出现）。
 
 export const TILE = 16;
 export const COLS = 24;
@@ -22,6 +22,7 @@ const PLACEMENTS: [string, number, number][] = [
   ["B", 18, 0],
   ["B", 19, 0],
   ["L", 20, 6],
+  ["O", 21, 11],
 ];
 
 // 地毯与猫咪都只在背景或绘制层出现，不参与碰撞；坐标为完整地图的瓦片坐标（含外墙）。
@@ -63,6 +64,7 @@ for (const [char, ix, iy] of ordered) {
   if (char === "M") key = "mailbox";
   if (char === "P") key = "portrait";
   if (char === "D") key = "door";
+  if (char === "O") key = "secret";
   objects.push({ char, key, tx, ty });
 }
 
