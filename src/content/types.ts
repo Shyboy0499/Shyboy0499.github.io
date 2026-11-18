@@ -50,6 +50,16 @@ export interface PortfolioProject {
   tags: readonly string[];
 }
 
+// 代码之外的个人爱好（咖啡拉花、钓鱼、健身等）；与项目分开，避免混入作品统计与开源列表。
+export interface PortfolioHobby {
+  id: string;
+  title: string;
+  summary: string;
+  description: string;
+  media: readonly PortfolioMedia[];
+  tags: readonly string[];
+}
+
 export interface PortfolioCollection {
   id: string;
   title: string;

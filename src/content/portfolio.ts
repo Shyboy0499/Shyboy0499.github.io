@@ -2,6 +2,7 @@
 // 世界坐标、相机路径、视觉角色和布局都必须放在各 World Binding 中。
 import type {
   PortfolioCollection,
+  PortfolioHobby,
   PortfolioPerson,
   PortfolioProject,
   PortfolioMedia,
@@ -238,6 +239,42 @@ const portfolioZh = {
       tags: ["Open Source", "DeepSeek", "Contributions"],
     },
   ] satisfies readonly PortfolioProject[],
+  // 爱好图片是示意插画而非实拍；文案里明确说明，换成实拍照片时只需替换同名文件并更新这句话。
+  hobbies: [
+    {
+      id: "latte-art",
+      title: "咖啡与拉花",
+      summary: "我会做咖啡，也很会拉花：老虎、独角兽、海马……",
+      description:
+        "手要稳，节奏要对，有一杯没拉好，就再做一杯。\n这里的图是示意插画，不是实拍照片。",
+      media: [
+        { id: "latte-tiger", role: "gallery", src: "/studio-world/life/latte-tiger.webp", alt: "老虎拉花插画" },
+        { id: "latte-unicorn", role: "gallery", src: "/studio-world/life/latte-unicorn.webp", alt: "独角兽拉花插画" },
+        { id: "latte-seahorse", role: "gallery", src: "/studio-world/life/latte-seahorse.webp", alt: "海马拉花插画" },
+      ] as readonly PortfolioMedia[],
+      tags: ["Coffee", "Latte Art"],
+    },
+    {
+      id: "fishing",
+      title: "钓鱼",
+      summary: "离开屏幕，去水边待一会儿。",
+      description: "钓鱼大多是耐心：抛竿、等待、读水面的变化。",
+      media: [
+        { id: "fishing-scene", role: "gallery", src: "/studio-world/life/fishing.webp", alt: "海边钓鱼插画" },
+      ] as readonly PortfolioMedia[],
+      tags: ["Fishing", "Outdoors"],
+    },
+    {
+      id: "gym",
+      title: "健身",
+      summary: "规律训练，保持状态。",
+      description: "力量和长期项目一样，靠的是持续出现，而不是某一天的爆发。",
+      media: [
+        { id: "gym-scene", role: "gallery", src: "/studio-world/life/gym.webp", alt: "哑铃与壶铃插画" },
+      ] as readonly PortfolioMedia[],
+      tags: ["Gym", "Training"],
+    },
+  ] satisfies readonly PortfolioHobby[],
 } as const;
 
 type PortfolioText = { title?: string; summary?: string; description?: string };
@@ -308,6 +345,24 @@ const portfolioEn = {
         "Features, tests and documentation contributed to DeepSeek Harness and the tools around it.",
     },
   } satisfies Record<string, PortfolioText>,
+  hobbies: {
+    "latte-art": {
+      title: "Coffee & Latte Art",
+      summary: "I make coffee — and pour latte art: tigers, unicorns, seahorses and more.",
+      description:
+        "A steady hand, the right rhythm, and another cup when one doesn't come out right.\nThe pictures here are illustrations, not photos.",
+    },
+    fishing: {
+      title: "Fishing",
+      summary: "Time away from the screen, by the water.",
+      description: "Fishing is mostly patience: cast, wait, and read the water.",
+    },
+    gym: {
+      title: "Gym",
+      summary: "Training regularly to stay in shape.",
+      description: "Like a long project, strength comes from showing up consistently, not from one big day.",
+    },
+  } satisfies Record<string, PortfolioText>,
   mediaAlt: {
     "deepseek-harness-cover": "DeepSeek Harness cover",
     "dsh-git-tools-cover": "dsh-git-tools cover",
@@ -319,6 +374,11 @@ const portfolioEn = {
     "build-05-knowledge-llm": "Knowledge × LLM: DeepSeek-Obsidian in progress",
     "build-06-learn-by-building": "Learn by Building: studying LLMs and ML in Sydney",
     "build-07-this-room": "This Room: a portfolio built as a 3D space",
+    "latte-tiger": "Tiger latte art illustration",
+    "latte-unicorn": "Unicorn latte art illustration",
+    "latte-seahorse": "Seahorse latte art illustration",
+    "fishing-scene": "Illustration of fishing by the sea",
+    "gym-scene": "Illustration of a dumbbell and kettlebell",
   } as Record<string, string>,
 };
 
@@ -331,6 +391,7 @@ export function portfolioFor(lang: Lang): typeof portfolioZh {
   if (lang === "zh") return portfolioZh;
   const collectionText = portfolioEn.collections as Record<string, PortfolioText>;
   const projectText = portfolioEn.projects as Record<string, PortfolioText>;
+  const hobbyText = portfolioEn.hobbies as Record<string, PortfolioText>;
   return {
     ...portfolioZh,
     metadata: { ...portfolioZh.metadata, ...portfolioEn.metadata },
@@ -344,6 +405,11 @@ export function portfolioFor(lang: Lang): typeof portfolioZh {
       ...project,
       ...projectText[project.id],
       media: localizeMedia(project.media),
+    })),
+    hobbies: portfolioZh.hobbies.map((hobby) => ({
+      ...hobby,
+      ...hobbyText[hobby.id],
+      media: localizeMedia(hobby.media),
     })),
   } as unknown as typeof portfolioZh;
 }
@@ -361,6 +427,8 @@ export type PortfolioProjectId = (typeof portfolio.projects)[number]["id"];
 export type PortfolioCollectionId =
   (typeof portfolio.collections)[number]["id"];
 export type PortfolioPersonId = (typeof portfolio.person)["id"];
+export type PortfolioHobbyId = (typeof portfolio.hobbies)[number]["id"];
+const hobbiesById = new Map(portfolio.hobbies.map((hobby) => [hobby.id, hobby]));
 
 function validatePortfolio(): void {
   const projectIds = new Set<string>();
@@ -431,6 +499,12 @@ export function portfolioCollectionById(id: PortfolioCollectionId) {
   const collection = collectionsById.get(id);
   if (!collection) throw new Error(`Unknown Portfolio Collection: ${id}`);
   return collection;
+}
+
+export function portfolioHobbyById(id: PortfolioHobbyId) {
+  const hobby = hobbiesById.get(id);
+  if (!hobby) throw new Error(`Unknown Portfolio Hobby: ${id}`);
+  return hobby;
 }
 
 export function portfolioPersonById(id: PortfolioPersonId) {
