@@ -370,9 +370,271 @@ html[data-world="studio"] .portal-trigger {
   }
 }
 
+/* 动效层：入场与悬停反馈只用独立的 translate/scale 属性，
+   避免覆盖上面 transform 承担的居中定位（toolbar、hint 依赖 translateX(-50%)）。 */
+@keyframes studio-drop-in {
+  from {
+    opacity: 0;
+    translate: 0 -14px;
+  }
+}
+
+@keyframes studio-rise-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+@keyframes studio-panel-in {
+  from {
+    opacity: 0;
+    translate: 32px 0;
+  }
+}
+
+@keyframes studio-sheet-in {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+  }
+}
+
+@keyframes studio-active-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(110, 231, 255, 0.5), 0 0 18px rgba(110, 231, 255, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(110, 231, 255, 0), 0 0 26px rgba(110, 231, 255, 0.5);
+  }
+}
+
+@keyframes studio-live-dot {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    opacity: 0.35;
+    scale: 0.7;
+  }
+}
+
+.studio-toolbar {
+  animation: studio-drop-in 620ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both;
+}
+
+.studio-toolbar button,
+.studio-index button {
+  position: relative;
+  transition:
+    translate 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 220ms ease-out,
+    border-color 220ms ease-out,
+    color 220ms ease-out,
+    box-shadow 220ms ease-out;
+}
+
+/* 悬停时扫过的高光条；纯装饰，不拦截指针。 */
+.studio-toolbar button::before,
+.studio-index button::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.28) 50%,
+      transparent 60%
+    )
+    no-repeat 160% 0 / 250% 100%;
+  content: "";
+  pointer-events: none;
+}
+
+.studio-toolbar button:hover::before,
+.studio-index button:hover::before {
+  background-position: -60% 0;
+  transition: background-position 640ms ease-out;
+}
+
+.studio-toolbar button:hover,
+.studio-index button:hover {
+  translate: 0 -2px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), 0 0 18px rgba(110, 231, 255, 0.28);
+}
+
+.studio-toolbar button[aria-pressed="true"] {
+  box-shadow: 0 0 22px rgba(110, 231, 255, 0.45);
+}
+
+.studio-toolbar button[aria-pressed="true"] .studio-toggle-dot::after {
+  box-shadow: 0 0 6px currentColor;
+}
+
+.studio-index button {
+  animation: studio-rise-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.studio-index button:nth-child(1) { animation-delay: 260ms; }
+.studio-index button:nth-child(2) { animation-delay: 310ms; }
+.studio-index button:nth-child(3) { animation-delay: 360ms; }
+.studio-index button:nth-child(4) { animation-delay: 410ms; }
+.studio-index button:nth-child(5) { animation-delay: 460ms; }
+.studio-index button:nth-child(6) { animation-delay: 510ms; }
+.studio-index button:nth-child(7) { animation-delay: 560ms; }
+.studio-index button:nth-child(n + 8) { animation-delay: 610ms; }
+
+/* 选中脉冲放在 ::after，按钮本身的入场 animation 不被替换；
+   否则取消选中时入场动画会带延迟重播，按钮短暂消失。 */
+.studio-index button[aria-pressed="true"]::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+  animation: studio-active-pulse 2.4s ease-in-out infinite;
+}
+
+.studio-hint::before {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  content: "";
+  vertical-align: 1px;
+  animation: studio-live-dot 1.6s ease-in-out infinite;
+}
+
+/* 详情面板每次从 hidden 恢复显示都会重新触发入场，内容按阅读顺序依次出现。 */
+.studio-detail {
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.45);
+  animation: studio-panel-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.studio-detail::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(transparent, var(--accent), transparent);
+  opacity: 0.7;
+  content: "";
+  pointer-events: none;
+}
+
+.studio-detail > :not(.studio-close) {
+  animation: studio-rise-in 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.studio-detail > .studio-object { animation-delay: 90ms; }
+.studio-detail > h2 { animation-delay: 140ms; }
+.studio-detail > .studio-summary { animation-delay: 190ms; }
+.studio-detail > .studio-media { animation-delay: 240ms; }
+.studio-detail > .studio-description { animation-delay: 290ms; }
+.studio-detail > .studio-tags { animation-delay: 340ms; }
+.studio-detail > .studio-links { animation-delay: 390ms; }
+
+.studio-detail h2 {
+  text-shadow: 0 0 28px rgba(110, 231, 255, 0.25);
+}
+
+.studio-close {
+  transition: rotate 220ms ease-out, border-color 180ms, color 180ms;
+}
+
+.studio-close:hover,
+.studio-close:focus-visible {
+  rotate: 90deg;
+}
+
+.studio-media img {
+  transition: scale 360ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 200ms, filter 200ms;
+}
+
+.studio-media img:hover {
+  border-color: var(--accent);
+  filter: brightness(1.08) saturate(1.12);
+  scale: 1.03;
+}
+
+.studio-tags span {
+  transition: border-color 180ms, color 180ms, box-shadow 180ms;
+}
+
+.studio-tags span:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(110, 231, 255, 0.25);
+}
+
+.studio-links a {
+  background: linear-gradient(90deg, rgba(110, 231, 255, 0.14), transparent) no-repeat;
+  background-size: 0 100%;
+  transition: background-size 320ms ease-out, padding-left 220ms ease-out, color 180ms;
+}
+
+.studio-links a:hover,
+.studio-links a:focus-visible {
+  padding-left: 10px;
+  background-size: 100% 100%;
+}
+
+@media (max-width: 760px) {
+  .studio-toolbar {
+    animation-name: studio-rise-in;
+  }
+
+  .studio-detail {
+    box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.45);
+    animation-name: studio-sheet-in;
+  }
+
+  .studio-detail::before {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .studio-toggle-dot::after,
-  .studio-hint {
+  .studio-hint,
+  .studio-toolbar button,
+  .studio-index button,
+  .studio-close,
+  .studio-media img,
+  .studio-links a {
     transition: none;
+  }
+
+  .studio-toolbar,
+  .studio-index button,
+  .studio-index button::after,
+  .studio-hint::before,
+  .studio-detail,
+  .studio-detail > * {
+    animation: none;
+  }
+
+  .studio-toolbar button::before,
+  .studio-index button::before {
+    display: none;
+  }
+
+  .studio-toolbar button:hover,
+  .studio-index button:hover,
+  .studio-close:hover,
+  .studio-close:focus-visible,
+  .studio-media img:hover {
+    translate: none;
+    rotate: none;
+    scale: none;
   }
 }
