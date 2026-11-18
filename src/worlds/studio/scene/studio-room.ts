@@ -9,6 +9,7 @@ import type {
 } from "../binding";
 import { createStudioArchitecture } from "./props/architecture";
 import { createStudioBoards } from "./props/boards";
+import { createStudioLifeWall } from "./props/life-wall";
 import { createStudioLights } from "./props/lights";
 import { createStudioPlant } from "./props/plant";
 import { createStudioShelf } from "./props/shelf";
@@ -152,6 +153,7 @@ export class StudioRoom {
     this.musicNotes = shelf.musicNotes;
     this.noteMaterials = shelf.noteMaterials;
     createStudioPlant(kit, this.plant);
+    createStudioLifeWall(kit, bindings, this.deskWoodTexture);
     // Portals are removed entirely for the room-tour-only site: no portal doors,
     // draft door, or world compass are placed in the scene.
   }
@@ -186,7 +188,8 @@ export class StudioRoom {
   orbit(deltaX: number, deltaY: number): void {
     this.desiredCamera.yaw = THREE.MathUtils.clamp(
       this.desiredCamera.yaw - deltaX * 0.0045,
-      -0.2,
+      // 选中右墙展品时镜头已转到 -1.3 附近；放宽下限，避免拖拽瞬间被夹回正面。
+      this.selected ? -1.5 : -0.2,
       1.35,
     );
     this.desiredCamera.pitch = THREE.MathUtils.clamp(
@@ -212,6 +215,10 @@ export class StudioRoom {
     const focus = group?.userData.focus as readonly [number, number, number] | undefined;
     this.desiredTarget.set(...(focus ?? [0, 2.18, -1.7]));
     this.desiredCamera.distance = id ? 5.2 : 14.4;
+    // 有指定视角的展品（右墙）转过去正对；退出选中时回到总览默认角度，避免停在侧面。
+    const yaw = group?.userData.yaw as number | undefined;
+    if (yaw !== undefined) this.desiredCamera.yaw = yaw;
+    else if (!id) this.desiredCamera.yaw = THREE.MathUtils.clamp(this.desiredCamera.yaw, -0.2, 1.35);
   }
 
   setNight(night: boolean): void {
@@ -664,6 +671,7 @@ export class StudioRoom {
 
   private registerExhibit(binding: StudioExhibitBinding, group: THREE.Group): void {
     group.userData.focus = binding.focus;
+    group.userData.yaw = binding.yaw;
     this.exhibits.set(binding.id, group);
   }
 

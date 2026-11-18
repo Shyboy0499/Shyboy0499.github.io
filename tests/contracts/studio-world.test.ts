@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 import {
   portfolioCollectionById,
+  portfolioHobbyById,
   portfolioPersonById,
   portfolioProjectById,
 } from "../../src/content/portfolio";
@@ -27,9 +28,14 @@ describe("Studio World contract", () => {
     for (const exhibit of studioBinding) {
       expect(ids.has(exhibit.id)).toBe(false);
       ids.add(exhibit.id);
-      // Studio is a room-tour-only build: every exhibit is a project.
-      expect(exhibit.kind).toBe("project");
-      expect(portfolioProjectById(exhibit.portfolioId).id).toBe(exhibit.portfolioId);
+      // 展品只能是作品或代码之外的爱好，且都必须指向 Content Kernel 中真实存在的条目。
+      if (exhibit.kind === "hobby") {
+        expect(portfolioHobbyById(exhibit.hobbyId).id).toBe(exhibit.hobbyId);
+        expect(portfolioHobbyById(exhibit.hobbyId).media.length).toBeGreaterThan(0);
+      } else {
+        expect(exhibit.kind).toBe("project");
+        expect(portfolioProjectById(exhibit.portfolioId).id).toBe(exhibit.portfolioId);
+      }
     }
   });
 

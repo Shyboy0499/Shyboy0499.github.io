@@ -2,6 +2,7 @@
 // 进入门槛已移除，World 一挂载就处于可交互状态。
 import {
   portfolioCollectionById,
+  portfolioHobbyById,
   portfolioPersonById,
   portfolioProjectById,
 } from "../../../content/portfolio";
@@ -30,6 +31,10 @@ const TARGET_LABELS: Record<StudioTargetId, string> = {
   workstation: t("打开主工作台", "Open the main workstation"),
   "roadmap-board": t("查看 DeepSeek 工具", "View the DeepSeek tools"),
   "contribution-frame": t("查看 Obsidian 工具", "View the Obsidian tool"),
+  "research-poster": t("查看研究项目 precondition-library", "View the precondition-library research"),
+  "latte-art": t("看看我的咖啡拉花", "See my latte art"),
+  fishing: t("代码之外：钓鱼", "Beyond code: fishing"),
+  gym: t("代码之外：健身", "Beyond code: the gym"),
   lamp: t("开关桌灯", "Toggle the desk lamp"),
   "portal-cosmic": t("穿过星门，前往宇宙世界", "Step through the star gate to Cosmic World"),
   "portal-linework": t("推开纸稿门，返回线稿世界", "Open the paper door back to Linework World"),
@@ -94,6 +99,17 @@ export function createStudioOverlay(options: StudioOverlayOptions) {
   });
 
   const contentFor = (binding: StudioExhibitBinding): DetailContent => {
+    if (binding.kind === "hobby") {
+      const hobby = portfolioHobbyById(binding.hobbyId);
+      return {
+        title: hobby.title,
+        summary: hobby.summary,
+        description: hobby.description,
+        tags: hobby.tags,
+        links: [],
+        images: hobby.media,
+      };
+    }
     if (binding.kind === "project") {
       const project = portfolioProjectById(binding.portfolioId);
       return {

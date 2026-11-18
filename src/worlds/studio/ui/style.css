@@ -337,8 +337,9 @@ html[data-world="studio"] .portal-trigger {
     display: none;
   }
 
+  /* 展品索引在窄屏是两列；7 个展品占 4 行（约 188px，底边 62px 起），提示条放在其上方。 */
   .studio-hint {
-    bottom: max(166px, calc(env(safe-area-inset-bottom) + 154px));
+    bottom: max(262px, calc(env(safe-area-inset-bottom) + 252px));
   }
 
   .studio-detail {
