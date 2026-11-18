@@ -3,6 +3,7 @@
 // 具体 3D 体验由 entry.ts 和 World 模块接管，页面本身不拥有渲染生命周期。
 // 同一模板生成中文 `/` 与英文 `/en/` 两份静态页面；语言只在构建期由路由参数决定。
 import "../styles.css";
+import "../showcase.css";
 import { SITE_CONFIG } from "../site.config";
 import {
   portfolioFor,
@@ -178,6 +179,24 @@ const buildLogSlides = [
   },
 ] as const;
 
+// 首屏世界橱窗：顺序即展示顺序。Cosmic 没有场景截图（entryPoster 是头像），改用 CSS 星空。
+const SHOWCASE_PITCHES: Record<keyof typeof WORLD_NAMING, [string, string]> = {
+  studio: ["走进我的 3D 工作室，桌上每件物品都是一个项目。", "Walk into my 3D studio — every object on the desk opens a project."],
+  cosmic: ["沿着星空滚动，读完我的构建日志与开源协作。", "Scroll through space to read my build log and open-source work."],
+  archipelago: ["扬帆出海，每座小岛承载一个作品。", "Set sail — each island carries a project."],
+  jianghu: ["夜色江湖，客栈与广场里藏着作品。", "A wuxia town at night, with work hidden in the inn and square."],
+  linework: ["一间手绘线稿工作室，安静地陈列作品。", "A hand-drawn line-art studio with the work quietly on display."],
+};
+const showcaseWorlds = (["studio", "cosmic", "archipelago", "jianghu", "linework"] as const).map((id) => ({
+  id,
+  // 卡片收起时很窄，只显示去掉 "World/世界" 后缀的短名，后缀移到编号旁。
+  label: lang === "en"
+    ? WORLD_NAMING[id].englishTitle.replace(/ World$/, "")
+    : WORLD_NAMING[id].chineseTitle.replace(/世界$/, ""),
+  poster: id === "cosmic" ? null : `/${WORLD_NAMING[id].entryPoster}`,
+  pitch: L(...SHOWCASE_PITCHES[id]),
+}));
+
 const routes = [
   { id: hero.id, number: hero.number, route: hero.route },
   ...collections.map(({ id, number, route }) => ({ id, number, route })),
@@ -216,8 +235,68 @@ const routes = [
         location.replace(paths[otherLang] + location.search + location.hash);
       }
     </script>
+    {/* 未指定 ?world 时先展示世界橱窗；必须在首屏渲染前标记，避免故事层闪现。entry.ts 读取同一标记决定是否启动 Runtime。 */}
+    <script is:inline>
+      if (!new URLSearchParams(location.search).has("world")) {
+        document.documentElement.dataset.showcase = "";
+      }
+    </script>
   </head>
   <body>
+    <section class="world-showcase" aria-labelledby="world-showcase-title">
+      <div class="world-showcase-glow" aria-hidden="true"></div>
+      <header class="world-showcase-top">
+        <span class="world-showcase-brand">
+          <span class="brand-mark">{person.shortName}</span>
+          {person.name}
+        </span>
+        <span class="world-showcase-meta">{person.location}</span>
+        <a
+          class="world-showcase-lang"
+          href={LANG_HOME_PATH[otherLang]}
+          hreflang={otherLang === "en" ? "en" : "zh-CN"}
+          data-lang-switch={otherLang}
+        >
+          {otherLang === "en" ? "EN" : "中文"}
+        </a>
+      </header>
+      <div class="world-showcase-intro">
+        <p class="world-showcase-eyebrow">{L("空间作品集 · 5 个世界", "A spatial portfolio · 5 worlds")}</p>
+        <h1 id="world-showcase-title">
+          {L("五个世界，", "Five worlds,")}<br />
+          <em>{L("一份作品集。", "one portfolio.")}</em>
+        </h1>
+        <p class="world-showcase-lede">
+          {L(
+            "每个世界都是走进我的项目的一种方式。选一个，进去看看。",
+            "Each world is a different way into my projects. Pick one and step inside.",
+          )}
+        </p>
+      </div>
+      <ol class="world-showcase-list">
+        {showcaseWorlds.map((world, index) => (
+          <li class="world-showcase-card" data-showcase-world={world.id} style={`--i:${index}`}>
+            <a href={`?world=${world.id}`}>
+              {world.poster ? (
+                <img src={world.poster} alt="" decoding="async" />
+              ) : (
+                <span class="world-showcase-stars" aria-hidden="true"></span>
+              )}
+              <span class="world-showcase-shade" aria-hidden="true"></span>
+              <span class="world-showcase-num">{String(index + 1).padStart(2, "0")} · {L("世界", "WORLD")}</span>
+              <span class="world-showcase-copy">
+                <span class="world-showcase-name">{world.label}</span>
+                <span class="world-showcase-more">
+                  <span class="world-showcase-pitch">{world.pitch}</span>
+                  <span class="world-showcase-enter">{L("进入世界", "Enter world")} <b aria-hidden="true">→</b></span>
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+
     <a class="skip-link" href="#story">{L("跳到主要内容", "Skip to main content")}</a>
 
     <!-- Runtime-owned WebGL surface and loading state. -->

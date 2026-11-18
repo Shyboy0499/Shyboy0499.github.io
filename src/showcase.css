@@ -1,0 +1,424 @@
+/* 世界橱窗：无 ?world 参数时的首屏，只负责展示与跳转，不持有任何 World 或 Runtime 状态。 */
+/* 显隐完全由 html[data-showcase] 决定；进入世界后整页导航，橱窗不参与其生命周期。 */
+.world-showcase {
+  display: none;
+}
+
+html[data-showcase],
+html[data-showcase] body {
+  overflow: hidden;
+}
+
+/* 橱窗期间 Runtime 未启动，loader 与故事层只会是静止的空壳，直接隐藏。 */
+html[data-showcase] body > :not(.world-showcase, script) {
+  display: none !important;
+}
+
+html[data-showcase] .world-showcase {
+  --sc-ink: #f4f5ef;
+  --sc-muted: #9aa1a8;
+  --sc-acid: #c8ff36;
+  --sc-cyan: #59e6ff;
+  --sc-gap: clamp(8px, 0.9vw, 14px);
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: clamp(18px, 3vh, 36px);
+  padding: clamp(18px, 3vh, 32px) clamp(16px, 3.4vw, 56px) clamp(16px, 4vh, 48px);
+  background: #05070a;
+  color: var(--sc-ink);
+  overflow: hidden auto;
+}
+
+.world-showcase-glow {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 80%;
+  background:
+    radial-gradient(40% 50% at 18% 30%, rgb(200 255 54 / 10%), transparent 70%),
+    radial-gradient(45% 55% at 82% 20%, rgb(89 230 255 / 12%), transparent 70%),
+    radial-gradient(35% 45% at 55% 60%, rgb(57 118 255 / 10%), transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+  animation: sc-glow-drift 18s ease-in-out infinite alternate;
+}
+
+.world-showcase-top,
+.world-showcase-intro,
+.world-showcase-list {
+  position: relative;
+}
+
+.world-showcase-top {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  animation: sc-fade 700ms ease-out both;
+}
+
+.world-showcase-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.world-showcase-brand .brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--sc-acid);
+  color: var(--sc-acid);
+}
+
+.world-showcase-meta {
+  color: var(--sc-muted);
+}
+
+.world-showcase-lang {
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid rgb(244 245 239 / 28%);
+  transition: border-color 200ms, color 200ms;
+}
+
+.world-showcase-lang:hover,
+.world-showcase-lang:focus-visible {
+  border-color: var(--sc-acid);
+  color: var(--sc-acid);
+}
+
+.world-showcase-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  align-items: end;
+  gap: 12px 40px;
+}
+
+.world-showcase-eyebrow {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--sc-cyan);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: sc-rise 700ms 80ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.world-showcase h1 {
+  margin: 0;
+  font-size: clamp(40px, 6.4vw, 104px);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  animation: sc-rise 800ms 140ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.world-showcase h1 em {
+  background: linear-gradient(90deg, var(--sc-acid), var(--sc-cyan));
+  background-clip: text;
+  color: transparent;
+  font-style: normal;
+}
+
+.world-showcase-lede {
+  margin: 0 0 6px;
+  color: var(--sc-muted);
+  font-size: 15px;
+  line-height: 1.55;
+  animation: sc-rise 800ms 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* 桌面端：手风琴式横排，悬停/聚焦的世界展开；无交互时默认展开第一个（Studio）。 */
+.world-showcase-list {
+  display: flex;
+  gap: var(--sc-gap);
+  min-height: 300px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.world-showcase-card {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  transition: flex-grow 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: sc-rise 800ms calc(300ms + var(--i) * 80ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.world-showcase-card:hover,
+.world-showcase-card:focus-within,
+.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child {
+  flex-grow: 3.6;
+}
+
+.world-showcase-card a {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgb(244 245 239 / 14%);
+  border-radius: 14px;
+  background: #0b0f14;
+  outline: none;
+  transition: border-color 300ms, box-shadow 300ms;
+}
+
+.world-showcase-card a:focus-visible {
+  border-color: var(--sc-acid);
+  box-shadow: 0 0 0 3px rgb(200 255 54 / 35%);
+}
+
+.world-showcase-card:hover a {
+  border-color: rgb(89 230 255 / 55%);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 50%), 0 0 40px rgb(89 230 255 / 14%);
+}
+
+.world-showcase-card img,
+.world-showcase-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  scale: 1.06;
+  filter: saturate(0.75) brightness(0.72);
+  transition: scale 900ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 500ms ease-out;
+}
+
+.world-showcase-card:hover :is(img, .world-showcase-stars),
+.world-showcase-card:focus-within :is(img, .world-showcase-stars),
+.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child :is(img, .world-showcase-stars) {
+  scale: 1;
+  filter: none;
+}
+
+/* Cosmic 没有场景截图，用星点 + 星云渐变近似其世界观。 */
+.world-showcase-stars {
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 28% 72%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 44% 36%, #dff, transparent),
+    radial-gradient(1px 1px at 62% 14%, #fff, transparent),
+    radial-gradient(2px 2px at 78% 58%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 26%, #cfe, transparent),
+    radial-gradient(1px 1px at 18% 88%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 54% 84%, #fff, transparent),
+    radial-gradient(1px 1px at 92% 82%, #fff, transparent),
+    radial-gradient(1px 1px at 36% 8%, #fff, transparent),
+    radial-gradient(55% 45% at 30% 35%, rgb(57 118 255 / 55%), transparent 70%),
+    radial-gradient(50% 40% at 75% 65%, rgb(200 80 255 / 38%), transparent 70%),
+    radial-gradient(35% 30% at 60% 30%, rgb(89 230 255 / 30%), transparent 70%),
+    #04060f;
+}
+
+.world-showcase-stars::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(46%, 220px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #9fd6ff, #2c4fd8 55%, #0a1240 100%);
+  box-shadow: 0 0 60px rgb(89 160 255 / 55%), inset -18px -18px 40px rgb(0 0 0 / 55%);
+  content: "";
+  translate: -50% -58%;
+  animation: sc-planet-float 7s ease-in-out infinite;
+}
+
+.world-showcase-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(5 7 10 / 55%) 0%, transparent 22%, transparent 45%, rgb(5 7 10 / 92%) 100%);
+}
+
+.world-showcase-num {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  color: var(--sc-acid);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.world-showcase-copy {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+}
+
+.world-showcase-name {
+  font-size: clamp(16px, 1.4vw, 24px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  transition: font-size 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.world-showcase-card:hover .world-showcase-name,
+.world-showcase-card:focus-within .world-showcase-name,
+.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child .world-showcase-name {
+  font-size: clamp(22px, 2.2vw, 36px);
+}
+
+/* 收起状态只露出名称；展开后简介与入口按钮再滑入。
+   收起时 max-height 归零，保证各卡片名称底部对齐。 */
+.world-showcase-more {
+  display: grid;
+  gap: 8px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.world-showcase-pitch,
+.world-showcase-enter {
+  max-width: 420px;
+  opacity: 0;
+  translate: 0 10px;
+  transition: opacity 300ms ease-out, translate 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.world-showcase-pitch {
+  color: rgb(244 245 239 / 82%);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.world-showcase-enter {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--sc-acid);
+  color: #05070a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.world-showcase-enter b {
+  transition: translate 250ms ease-out;
+}
+
+.world-showcase-card a:hover .world-showcase-enter b {
+  translate: 4px 0;
+}
+
+.world-showcase-card:hover .world-showcase-more,
+.world-showcase-card:focus-within .world-showcase-more,
+.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child .world-showcase-more {
+  max-height: 180px;
+}
+
+.world-showcase-card:hover :is(.world-showcase-pitch, .world-showcase-enter),
+.world-showcase-card:focus-within :is(.world-showcase-pitch, .world-showcase-enter),
+.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child :is(.world-showcase-pitch, .world-showcase-enter) {
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 180ms;
+}
+
+@keyframes sc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sc-rise {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}
+
+@keyframes sc-glow-drift {
+  to {
+    translate: 4% 6%;
+    scale: 1.08;
+  }
+}
+
+@keyframes sc-planet-float {
+  50% {
+    translate: -50% -64%;
+  }
+}
+
+/* 窄屏：改为纵向卡片列表，全部常显简介，不依赖悬停。 */
+@media (max-width: 760px) {
+  html[data-showcase] .world-showcase {
+    grid-template-rows: none;
+    align-content: start;
+  }
+
+  .world-showcase-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .world-showcase-meta {
+    display: none;
+  }
+
+  .world-showcase-list {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .world-showcase-card {
+    flex: none;
+    height: 168px;
+  }
+
+  .world-showcase-card:first-child {
+    height: 230px;
+  }
+
+  .world-showcase-card :is(img, .world-showcase-stars) {
+    scale: 1;
+    filter: brightness(0.85);
+  }
+
+  .world-showcase-card .world-showcase-more {
+    max-height: none;
+  }
+
+  .world-showcase-card :is(.world-showcase-pitch, .world-showcase-enter) {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .world-showcase-card:not(:first-child) .world-showcase-enter {
+    display: none;
+  }
+
+  .world-showcase-copy {
+    padding: 16px;
+  }
+
+  .world-showcase-card .world-showcase-name {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-showcase *,
+  .world-showcase-glow {
+    animation: none !important;
+    transition: none !important;
+  }
+}

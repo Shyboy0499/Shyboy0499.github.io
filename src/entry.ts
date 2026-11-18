@@ -17,7 +17,10 @@ document.querySelector<HTMLElement>("[data-year]")!.textContent = String(
   new Date().getFullYear(),
 );
 
-if (canvas) {
+// 世界橱窗模式由 <head> 内联脚本标记；此时不加载 Runtime，选中世界后通过 ?world= 整页进入。
+const showcaseActive = document.documentElement.hasAttribute("data-showcase");
+
+if (canvas && !showcaseActive) {
   void Promise.all([
     import("./runtime/experience-runtime"),
     import("./worlds/registry"),
@@ -28,7 +31,7 @@ if (canvas) {
       const requestedEntry = requestedWorldId
         ? worldRegistry[requestedWorldId]
         : undefined;
-      // Default to the Studio "room tour" world — the only experience for this site.
+      // 未知 ?world 值回落到 Studio；无参数时首屏是世界橱窗，不会走到这里。
       const initialEntry = requestedEntry ?? worldRegistry[WORLD_NAMING.studio.id];
       if (!initialEntry) {
         throw new Error("No World registered for portfolio experience.");
