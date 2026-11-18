@@ -41,8 +41,9 @@ const portfolioZh = {
       { repo: "Shyboy0499/awesome-deepseek-harness", stars: 1, capturedAt: "2026-09-03" },
       { repo: "Shyboy0499/awesome-deepseek-mcp", stars: 0, capturedAt: "2026-09-03" },
       { repo: "Shyboy0499/dsh-git-tools", stars: 2, capturedAt: "2026-09-03" },
-      { repo: "Shyboy0499/DeepSeek-Obsidian", stars: 0, capturedAt: "2026-09-03" },
+      { repo: "Shyboy0499/DeepSeek-Obsidian", stars: 4, capturedAt: "2026-11-18" },
       { repo: "Shyboy0499/Shyboy0499.github.io", stars: 3, capturedAt: "2026-09-03" },
+      { repo: "Shyboy0499/precondition-library", stars: 458, capturedAt: "2026-11-18" },
     ],
   } satisfies PortfolioPerson,
   collections: [
@@ -188,6 +189,23 @@ const portfolioZh = {
       tags: ["DeepSeek", "Obsidian", "Tooling"],
     },
     {
+      id: "precondition-library",
+      title: "precondition-library",
+      summary: "让 agent 靠运行检查而不是“看起来相似”来决定是否复用技能。",
+      description:
+        "把 git 维护杂务编译成可复用程序，再用对仓库状态运行检查的方式决定是否重放，并与文本相似度做对照。\n所有研究都预先登记；在 274 个真实 lock 文件合并上，“几乎不误触发”的原假设被证伪，结果如实公开。",
+      metrics: [
+        { label: "STARS", value: "458", capturedAt: "2026-11-18" },
+        { label: "FORKS", value: "18", capturedAt: "2026-11-18" },
+        { label: "LANGUAGE", value: "PYTHON" },
+      ],
+      links: [
+        { id: "source", label: "SOURCE", href: "https://github.com/Shyboy0499/precondition-library" },
+      ],
+      media: [] as readonly PortfolioMedia[],
+      tags: ["LLM Agents", "Research", "Git Automation"],
+    },
+    {
       id: "dsh-ecosystem-contribution",
       title: "DSH Ecosystem",
       summary: "参与 DeepSeek Harness 生态的多仓库协作。",
@@ -273,6 +291,11 @@ const portfolioEn = {
       summary: "Connecting DeepSeek workflows to knowledge management.",
       description:
         "Brings DeepSeek workflows into Obsidian so the model can help capture, organise and retrieve a personal knowledge base.",
+    },
+    "precondition-library": {
+      summary: "Should an agent replay a saved skill by running checks, or because the task looks familiar?",
+      description:
+        "Compiles git maintenance chores into reusable programs, then decides whether to replay them by running checks against the repository — benchmarked against text similarity.\nEvery study is pre-registered. On 274 real lock-file merges the original \"rarely mis-fires\" claim was falsified, and the results are published as they came out.",
     },
     "dsh-ecosystem-contribution": {
       summary: "Multi-repository collaboration across the DeepSeek Harness ecosystem.",

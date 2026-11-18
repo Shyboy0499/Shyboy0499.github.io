@@ -32,7 +32,7 @@ export const cosmicBinding = {
       titleLines: ["DeepSeek", "Ecosystem."],
       align: "left",
       signals: ["DEEPSEEK LIST", "DSH GIT TOOLS", "OBSIDIAN", "OPEN SOURCE"],
-      enterLabel: "EXPLORE 03 PROJECTS",
+      enterLabel: "EXPLORE 04 PROJECTS",
     },
     {
       portfolioId: "internship",
@@ -96,6 +96,13 @@ export const cosmicBinding = {
       eyebrow: "KNOWLEDGE TOOLING",
       titleLines: ["DeepSeek-", "Obsidian"],
       align: "right",
+    },
+    {
+      portfolioId: "precondition-library",
+      number: "04",
+      eyebrow: "AGENT RESEARCH",
+      titleLines: ["precondition-", "library"],
+      align: "left",
     },
   ] satisfies readonly {
     portfolioId: PortfolioProjectId;
