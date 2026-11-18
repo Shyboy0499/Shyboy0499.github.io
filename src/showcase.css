@@ -1,5 +1,5 @@
-/* 世界橱窗：无 ?world 参数时的首屏，只负责展示与跳转，不持有任何 World 或 Runtime 状态。 */
-/* 显隐完全由 html[data-showcase] 决定；进入世界后整页导航，橱窗不参与其生命周期。 */
+/* 世界橱窗：无 ?world 参数时的首屏，以及各世界内返回橱窗的入口；不持有任何 World 或 Runtime 状态。 */
+/* 显隐完全由 html[data-showcase] 决定；进入/返回都是整页导航，橱窗不参与 World 生命周期。 */
 .world-showcase {
   display: none;
 }
@@ -333,6 +333,83 @@ html[data-showcase] .world-showcase {
   transition-delay: 180ms;
 }
 
+/* 世界内的「全部世界」返回入口。各世界自带的 HUD 占据不同角落，
+   默认放左上，冲突的世界按 html[data-world] 单独避让；新增世界时需检查其 HUD 布局。 */
+.world-home-link {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px 9px 11px;
+  border: 1px solid rgb(244 245 239 / 22%);
+  border-radius: 999px;
+  background: rgb(8 10 14 / 72%);
+  color: #f4f5ef;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 25%);
+  transition: border-color 200ms, background-color 200ms, translate 200ms, opacity 300ms;
+  animation: sc-fade 600ms 1.2s ease-out both;
+}
+
+.world-home-link:hover,
+.world-home-link:focus-visible {
+  border-color: #c8ff36;
+  background: rgb(8 10 14 / 90%);
+  outline: none;
+  translate: 0 -1px;
+}
+
+.world-home-icon {
+  display: grid;
+  grid-template-columns: repeat(2, 5px);
+  gap: 2px;
+}
+
+.world-home-icon i {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: #c8ff36;
+}
+
+.world-home-link:hover .world-home-icon i:nth-child(odd) {
+  background: #59e6ff;
+}
+
+/* Cosmic 左上是站点 header 品牌位，改放左下。Runtime 未标记世界时（加载中或启动失败）
+   页面露出的也是同一个 header，因此同样放左下，保证任何情况下都能回到橱窗。 */
+html:not([data-world]) .world-home-link,
+html[data-world="cosmic"] .world-home-link {
+  top: auto;
+  bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+/* 窄屏下 Cosmic 的 route-rail 横贴底部（styles.css 的 width<=720px 规则），抬到其上方。 */
+@media (width <= 720px) {
+  html:not([data-world]) .world-home-link,
+  html[data-world="cosmic"] .world-home-link {
+    bottom: max(76px, calc(env(safe-area-inset-bottom) + 66px));
+  }
+}
+
+/* Archipelago 左上是航海日志与岛屿索引，下移到其下方。 */
+html[data-world="archipelago"] .world-home-link {
+  top: max(140px, calc(env(safe-area-inset-top) + 120px));
+  left: max(24px, env(safe-area-inset-left));
+}
+
+/* 穿越 Portal 期间不显示，避免压在过场画面上。 */
+.portal-journey-active .world-home-link {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @keyframes sc-fade {
   from {
     opacity: 0;
@@ -417,7 +494,8 @@ html[data-showcase] .world-showcase {
 
 @media (prefers-reduced-motion: reduce) {
   .world-showcase *,
-  .world-showcase-glow {
+  .world-showcase-glow,
+  .world-home-link {
     animation: none !important;
     transition: none !important;
   }
