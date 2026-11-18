@@ -309,7 +309,8 @@ export const cosmicWorld: WorldModule = {
     origin.position.set(isMobile ? 1.15 : 3.05, 0.25, 0);
     world.add(origin);
 
-    const cosmicAsset = (path: string): string => `${WORLD_NAMING.cosmic.assetBasePath}/${path}`;
+    // 资源必须用根路径：相对路径在 /en/ 页面会解析成 /en/assets/... 而 404。
+    const cosmicAsset = (path: string): string => `/${WORLD_NAMING.cosmic.assetBasePath}/${path}`;
     const buildLogAsset = (path: string): string => cosmicAsset(`build-log/${path}`);
 
     const avatarTexture = textureLoader.load(cosmicAsset("avatar.webp"));
@@ -523,7 +524,7 @@ export const cosmicWorld: WorldModule = {
     addOrbitalNodes(roadmap, 0x59e6ff, 4, 13);
 
     const roadmapLabel = createTextSprite(
-      `${metricValue("ai-application-roadmap", "STARS", "278")} STARS / ${metricValue("ai-application-roadmap", "LANGUAGES", "02")} LANG`,
+      `${metricValue("precondition-library", "STARS", "458")} STARS / PYTHON`,
       "#59e6ff",
       0.48,
     );
@@ -749,19 +750,19 @@ export const cosmicWorld: WorldModule = {
     };
 
     const desktopCollab = createCollaborationStation(
-      `DSH DESKTOP / ${metricValue("dsh-desktop-contribution", "MERGED PRS", "40")} PRS`,
+      `DSH ECOSYSTEM / ${metricValue("dsh-ecosystem-contribution", "MERGED PRS", "100+")} PRS`,
       0xc8ff36,
       -17,
       12,
     );
     const tuiCollab = createCollaborationStation(
-      `DSH TUI / ${metricValue("dsh-tui-contribution", "MERGED PRS", "30")} PRS`,
+      `DSH DEV / ${metricValue("dsh-dev-contribution", "MERGED PRS", "100+")} PRS`,
       0x59e6ff,
       0,
       10,
     );
     const webCollab = createCollaborationStation(
-      `DSH WEB UI / ${metricValue("dsh-web-ui-contribution", "MERGED PRS", "09")} PRS`,
+      `PRECONDITION / ${metricValue("precondition-library", "STARS", "458")} STARS`,
       0xff654b,
       17,
       7,
