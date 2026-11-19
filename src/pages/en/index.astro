@@ -1,0 +1,18 @@
+---
+// 旧英文地址 `/en/` 的兼容跳转：英文已成为 `/` 的默认语言，这里只负责把旧分享链接转到根路径。
+// 保留 ?world 参数与锚点，不渲染任何作品集内容。
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={new URL("/", Astro.site)} />
+    <meta http-equiv="refresh" content="0; url=/" />
+    <title>Redirecting…</title>
+    <script is:inline>location.replace("/" + location.search + location.hash);</script>
+  </head>
+  <body>
+    <a href="/">Continue to the portfolio</a>
+  </body>
+</html>

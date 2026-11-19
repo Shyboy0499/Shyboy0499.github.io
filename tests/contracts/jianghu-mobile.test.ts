@@ -16,8 +16,8 @@ describe("Jianghu mobile controls", () => {
     expect(directions).toHaveLength(4);
     expect(
       [...directions].map((button) => button.getAttribute("aria-label")),
-    ).toEqual(["向上移动", "向左移动", "向下移动", "向右移动"]);
-    expect(talk?.getAttribute("aria-label")).toBe("和最近的人物对话");
+    ).toEqual(["Move up", "Move left", "Move down", "Move right"]);
+    expect(talk?.getAttribute("aria-label")).toBe("Talk to the nearest character");
 
     scene.dispose();
     expect(document.querySelector(".jianghu-world-root")).toBeNull();

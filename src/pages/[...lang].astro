@@ -1,7 +1,7 @@
 ---
 // 静态首页宿主：提供可读 Portfolio DOM、Portal shell 和 Runtime 挂载点。
 // 具体 3D 体验由 entry.ts 和 World 模块接管，页面本身不拥有渲染生命周期。
-// 同一模板生成中文 `/` 与英文 `/en/` 两份静态页面；语言只在构建期由路由参数决定。
+// 同一模板生成英文 `/`（默认）与中文 `/zh/` 两份静态页面；语言只在构建期由路由参数决定。
 import "../styles.css";
 import "../showcase.css";
 import { SITE_CONFIG } from "../site.config";
@@ -16,10 +16,10 @@ import { createLiquidWorldPlacement } from "../worlds/world-picker-layout";
 import { WORLD_NAMING } from "../worlds/worlds.config";
 
 export function getStaticPaths() {
-  return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
+  return [{ params: { lang: undefined } }, { params: { lang: "zh" } }];
 }
 
-const lang: Lang = Astro.params.lang === "en" ? "en" : "zh";
+const lang: Lang = Astro.params.lang === "zh" ? "zh" : "en";
 const otherLang: Lang = lang === "en" ? "zh" : "en";
 const L = (zh: string, en: string): string => t(zh, en, lang);
 const portfolio = portfolioFor(lang);
@@ -225,13 +225,11 @@ const routes = [
     <link rel="manifest" href={SITE_CONFIG.manifestPath} />
     <link rel="alternate" hreflang="zh-CN" href={new URL(LANG_HOME_PATH.zh, Astro.site)} />
     <link rel="alternate" hreflang="en" href={new URL(LANG_HOME_PATH.en, Astro.site)} />
-    {/* 首次访问按浏览器语言跳转；用户手动选择过语言后只尊重保存的偏好。必须在首屏渲染前执行。 */}
-    <script is:inline define:vars={{ lang, otherLang, paths: LANG_HOME_PATH, key: LANG_STORAGE_KEY }}>
+    {/* 默认语言是英文，不按浏览器语言自动跳转；只有用户手动切换过语言才按保存的偏好跳转。必须在首屏渲染前执行。 */}
+    <script is:inline define:vars={{ otherLang, paths: LANG_HOME_PATH, key: LANG_STORAGE_KEY }}>
       let saved = null;
       try { saved = localStorage.getItem(key); } catch {}
-      const preferred = saved ?? (navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en");
-      // 明确打开的 /en/ 链接只在用户保存过中文偏好时才跳回，避免分享链接被浏览器语言改写。
-      if (preferred === otherLang && (lang === "zh" || saved === otherLang)) {
+      if (saved === otherLang) {
         location.replace(paths[otherLang] + location.search + location.hash);
       }
     </script>
