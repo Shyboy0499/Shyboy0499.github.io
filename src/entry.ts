@@ -10,7 +10,7 @@ installImmersiveMode();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   // Service Worker 只提供安装体验，不接管站点资源缓存策略。
-  void navigator.serviceWorker.register("./sw.js").catch(() => undefined);
+  void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
 }
 
 document.querySelector<HTMLElement>("[data-year]")!.textContent = String(
