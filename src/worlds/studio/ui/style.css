@@ -296,6 +296,111 @@ html[data-world="studio"] .portal-trigger {
   outline: none;
 }
 
+/* 导览开始按钮是首次访客的主入口，用强调色；导览进行时隐藏。 */
+.studio-toolbar .studio-tour-start {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #071216;
+}
+
+.studio-tour-start span {
+  font-size: 9px;
+}
+
+.studio-ui-root.is-touring .studio-tour-start {
+  display: none;
+}
+
+/* 导览进行时由导览条接管左下角，索引与悬停提示让位。 */
+.studio-ui-root.is-touring .studio-index,
+.studio-ui-root.is-touring .studio-hint {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.studio-tour {
+  position: absolute;
+  bottom: 24px;
+  left: 28px;
+  width: min(420px, calc(100vw - 76px - min(410px, 40vw)));
+  padding: 12px 12px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: rgba(12, 14, 17, 0.86);
+  pointer-events: auto;
+  backdrop-filter: blur(12px);
+}
+
+.studio-tour[hidden] {
+  display: none;
+}
+
+.studio-tour-step {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 9px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.studio-tour-step span {
+  color: var(--accent);
+}
+
+.studio-tour-progress {
+  height: 2px;
+  margin-bottom: 10px;
+  background: var(--rule);
+}
+
+.studio-tour-progress i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* 每站停留时长；动画结束事件驱动翻页。 */
+.studio-tour-progress i.is-running {
+  animation: studio-tour-progress 9s linear forwards;
+}
+
+.studio-ui-root.is-tour-paused .studio-tour-progress i {
+  animation-play-state: paused;
+}
+
+@keyframes studio-tour-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.studio-tour-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.studio-tour-controls button {
+  min-height: 34px;
+  padding: 0 6px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.studio-tour-controls button:hover,
+.studio-tour-controls button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
 @media (max-width: 760px) {
   .studio-toolbar {
     top: auto;
@@ -335,6 +440,23 @@ html[data-world="studio"] .portal-trigger {
 
   .studio-toolbar button b {
     display: none;
+  }
+
+  .studio-toolbar .studio-tour-start b {
+    display: inline;
+  }
+
+  /* 窄屏详情面板占据底部，导览条移到顶部「All worlds」按钮下方。 */
+  .studio-tour {
+    top: 66px;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: auto;
+    left: max(14px, env(safe-area-inset-left));
+    width: auto;
+  }
+
+  .studio-tour-controls button {
+    min-height: 40px;
   }
 
   /* 展品索引在窄屏是两列；7 个展品占 4 行（约 188px，底边 62px 起），提示条放在其上方。 */
