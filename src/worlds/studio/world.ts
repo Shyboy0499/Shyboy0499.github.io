@@ -57,7 +57,8 @@ export const studioWorld: WorldModule = {
         selected = id;
         room.select(id);
         const binding = studioBinding.find((item) => item.id === id);
-        // All studio exhibits are projects in the room-tour-only build.
+        // 导览逐站切换不写浏览器历史，否则导览结束后「返回」会一站站倒退。
+        if (overlay.isTouring()) return;
         scope.focus.commit(binding?.kind === "project" ? binding.portfolioId : null);
       },
       onLampToggle: () => room.toggleLamp(),

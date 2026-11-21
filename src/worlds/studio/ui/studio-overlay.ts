@@ -304,6 +304,7 @@ export function createStudioOverlay(options: StudioOverlayOptions) {
     show,
     hide,
     hasEntered: () => true,
+    isTouring: () => tourIndex !== null,
     setHovered(target: StudioTargetId | null) {
       if (target === currentHint) return;
       currentHint = target;
