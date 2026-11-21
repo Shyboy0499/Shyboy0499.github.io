@@ -488,7 +488,7 @@ export const cosmicWorld: WorldModule = {
     nexus.add(nexusKnot);
     animatedObjects.push(nexusKnot);
 
-    const nexusLabel = createTextSprite("CLAUDE NEXUS", "#ff654b", 0.52);
+    const nexusLabel = createTextSprite("DEEPSEEK HARNESS", "#ff654b", 0.52);
     nexusLabel.position.set(1.8, -2.05, 0.3);
     nexus.add(nexusLabel);
 
@@ -890,7 +890,7 @@ export const cosmicWorld: WorldModule = {
     lifeOrbit.rotation.set(0.55, -0.42, 0.35);
     life.add(lifeOrbit);
     addOrbitalNodes(life, 0xffffff, 3.75, 10);
-    const lifeLabel = createTextSprite("MINHOU → SHAOSHAN", "#ff654b", 0.44);
+    const lifeLabel = createTextSprite("STUDY & BUILD", "#ff654b", 0.44);
     lifeLabel.position.set(0, -2.65, 0.2);
     lifeLabel.visible = false;
     life.add(lifeLabel);
