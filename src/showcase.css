@@ -181,8 +181,7 @@ html[data-showcase] .world-showcase {
   box-shadow: 0 20px 60px rgb(0 0 0 / 50%), 0 0 40px rgb(89 230 255 / 14%);
 }
 
-.world-showcase-card img,
-.world-showcase-stars {
+.world-showcase-card img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -193,44 +192,11 @@ html[data-showcase] .world-showcase {
   transition: scale 900ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 500ms ease-out;
 }
 
-.world-showcase-card:hover :is(img, .world-showcase-stars),
-.world-showcase-card:focus-within :is(img, .world-showcase-stars),
-.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child :is(img, .world-showcase-stars) {
+.world-showcase-card:hover img,
+.world-showcase-card:focus-within img,
+.world-showcase-list:not(:hover, :focus-within) > .world-showcase-card:first-child img {
   scale: 1;
   filter: none;
-}
-
-/* Cosmic 没有场景截图，用星点 + 星云渐变近似其世界观。 */
-.world-showcase-stars {
-  background:
-    radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
-    radial-gradient(1px 1px at 28% 72%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 44% 36%, #dff, transparent),
-    radial-gradient(1px 1px at 62% 14%, #fff, transparent),
-    radial-gradient(2px 2px at 78% 58%, #fff, transparent),
-    radial-gradient(1px 1px at 88% 26%, #cfe, transparent),
-    radial-gradient(1px 1px at 18% 88%, #fff, transparent),
-    radial-gradient(1.5px 1.5px at 54% 84%, #fff, transparent),
-    radial-gradient(1px 1px at 92% 82%, #fff, transparent),
-    radial-gradient(1px 1px at 36% 8%, #fff, transparent),
-    radial-gradient(55% 45% at 30% 35%, rgb(57 118 255 / 55%), transparent 70%),
-    radial-gradient(50% 40% at 75% 65%, rgb(200 80 255 / 38%), transparent 70%),
-    radial-gradient(35% 30% at 60% 30%, rgb(89 230 255 / 30%), transparent 70%),
-    #04060f;
-}
-
-.world-showcase-stars::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(46%, 220px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #9fd6ff, #2c4fd8 55%, #0a1240 100%);
-  box-shadow: 0 0 60px rgb(89 160 255 / 55%), inset -18px -18px 40px rgb(0 0 0 / 55%);
-  content: "";
-  translate: -50% -58%;
-  animation: sc-planet-float 7s ease-in-out infinite;
 }
 
 .world-showcase-shade {
@@ -430,12 +396,6 @@ html[data-world="archipelago"] .world-home-link {
   }
 }
 
-@keyframes sc-planet-float {
-  50% {
-    translate: -50% -64%;
-  }
-}
-
 /* 窄屏：改为纵向卡片列表，全部常显简介，不依赖悬停。 */
 @media (max-width: 760px) {
   html[data-showcase] .world-showcase {
@@ -465,7 +425,7 @@ html[data-world="archipelago"] .world-home-link {
     height: 230px;
   }
 
-  .world-showcase-card :is(img, .world-showcase-stars) {
+  .world-showcase-card img {
     scale: 1;
     filter: brightness(0.85);
   }

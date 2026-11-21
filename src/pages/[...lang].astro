@@ -193,7 +193,8 @@ const showcaseWorlds = (["studio", "cosmic", "archipelago", "jianghu", "linework
   label: lang === "en"
     ? WORLD_NAMING[id].englishTitle.replace(/ World$/, "")
     : WORLD_NAMING[id].chineseTitle.replace(/世界$/, ""),
-  poster: id === "cosmic" ? null : `/${WORLD_NAMING[id].entryPoster}`,
+  // Cosmic 的 entryPoster 是头像，卡片改用场景截图（不含会过期的星标数）。
+  poster: id === "cosmic" ? "/assets/cosmic-poster.webp" : `/${WORLD_NAMING[id].entryPoster}`,
   pitch: L(...SHOWCASE_PITCHES[id]),
 }));
 
@@ -275,11 +276,7 @@ const routes = [
         {showcaseWorlds.map((world, index) => (
           <li class="world-showcase-card" data-showcase-world={world.id} style={`--i:${index}`}>
             <a href={`?world=${world.id}`}>
-              {world.poster ? (
-                <img src={world.poster} alt="" decoding="async" />
-              ) : (
-                <span class="world-showcase-stars" aria-hidden="true"></span>
-              )}
+              <img src={world.poster} alt="" decoding="async" />
               <span class="world-showcase-shade" aria-hidden="true"></span>
               <span class="world-showcase-num">{String(index + 1).padStart(2, "0")} · {L("世界", "WORLD")}</span>
               <span class="world-showcase-copy">
